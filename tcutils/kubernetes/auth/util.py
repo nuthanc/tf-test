@@ -1,5 +1,5 @@
 import os
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 import shlex
 import logging
 logging.basicConfig(
@@ -23,6 +23,8 @@ class Util:
     @staticmethod
     def exec_kubectl_cmd_on_file(verb, template_file):
         # kubectl = 'kubectl -v=5 --insecure-skip-tls-verify=true -s https://192.168.30.29:6443'
+        logging.info(check_output(
+            "kubectl config use-context keystone", shell=True, universal_newlines=True))
         kubectl = 'kubectl'
         cmd = shlex.split(f'{kubectl} {verb} -f {template_file}')
         p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)

@@ -73,9 +73,8 @@ def create_policies(resource={}, match=[]):
 
 # MSG need to add condition when the same policy is applied again
 def check_policy_in_config_map(policies):
-    admin = ExampleUser.admin()
-    Util.source_stackrc(user_name='admin', password='password',
-                        project_name='admin', domain_name='admin_domain', auth_url=admin.auth_url)
+    logger.info(check_output("kubectl config use-context juju-context",
+                             shell=True, universal_newlines=True))
     out = check_output("kubectl describe configmap -n kube-system k8s-auth-policy",
                        shell=True, universal_newlines=True)
     cmd_policy_string = out.split("policies")[1].split("\n")[2]
