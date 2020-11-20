@@ -93,3 +93,31 @@ class ResourceUtil(Util):
             'auth_url': admin.auth_url
         }
 
+    # Temp method
+    @staticmethod
+    def create_custom_user_openstack_objects_and_return_match_list_and_stackrc_dict():
+        admin = ExampleUser.admin()
+        admin.create_all(user_name='test', password='c0ntrail123', role='Member',
+                         project_name='test_project', domain_name='test_domain')
+        role_dict = {
+            'type': 'role',
+            'values': ['Member']
+        }
+        project_dict = {
+            'type': 'project',
+            'values': ['test_project']
+        }
+        user_dict = {
+            "type": 'user',
+            "values": ['test']
+        }
+        match = [role_dict, project_dict, user_dict]
+        stackrc_dict = {
+            'user_name': 'test',
+            'password': 'c0ntrail123',
+            'project_name': 'test_project',
+            'domain_name': 'test_domain',
+            'auth_url': admin.auth_url
+        }
+        return match, stackrc_dict
+

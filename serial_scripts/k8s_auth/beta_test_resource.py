@@ -109,3 +109,9 @@ def manual_test2():
     create_policy.create_and_apply_policies(resource=resource, match=match)
 
 manual_test2()
+
+# MSG Check the comments in all_in_one
+def all_in_one():
+    # Create the required users, projects and domains
+    # Uncomment  apply_policies_and_check_in_config_map in create_policy later
+    create_policy.create_and_apply_policies(resource=resource, match=match)
