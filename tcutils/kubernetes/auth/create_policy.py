@@ -101,7 +101,7 @@ def apply_policies_and_check_in_config_map(policies, filename):
 def create_and_apply_policies(resource={}, match=[], filename=None):
     policies = create_policies(resource=resource, match=match)
     filename = insert_policies_in_template_file(policies)
-    # apply_policies_and_check_in_config_map(policies, filename)
+    apply_policies_and_check_in_config_map(policies, filename)
 
 
 # pprint.pprint(create_policies(resource={'verbs': ['get'], 'resources': ['pods']}))

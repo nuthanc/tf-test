@@ -101,7 +101,7 @@ def delete_all():
 # delete_all()
 
 
-#For manual test
+#For manual tests, do first the tests in test_resource, then the following 2
 def manual_test2():
     # resource = {'resources': ['pods'], 'verbs': ['create','get','list'], 'namespace': 'easy'}
     resource = {'resources': ['pods'], 'verbs': ['create','get','list']}
@@ -111,7 +111,75 @@ def manual_test2():
 manual_test2()
 
 # MSG Check the comments in all_in_one
-def all_in_one():
+def manual_test():
     # Create the required users, projects and domains
-    # Uncomment  apply_policies_and_check_in_config_map in create_policy later
-    create_policy.create_and_apply_policies(resource=resource, match=match)
+    admin = ExampleUser.admin()
+    
+    admin.create_all(user_name='zoro', password='c0ntrail123', role='Member',
+                     project_name='zoro_project', domain_name='zoro_domain')
+    admin.create_all(user_name='ola', password='c0ntrail123', role='Member',
+                     project_name='ola_project', domain_name='ola_domain')
+    admin.create_all(user_name='uber', password='c0ntrail123', role='Member',
+                     project_name='uber_project', domain_name='uber_domain')
+    admin.create_all(user_name='zomato', password='c0ntrail123', role='Member',
+                     project_name='zomato_project', domain_name='zomato_domain')
+    os.system('kubectl create ns zomsrc')
+    os.system('juju config kubernetes-master keystone-policy="$(cat /root/nuthanc-tf-test/tcutils/kubernetes/auth/templates/all_in_one_policy.yaml)')
+    import pdb;pdb.set_trace()
+    # kubectl describe configmap -n kube-system k8s-auth-policy
+    # Stackrcs in o7k
+
+    # For ola user, only create pods and deployments and nothing else
+    stackrc_dict = {
+        'user_name': 'ola',
+        'password': 'c0ntrail123',
+        'project_name': 'ola_project',
+        'domain_name': 'uber_domain',
+        'auth_url': admin.auth_url
+    }
+    resource_expectation_list = ['pod-expected', 'deployment', 'service', 'namespace',
+                                 'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
+    ResourceUtil.perform_operations(
+        stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
+
+
+    # For uber user, only delete pods and deployments and nothing else
+    stackrc_dict = {
+        'user_name': 'uber',
+        'password': 'c0ntrail123',
+        'project_name': 'uber_project',
+        'domain_name': 'uber_domain',
+        'auth_url': admin.auth_url
+    }
+    resource_expectation_list = ['pod', 'deployment-expected', 'service', 'namespace',
+                                 'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
+    ResourceUtil.perform_operations(
+        stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
+
+    # For zomato user, create service in zomsrc namespace and nothing else should work
+    stackrc_dict = {
+        'user_name': 'zomato',
+        'password': 'c0ntrail123',
+        'project_name': 'zomato_project',
+        'domain_name': 'zomato_domain',
+        'auth_url': admin.auth_url
+    }
+    resource_expectation_list = ['pod', 'deployment', 'service-expected', 'namespace',
+                                 'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
+    ResourceUtil.perform_operations(
+        stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
+
+    # For zoro user
+    os.system('kubectl create ns easy')
+    stackrc_dict = {
+        'user_name': 'zoro',
+        'password': 'c0ntrail123',
+        'project_name': 'zoro_project',
+        'domain_name': 'zoro_domain',
+        'auth_url': admin.auth_url
+    }
+    resource_expectation_list = ['pod-expected', 'deployment-expected', 'service-expected', 'namespace-expected',
+                                 'network_attachment_definition-expected', 'network_policy-expected', 'ingress-expected', 'daemonset-expected']
+    ResourceUtil.perform_operations(
+        resource_expectation_list=resource_expectation_list, stackrc_dict=stackrc_dict)
+    
