@@ -87,7 +87,7 @@ def check_policy_in_config_map(policies):
                            shell=True, universal_newlines=True)
         cmd_policy_string = out.split("policies")[1].split("\n")[2]
         time.sleep(2)
-    time.sleep(5)  # For master to stabilize, give additional 5 seconds
+    time.sleep(5*60)  # For master to stabilize, give additional 5 minutes
     logger.info("Policy updated in ConfigMap")
     logger.info(check_output(
         "kubectl config use-context keystone", shell=True, universal_newlines=True))
