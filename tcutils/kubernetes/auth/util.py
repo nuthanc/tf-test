@@ -2,6 +2,7 @@ import os
 from subprocess import Popen, PIPE, check_output
 import shlex
 import logging
+import paramiko
 logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO, datefmt='%d-%b-%y %H:%M:%S')
 # MSG Create a Logger class
@@ -57,3 +58,23 @@ class Util:
                 import json
                 errorMessage = json.loads(errorObject)['message']
                 logging.error(errorMessage)
+    
+    @staticmethod
+    def execute_cmds_on_remote(ip, cmd_list):
+        client = paramiko.SSHClient()
+        try:
+            # k = paramiko.RSAKey.from_private_key_file('~/.ssh/id_rsa')
+            client.load_system_host_keys()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(hostname=ip, username='ubuntu')
+        except:
+            print("[!] Cannot connect to the SSH Server")
+            exit()
+
+        for cmd in cmd_list:
+            stdin, stdout, stderr = client.exec_command(cmd)
+            print(stdout.read().decode())
+            err = stderr.read().decode()
+        if err:
+            print(err)
+        client.close()
