@@ -1,11 +1,12 @@
 from tcutils.kubernetes.auth.example_user import ExampleUser
 from tcutils.kubernetes.auth.resource_util import ResourceUtil
 from tcutils.kubernetes.auth import create_policy
-import unittest
+# from tcutils.wrappers import preposttest_wrapper
+from testtools import TestCase
 import os
 
 
-class TestPolicyCombo(unittest.TestCase):
+class TestPolicyCombo(TestCase):
     @classmethod
     def setUpClass(cls):
         # Create the required users, projects and domains
@@ -33,6 +34,7 @@ class TestPolicyCombo(unittest.TestCase):
         create_policy.apply_policies_and_check_in_config_map(
             policies, filename)
 
+    # @preposttest_wrapper
     def test_only_pods_and_deployments_create(self):
         '''
         For userA user, only create pods and deployments and nothing else
@@ -52,6 +54,7 @@ class TestPolicyCombo(unittest.TestCase):
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
 
+    # @preposttest_wrapper
     def test_only_pods_and_deployments_delete(self):
         '''
         For userB user, only delete pods and deployments and nothing else
@@ -71,6 +74,7 @@ class TestPolicyCombo(unittest.TestCase):
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
 
+    # @preposttest_wrapper
     def test_only_service_in_zomsrc_ns(self):
         '''
         For userC user, create service in zomsrc namespace and nothing else should work
@@ -92,6 +96,7 @@ class TestPolicyCombo(unittest.TestCase):
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list, namespace='zomsrc')
 
+    # @preposttest_wrapper
     def test_only_pods_deployments_services_in_easy_ns(self):
         '''
         For userD user, any operation on pods, deployments and services but only in easy namespace
@@ -112,7 +117,3 @@ class TestPolicyCombo(unittest.TestCase):
             resource_expectation_list=resource_expectation_list, stackrc_dict=stackrc_dict)
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list, namespace='easy')
-
-
-if __name__ == '__main__':
-    unittest.main()
