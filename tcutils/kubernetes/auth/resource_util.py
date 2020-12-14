@@ -8,7 +8,7 @@ import random
 from common import log_orig as contrail_logging
 import json
 
-logger = contrail_logging.getLogger(__name__)
+logger = contrail_logging.getLogger('auth')
 
 
 class ResourceUtil(Util):

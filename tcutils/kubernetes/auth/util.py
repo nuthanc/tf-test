@@ -6,7 +6,7 @@ import string
 import random
 from common import log_orig as contrail_logging
 
-logger = contrail_logging.getLogger(__name__)
+logger = contrail_logging.getLogger('auth')
 
 
 class Util:

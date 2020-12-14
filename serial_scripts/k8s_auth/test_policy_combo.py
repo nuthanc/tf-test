@@ -1,7 +1,7 @@
 from tcutils.kubernetes.auth.example_user import ExampleUser
 from tcutils.kubernetes.auth.resource_util import ResourceUtil
 from tcutils.kubernetes.auth import create_policy
-# from tcutils.wrappers import preposttest_wrapper
+from tcutils.kubernetes.auth.wrappers import preposttest_wrapper
 from testtools import TestCase
 import os
 
@@ -34,13 +34,11 @@ class TestPolicyCombo(TestCase):
         create_policy.apply_policies_and_check_in_config_map(
             policies, filename)
 
-    # @preposttest_wrapper
+    @preposttest_wrapper
     def test_only_pods_and_deployments_create(self):
         '''
         For userA user, only create pods and deployments and nothing else
         '''
-        print("\n"+self.id())
-        print("For userA user, only create pods and deployments and nothing else")
         admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userA',
@@ -54,13 +52,11 @@ class TestPolicyCombo(TestCase):
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
 
-    # @preposttest_wrapper
+    @preposttest_wrapper
     def test_only_pods_and_deployments_delete(self):
         '''
         For userB user, only delete pods and deployments and nothing else
         '''
-        print("\n"+self.id())
-        print("\nFor userB user, only delete pods and deployments and nothing else")
         admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userB',
@@ -74,7 +70,7 @@ class TestPolicyCombo(TestCase):
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
 
-    # @preposttest_wrapper
+    @preposttest_wrapper
     def test_only_service_in_zomsrc_ns(self):
         '''
         For userC user, create service in zomsrc namespace and nothing else should work
@@ -96,13 +92,11 @@ class TestPolicyCombo(TestCase):
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list, namespace='zomsrc')
 
-    # @preposttest_wrapper
+    @preposttest_wrapper
     def test_only_pods_deployments_services_in_easy_ns(self):
         '''
         For userD user, any operation on pods, deployments and services but only in easy namespace
         '''
-        print("\n"+self.id())
-        print("\nFor userD user, any operation on pods, deployments and services but only in easy namespace")
         admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userD',

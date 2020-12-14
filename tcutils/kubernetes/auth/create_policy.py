@@ -9,7 +9,7 @@ from tcutils.kubernetes.auth.example_user import ExampleUser
 from tcutils.kubernetes.auth.util import Util
 from common import log_orig as contrail_logging
 
-logger = contrail_logging.getLogger(__name__)
+logger = contrail_logging.getLogger('auth')
 
 
 def insert_policies_in_template_file(policies, filename=None):
