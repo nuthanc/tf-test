@@ -1,6 +1,7 @@
 from test import BaseTestCase
 from common.isolated_creds import *
 import time
+import sys
 
 class BaseTestCase_v1(BaseTestCase):
     isolation = True
@@ -9,16 +10,21 @@ class BaseTestCase_v1(BaseTestCase):
         cls.project = None
         cls.admin_inputs = None
         cls.admin_connections = None
-        cls.domain_name = None        
+        cls.domain_name = None
         cls.domain_obj = None
         super(BaseTestCase_v1, cls).setUpClass()
+        if 'common.k8s.base' in sys.modules and issubclass(cls,
+            sys.modules['common.k8s.base'].BaseK8sTest):
+            # no isolation for k8s, all tests run in same domain & project 
+            cls.isolation = False
+            cls.inputs.tenant_isolation = False
         if 'v3' in cls.inputs.auth_url:
             if cls.isolation and cls.inputs.domain_isolation:
                 cls.domain_name = cls.__name__
             #If user wants to run tests in his allocated domain
             else:
                 cls.domain_name = cls.inputs.stack_domain
-            
+
         if not cls.inputs.tenant_isolation:
             project_name = cls.inputs.stack_tenant
         else:
@@ -57,7 +63,7 @@ class BaseTestCase_v1(BaseTestCase):
                 cls.admin_inputs)
         # endif
         cls.isolated_creds.setUp()
-        
+
         if not cls.project:
             cls.project = cls.isolated_creds.create_tenant(
                 cls.isolated_creds.project_name)
@@ -78,10 +84,10 @@ class BaseTestCase_v1(BaseTestCase):
 
     def if_vcenter_gw_setup_return_gw_orch_class(self):
         if self.inputs.vcenter_gw_setup:
-            return self.connections.slave_orch   
+            return self.connections.slave_orch
         else:
             return self.connections.orch
-  
+
     @property
     def orchestrator(self):
         return self.if_vcenter_gw_setup_return_gw_orch_class()
@@ -89,7 +95,7 @@ class BaseTestCase_v1(BaseTestCase):
     @classmethod
     def create_flood_vmi_if_vcenter_gw_setup(cls):
         if cls.inputs.vcenter_gw_setup:#For vcenter gateway setup
-            cls.vcenter_orch = cls.connections.slave_orch 
+            cls.vcenter_orch = cls.connections.slave_orch
             cls.vcenter_orch.create_vn_vmi_for_stp_bpdu_to_be_flooded()
-        
+
 

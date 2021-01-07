@@ -23,8 +23,6 @@ class FloatingIPFixture(fixtures.Fixture):
                  option=None, uuid=None):
         self.connections = connections
         self.inputs = inputs or connections.inputs
-        if not project_name:
-            project_name = self.inputs.project_name
         self.api_s_inspect = self.connections.api_server_inspect
         self.orch = self.connections.orch
         self.quantum_h = self.connections.quantum_h
@@ -33,7 +31,7 @@ class FloatingIPFixture(fixtures.Fixture):
         self.vnc_lib_h = self.connections.vnc_lib
         self.analytics_obj = self.connections.analytics_obj
 
-        self.project_name = project_name
+        self.project_name = project_name or self.connections.project_name
         self.domain_name = self.connections.domain_name
         self.vn_id = vn_id
         self.vn_name = vn_name
@@ -154,10 +152,10 @@ class FloatingIPFixture(fixtures.Fixture):
             for pool in fip_pool_dict['floating-ip-pools']:
                 if pool['fq_name'][-1] == pool_name:
                     fip_fq_name = pool['fq_name']
-                    break    
+                    break
             else:
                 return False
- 
+
             if fip_fq_name:
                 self.fip_pool_obj = self.vnc_lib_h.floating_ip_pool_read(
                     fq_name=fip_fq_name)
@@ -198,7 +196,7 @@ class FloatingIPFixture(fixtures.Fixture):
                 (self.pool_name))
         return result
     # end verify_fip_pool_in_api_server
-    
+
     @retry(delay=2, tries=15)
     def verify_fip_pool_in_control_node(self):
         result = True
@@ -206,7 +204,7 @@ class FloatingIPFixture(fixtures.Fixture):
         self.pub_vn_name = self.pub_vn_obj.name
         for cn in self.inputs.bgp_ips:
             cn_object = self.cn_inspect[cn].get_cn_config_fip_pool(
-                vn_name=self.pub_vn_name, fip_pool_name=self.pool_name, 
+                vn_name=self.pub_vn_name, fip_pool_name=self.pool_name,
                 domain = self.domain_name, project=self.project_name)
             if not cn_object:
                 self.logger.debug(
@@ -336,7 +334,7 @@ class FloatingIPFixture(fixtures.Fixture):
     def verify_fip_in_control_node(self, fip, vm_fixture, fip_vn_fixture):
         if self.inputs.vcenter_gw_setup:
             return True #To do:Need to fix the control node verification
-                        #for vcenter gateway case. 
+                        #for vcenter gateway case.
         self.ctrl_nodes= vm_fixture.get_ctrl_nodes_in_rt_group(fip_vn_fixture.vn_fq_name)
         agent_label = vm_fixture.get_agent_label()
         for cn in self.ctrl_nodes:
@@ -443,7 +441,7 @@ class FloatingIPFixture(fixtures.Fixture):
             except Exception as e:
                 self.logger.exception("Exception: %s"%e)
                 return False
-                            
+
         if found_ip and found_vn:
             self.logger.info('FIP  %s and Source VN %s found in %s UVE' %
                              (fip, fip_vn_fixture.vn_name, vm_fixture.vm_name))

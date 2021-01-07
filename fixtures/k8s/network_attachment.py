@@ -28,7 +28,7 @@ class NetworkAttachmentFixture(fixtures.Fixture):
         self.spec = {} if spec is None else spec
         self.already_exists = None
         self.connections = connections
-        self.vnc_lib = connections.get_vnc_lib_h()
+        self.vnc_lib = connections.vnc_lib
         self.agent_inspect = connections.agent_inspect
     # end __init__
 
@@ -141,7 +141,7 @@ class NetworkAttachmentFixture(fixtures.Fixture):
             self.logger.info('Network Attachement  %s found in kubernetes'
                              % (self.name))
         else:
-            self.logger.warn('Network Attachement %s not found in kube manager' 
+            self.logger.warn('Network Attachement %s not found in kube manager'
                              % (self.name))
             return False
         return True

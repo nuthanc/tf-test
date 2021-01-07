@@ -58,7 +58,7 @@ class VNFixture(fixtures.Fixture):
         self.logger = self.connections.logger
         self.orchestrator = kwargs.get('orch', self.connections.orch)
         self.quantum_h = self.connections.quantum_h
-        self.vnc_lib_h = self.connections.get_vnc_lib_h()
+        self.vnc_lib_h = self.connections.vnc_lib
         self.api_s_inspect = self.connections.api_server_inspect
         self.agent_inspect = self.connections.agent_inspect
         self.cn_inspect = self.connections.cn_inspect
@@ -66,7 +66,6 @@ class VNFixture(fixtures.Fixture):
         self.domain_name = self.connections.domain_name
         self.project_name = project_name or self.connections.project_name
         self.vn_name = vn_name or get_random_name(self.project_name)
-        self.project_id = self.connections.get_project_id()
         self.uuid = uuid
         self.obj = None
         self.ipam_fq_name = ipam_fq_name or NetworkIpam().get_fq_name()
@@ -141,6 +140,7 @@ class VNFixture(fixtures.Fixture):
         self.virtual_network_category = kwargs.get('virtual_network_category', None)
         self.ip_fabric = kwargs.get('ip_fabric', None)
         self.max_flows = max_flows
+        self.virtual_network_routed_properties = kwargs.get('virtual_network_routed_properties', None)
 
 
         self.vnc_lib_fixture = connections.vnc_lib_fixture
@@ -231,7 +231,7 @@ class VNFixture(fixtures.Fixture):
                     vrf_id_dict.update({ip:vrf_id})
             self._vrf_ids = vrf_id_dict
         return self._vrf_ids
-	# end get_vrf_ids
+    # end get_vrf_ids
 
     @property
     def vrf_ids(self):
@@ -297,6 +297,7 @@ class VNFixture(fixtures.Fixture):
         return af
 
     def _create_vn_orch(self):
+        self.project_id = self.connections.get_project_id()
         try:
             self.obj = self.orchestrator.get_vn_obj_if_present(self.vn_name,
                                          project_id=self.project_id)
@@ -538,12 +539,12 @@ class VNFixture(fixtures.Fixture):
             virtio = True
         port_rsp = self.quantum_h.create_port(
             net_id,
-            fixed_ips,
-            mac_address,
-            no_security_group,
-            security_groups,
-            extra_dhcp_opts,
-            sriov, virtio)
+            fixed_ips=fixed_ips,
+            mac_address=mac_address,
+            no_security_group=no_security_group,
+            security_groups=security_groups,
+            extra_dhcp_opts=extra_dhcp_opts,
+            sriov=sriov, virtio=virtio)
         self.vn_port_list.append(port_rsp['id'])
         return port_rsp
 
@@ -1564,7 +1565,7 @@ class VNFixture(fixtures.Fixture):
         return self.quantum_h.get_subnets_of_vn(self.uuid)
 
     def get_subnet_id_for_af(self, af):
-        return [subnet['id'] for subnet in self.vn_subnet_objs 
+        return [subnet['id'] for subnet in self.vn_subnet_objs
                 if get_af_type(subnet['cidr']) == af]
 
     def add_to_router(self, physical_router_id):
@@ -1783,6 +1784,26 @@ class VNFixture(fixtures.Fixture):
         return True
     # end set_igmp_config
 
+    def set_mac_ip_learning(self, mac_ip_learning_enable=True, verify=True):
+        ''' Configure mac_ip_learning flag on virtual network
+        '''
+        self.logger.debug('Updating mac_ip_learning flag on VN %s to %s' % (
+            self.vn_fq_name, mac_ip_learning_enable))
+        vn_obj = self.vnc_lib_h.virtual_network_read(id = self.uuid)
+        vn_obj.set_mac_ip_learning_enable(mac_ip_learning_enable)
+        self.vnc_lib_h.virtual_network_update(vn_obj)
+
+        if verify:
+            vn_in_api = self.api_s_inspect.get_cs_vn_by_id(vn_id=self.uuid, refresh=True)
+            if vn_in_api['virtual-network']['mac_ip_learning_enable'] != mac_ip_learning_enable:
+                self.logger.error("mac_ip_learning flag in API is not what"
+                    " was set, actual: %s, expected: %s" % (
+                    vn_in_api['virtual-network']['mac_ip_learning_enable'],
+                    mac_ip_learning_enable))
+                return False
+
+        return True
+    # end set_mac_ip_learning
 
     def get_pbb_evpn_enable(self):
         ''' Get PBB EVPN on virtual network '''
@@ -2013,6 +2034,33 @@ class VNFixture(fixtures.Fixture):
         return vn_prop_obj['max_flows']
     # end get_max_flows
 
+    def attach_shc(self, shc_id):
+        vn_uuid = self.orchestrator.get_vn_id(self.obj)
+        result = self.vnc_lib_fixture.vnc_h.attach_shc_to_vn(vn_uuid, shc_id)
+        self.shc_id = shc_id
+        return result
+
+    def detach_shc(self, shc_id):
+        vn_uuid = self.orchestrator.get_vn_id(self.obj)
+        result = self.vnc_lib_fixture.vnc_h.detach_shc_from_vn(vn_uuid, shc_id)
+        return result
+
+    def update_vn_network_category(self, virtual_network_category=None):
+        vn_obj = self.vnc_lib_h.virtual_network_read(id=self.uuid)
+        vn_obj.set_virtual_network_category(virtual_network_category)
+        return self.vnc_lib_h.virtual_network_update(vn_obj)
+
+    def update_vn_routed_properties(self, routed_properties=None):
+        if not routed_properties:
+            return
+        vn_obj = self.vnc_lib_h.virtual_network_read(id=self.uuid)
+        vn_routed_properties = \
+            vn_obj.get_virtual_network_routed_properties(
+        ) or VirtualNetworkRoutedPropertiesType()
+
+        vn_routed_properties.add_routed_properties(routed_properties)
+        vn_obj.set_virtual_network_routed_properties(vn_routed_properties)
+        return self.vnc_lib_h.virtual_network_update(vn_obj)
 
 # end VNFixture
 

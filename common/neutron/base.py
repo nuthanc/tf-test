@@ -37,7 +37,7 @@ class BaseNeutronTest(GenericTestBase):
     def setUpClass(cls):
         cls.public_vn_obj = None
         super(BaseNeutronTest, cls).setUpClass()
-        cls.vnc_h = ContrailVncApi(cls.vnc_lib, cls.logger) 
+        cls.vnc_h = ContrailVncApi(cls.vnc_lib, cls.logger)
         if cls.inputs.admin_username:
             public_creds = cls.admin_isolated_creds
         else:
@@ -66,39 +66,34 @@ class BaseNeutronTest(GenericTestBase):
 
         # Copy the contrail-api.conf to /tmp/ and restore it later
 
+        cfgm_tmp_file_map = {}
         for cfgm_ip in self.inputs.cfgm_ips:
             api_file_name = get_random_name('contrail-api')
             contrail_api_file_list.append(api_file_name)
-            issue_cmd = "cp " + contrail_api_conf + " /tmp/" + \
+            issue_cmd = "docker cp " + self.inputs.get_container_name(cfgm_ip, 'api-server') + ":" + contrail_api_conf + " /tmp/" + \
                 api_file_name
+            cfgm_tmp_file_map[cfgm_ip] = "/tmp/"+api_file_name
             output = self.inputs.run_cmd_on_server(
                 cfgm_ip,
                 issue_cmd,
                 self.inputs.host_data[cfgm_ip]['username'],
-                self.inputs.host_data[cfgm_ip]['password'],
-                container='api-server')
+                self.inputs.host_data[cfgm_ip]['password'])
 
         self.addCleanup(
             self.restore_default_quota_list,
-            contrail_api_file_list)
+            cfgm_tmp_file_map)
 
         # Fetch the contrail-api.conf from all config nodes to active cfgm's
         # /tmp/
 
-        api_file_list = []
-        api_file_list.append(contrail_api_conf)
-        for cfgm_ip in self.inputs.cfgm_ips[1:]:
+        # Edit the contrail-api.conf files adding quota sections
+
+        for cfgm_ip,api_conf in cfgm_tmp_file_map.items():
             with settings(
                     host_string='%s@%s' % (
                         self.inputs.host_data[cfgm_ip]['username'], cfgm_ip)):
-                api_conf_file = get_random_name('contrail-api-remote')
-                api_file_list.append('/tmp/' + api_conf_file)
-                get(contrail_api_conf, '/tmp/' + api_conf_file)
-
-        # Edit the contrail-api.conf files adding quota sections
-
-        for api_conf in api_file_list:
-            api_conf_h = open(api_conf, 'a')
+                get(api_conf, api_conf+"_remote")
+            api_conf_h = open(api_conf+"_remote", 'a')
             config = configparser.ConfigParser()
             config.add_section('QUOTA')
             config.set('QUOTA', 'subnet', subnet)
@@ -113,24 +108,21 @@ class BaseNeutronTest(GenericTestBase):
                 virtual_machine_interface)
             config.write(api_conf_h)
             api_conf_h.close()
+            with settings(
+                    host_string='%s@%s' % (
+                        self.inputs.host_data[cfgm_ip]['username'], cfgm_ip)):
+                put(api_conf+"_remote", api_conf+"_remote")
 
         # Put back updated contrail-api.conf file to respective cfgm's remove
         # temp files
 
-        count = 1
-        for cfgm_ip in self.inputs.cfgm_ips[1:]:
-            with settings(
-                    host_string='%s@%s' % (
-                        self.inputs.host_data[cfgm_ip]['username'], cfgm_ip)):
-                put(api_file_list[count], contrail_api_conf)
-                issue_cmd = "rm -rf " + api_file_list[count]
-                output = self.inputs.run_cmd_on_server(
-                    cfgm_ip,
-                    issue_cmd,
-                    self.inputs.host_data[cfgm_ip]['username'],
-                    self.inputs.host_data[cfgm_ip]['password'],
-                    container='api-server')
-                count = count + 1
+        for cfgm_ip,api_conf in cfgm_tmp_file_map.items():
+            issue_cmd = "docker cp " + api_conf+"_remote  " + self.inputs.get_container_name(cfgm_ip, 'api-server') + ":" + contrail_api_conf
+            output = self.inputs.run_cmd_on_server(
+                cfgm_ip,
+                issue_cmd,
+                self.inputs.host_data[cfgm_ip]['username'],
+                self.inputs.host_data[cfgm_ip]['password'])
 
         # Restart contrail-api service on all cfgm nodes
 
@@ -145,21 +137,19 @@ class BaseNeutronTest(GenericTestBase):
 
     # end update_default_quota_list
 
-    def restore_default_quota_list(self, file_list=[]):
+    def restore_default_quota_list(self, cfgm_tmp_file_map):
         # Restore default contrail-api.conf on respective cfgm nodes remove
         # temp files
 
         file_itr = iter(file_list)
-        for cfgm_ip in self.inputs.cfgm_ips:
-            api_conf_backup = next(file_itr)
-            issue_cmd = "cp /tmp/" + api_conf_backup + \
-                " " + contrail_api_conf + "; rm -rf /tmp/" + api_conf_backup
+        for cfgm_ip,api_conf_backup in cfgm_tmp_file_map:
+            issue_cmd = "docker cp " + " /tmp/" + api_conf_backup + \
+                self.inputs.get_container_name(cfgm_ip, 'api-server') + ":" + contrail_api_conf + "; rm -rf /tmp/" + api_conf_backup
             output = self.inputs.run_cmd_on_server(
                 cfgm_ip,
                 issue_cmd,
                 self.inputs.host_data[cfgm_ip]['username'],
-                self.inputs.host_data[cfgm_ip]['password'],
-                container='api-server')
+                self.inputs.host_data[cfgm_ip]['password'])
 
         for cfgm_ip in self.inputs.cfgm_ips:
             self.inputs.restart_service('contrail-api', [cfgm_ip],
@@ -291,7 +281,7 @@ class BaseNeutronTest(GenericTestBase):
 
     def config_aap(self, port, prefix, prefix_len=32, mac='', aap_mode='active-standby', contrail_api=False, left_vn_name=None):
         if left_vn_name is not None:
-            self.vnc_h.add_allowed_address_pair(prefix, si_fq_name=port,   
+            self.vnc_h.add_allowed_address_pair(prefix, si_fq_name=port,
 prefix_len=prefix_len, mac=mac, mode=aap_mode, left_vn_name=left_vn_name)
         else:
             self.logger.info('Configuring AAP on port %s' % port)
@@ -304,7 +294,7 @@ prefix_len=prefix_len, mac=mac, mode=aap_mode, left_vn_name=left_vn_name)
                 port_dict = {'allowed_address_pairs': [
                     {"ip_address": prefix + '/' + str(prefix_len), "mac_address": mac}]}
                 port_rsp = self.update_port(port, port_dict)
-         # end config_aap 
+         # end config_aap
 
 
     def config_vrrp_on_vsrx(self, src_vm=None, dst_vm=None, vip=None, priority='100', interface='ge-0/0/1'):
@@ -323,7 +313,7 @@ prefix_len=prefix_len, mac=mac, mode=aap_mode, left_vn_name=left_vn_name)
         cmd_string = (';').join(cmdList)
         assert self.set_config_via_netconf(src_vm, dst_vm,
                       cmd_string, timeout=10, device='junos', hostkey_verify="False", reboot_required=False), 'Could not configure VRRP thru Netconf'
-        # end config_vrrp_on_vsrx 
+        # end config_vrrp_on_vsrx
 
 
     @retry(delay=5, tries=20)
@@ -339,7 +329,7 @@ conn.commit()
 '$reboot_cmd'
 conn.unlock()
 conn.close_session()
-    	''')
+        ''')
         if hostkey_verify == 'False':
             hostkey_verify = bool(False)
         timeout = int(timeout)
@@ -366,7 +356,7 @@ from ncclient import manager
 conn = manager.connect(host='$ip', username='$username', password='$password',timeout=$timeout, device_params=$device_params, hostkey_verify=$hostkey_verify)
 get_config=conn.command(command='$cmd', format='$format')
 print get_config.tostring
-    	''')
+        ''')
         if hostkey_verify == 'False':
             hostkey_verify = bool(False)
         if device == 'junos':
@@ -782,7 +772,7 @@ EOS
             self.logger.error('keepalived not running in %s' % vm.vm_name)
         return result
     # end keepalive_chk
- 
+
     def service_keepalived(self, vm, action):
         keepalive_chk_cmd = 'service keepalived %s' %(action)
         vm.run_cmd_on_vm(cmds=[keepalive_chk_cmd], as_sudo=True)

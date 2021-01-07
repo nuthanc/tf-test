@@ -10,6 +10,7 @@ from tcutils.util import get_intf_name_from_mac, run_cmd_on_server, get_af_type
 from tcutils.util import get_random_string, run_dhcp_server
 from port_fixture import PortFixture
 from virtual_port_group import VPGFixture
+from physical_device_fixture import PhysicalDeviceFixture
 import tempfile
 from tcutils.fabutils import *
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -33,7 +34,7 @@ class BMSFixture(fixtures.Fixture):
         self.mgmt_ip = kwargs.get('mgmt_ip') or bms_dict['mgmt_ip'] # Host IP, optional
         self.username = kwargs.get('username') or bms_dict['username']
         self.password = kwargs.get('password') or bms_dict['password']
-        self.namespace = get_random_name('ns')
+        self.namespace = kwargs.get('namespace') or get_random_name('ns')
         self.bms_ip = kwargs.get('bms_ip')   # BMS VMI IP
         self.bms_ip6 = kwargs.get('bms_ip6')   # BMS VMI IPv6
         self.bms_ip_netmask = kwargs.get('bms_ip_netmask', None)
@@ -60,9 +61,11 @@ class BMSFixture(fixtures.Fixture):
         self.bms_created = False
         self.bond_created = False
         self.mvlanintf = None
+        self.pvlanintf = None
         self._interface = None
         self.ironic_node_obj = None
         self.ironic_node_id = None
+        self.is_collapsed_spine = kwargs.get('is_collapsed_spine', False)
         self.copied_files = dict()
     # end __init__
 
@@ -102,6 +105,23 @@ class BMSFixture(fixtures.Fixture):
 
     def create_vmi(self, interfaces=None):
         interfaces = interfaces or self.interfaces
+        if self.is_collapsed_spine:
+            l2_name = interfaces[0]['tor']
+            l2_down_port = interfaces[0]['tor_port']
+            l2_dict = self.inputs.physical_routers_data[l2_name]
+            vlan = get_random_name('vlan')
+            links = l2_dict['links']
+            self.configure_l2_vlan(l2_dict=l2_dict, pi_name=l2_down_port,
+                                   vlan=vlan, down_link=True)
+            self.configure_l2_vlan(l2_dict=l2_dict, vlan=vlan,
+                                   down_link=False, links=links)
+            interfaces = list()
+            for link in links:
+                interface = dict()
+                interface['tor'] = link['remote']['name']
+                interface['tor_port'] = link['remote']['port']
+                interfaces.append(interface)
+
         fixed_ips = list()
         if self.bms_ip:
             fixed_ips.append({'ip_address': self.bms_ip,
@@ -120,6 +140,7 @@ class BMSFixture(fixtures.Fixture):
             bms_info.append(intf_dict)
         binding_profile = {'local_link_information': bms_info}
         security_groups = None if self.ep_style else self.security_groups
+        create_iip = not self.external_dhcp_server and not self.static_ip
         self.port_fixture = PortFixture(
                                  connections=self.connections,
                                  vn_id=self.vn_fixture.uuid,
@@ -131,12 +152,75 @@ class BMSFixture(fixtures.Fixture):
                                  binding_profile=binding_profile,
                                  port_group_name=self._port_group_name,
                                  tor_port_vlan_tag=self.tor_port_vlan_tag,
-                                 create_iip=not self.external_dhcp_server,
-                             )
+                                 create_iip=create_iip)
         self.port_fixture.setUp()
         self.add_port_profiles(self.port_profiles)
         if self.ep_style:
             self.add_security_groups(self.security_groups)
+
+    def configure_l2_vlan(self, **kwargs):
+        self.logger.info('Creating l2 vlan configuration for down link')
+        l2_dict = kwargs.get('l2_dict')
+        kwargs['fabric_fixture'] = self.fabric_fixture
+        kwargs['host'] = l2_dict['mgmt_ip']
+        kwargs['username'] = l2_dict['ssh_username']
+        kwargs['password'] = l2_dict['ssh_password']
+        kwargs['name'] = l2_dict['name']
+        down_link = kwargs.get('down_link', False)
+
+        device_fixture = PhysicalDeviceFixture(
+            connections=self.connections, **kwargs)
+        conn = device_fixture.get_connection_obj('juniper', **kwargs)
+        kwargs['conn'] = conn
+        if down_link:
+            stmt = '''set interfaces {0} unit 0 family ethernet-switching interface-mode trunk
+                set interfaces {0} unit 0 family ethernet-switching vlan members {1}
+                set vlans {1} vlan-id {2}'''.format(kwargs.get('pi_name', ''), kwargs.get('vlan', ''),
+                                                    self.vlan_id or 0)
+        else:
+            links = kwargs.get('links', [])
+            if len(links) > 1:
+                kwargs['ae'] = True
+                stmt_list = list()
+                stmt_list.append('set chassis aggregated-devices ethernet device-count 28')
+                for link in links:
+                    stmt1 = 'set interfaces {0} ether-options 802.3ad ae0'.format(link['local_port'])
+                    stmt_list.append(stmt1)
+                stmt1 = '''set interfaces ae0 aggregated-ether-options lacp active
+                    set interfaces ae0 unit 0 family ethernet-switching interface-mode trunk
+                    set interfaces ae0 unit 0 family ethernet-switching vlan members {0}
+                    set vlans {0} vlan-id {1}'''.format(kwargs.get('vlan', ''),
+                                                             self.vlan_id or 0)
+                stmt_list.extend(stmt1.split('\n'))
+                stmt = '\n'.join(stmt_list)
+            elif len(links) == 1:
+                pi_name = links[0]['local_port']
+                kwargs['pi_name'] = pi_name
+                stmt = '''set interfaces {0} unit 0 family ethernet-switching interface-mode trunk
+                    set interfaces {0} unit 0 family ethernet-switching vlan members {1}
+                    set vlans {1} vlan-id {2}'''.format(pi_name, kwargs.get('vlan', ''),
+                                                        self.vlan_id or 0)
+
+        conn.config(stmt.split('\n'))
+        self.addCleanup(self.delete_l2_vlan, **kwargs)
+
+    def delete_l2_vlan(self, **kwargs):
+        down_link = kwargs.get('down_link', False)
+        stmt = list()
+        ae = kwargs.get('ae', False)
+        if not ae:
+            stmt.append('delete interfaces {0} unit 0'.format(kwargs.get('pi_name', '')))
+            if down_link:
+                stmt.append('delete vlans {0}'.format(kwargs.get('vlan', '')))
+        else:
+            stmt.append('delete chassis aggregated-devices')
+            for link in kwargs.get('links', []):
+                stmt1 = 'delete interfaces {0} ether-options'.format(link['local_port'])
+                stmt.append(stmt1)
+            stmt.append('delete interfaces ae0')
+        conn = kwargs.get('conn', None)
+        conn.config(stmt)
+        conn.disconnect()
 
     @retry(delay=10, tries=30)
     def is_lacp_up(self, interfaces=None, expectation=True):
@@ -288,8 +372,8 @@ class BMSFixture(fixtures.Fixture):
 
     def config_mroute(self,interface,address,mask):
         self.run('ifconfig %s multicast' %(self._interface))
-        self.run_namespace('route -n add -net %s  netmask %s dev %s' %(address,mask,interface)) 
- 
+        self.run_namespace('route -n add -net %s  netmask %s dev %s' %(address,mask,interface))
+
     def copy_file_to_bms(self, localfile, dstdir=None, force=False):
         if not force and localfile in self.copied_files and \
            self.copied_files[localfile] == dstdir:
@@ -413,6 +497,7 @@ class BMSFixture(fixtures.Fixture):
             get_random_string(2, chars=string.ascii_letters))
         # Truncate the interface name length to 15 char due to linux limitation
         self.mvlanintf = mvlanintf[-15:]
+        self.pvlanintf = pvlanintf
         self.logger.info('BMS mvlanintf: %s' % self.mvlanintf)
         macaddr = 'address %s'%self.bms_mac if self.bms_mac else ''
         self.run('ip link add %s link %s %s type macvlan mode bridge'%(
@@ -484,7 +569,7 @@ class BMSFixture(fixtures.Fixture):
                 self.logger.debug('Not setting up Namespaces')
                 return
             self.logger.info('Setting up namespace %s on BMS host %s' % (
-                    self.namespace, self.mgmt_ip)) 
+                    self.namespace, self.mgmt_ip))
             self.setup_bms()
         except:
             try:
@@ -512,7 +597,7 @@ class BMSFixture(fixtures.Fixture):
 
     def cleanUp(self):
         self.logger.info('Deleting namespace %s on BMS host %s' % (
-            self.namespace, self.name)) 
+            self.namespace, self.name))
         if self.bms_created:
             self.cleanup_bms()
         self.delete_vmi()
@@ -521,7 +606,7 @@ class BMSFixture(fixtures.Fixture):
 
     def get_interface_info(self):
         '''Returns interface info as a dict from ifconfig output
-            Ex : 
+            Ex :
             info = { 'up' : True,
                      'hwaddr' : '00:00:00:00:00:01',
                      'inet_addr': '10.1.1.10'
@@ -653,12 +738,12 @@ class BMSFixture(fixtures.Fixture):
 
     def start_tcpdump(self, filters=''):
         (session, pcap) = start_tcpdump_for_intf(self.mgmt_ip, self.username,
-            self.password, self.mvlanintf, filters, self.logger)
+            self.password, self.pvlanintf, filters, self.logger)
         return (session, pcap)
 
     def stop_tcpdump(self, session, pcap):
         stop_tcpdump_for_intf(session, pcap, self.logger)
-        
+
     def add_static_arp(self, ip, mac):
         self.run_namespace('arp -s %s %s' % (ip, mac), as_sudo=True)
         self.logger.info('Added static arp %s:%s on BMS %s' % (ip, mac,

@@ -61,7 +61,7 @@ class TestPolicyAcl(BasePolicyTest):
                 inputs=self.inputs,
                 subnets=[get_random_cidr(af='v4')],
                 ipam_fq_name=self.ipam1_obj.fq_name,orch=self.orchestrator))
-        
+
         self.VN1_fixture.read()
 
         self.VN2_fixture = self.useFixture(
@@ -114,7 +114,7 @@ class TestPolicyAcl(BasePolicyTest):
         assert self.VM11_fixture.wait_till_vm_is_up()
         assert self.VM21_fixture.wait_till_vm_is_up()
         assert self.VM31_fixture.wait_till_vm_is_up()
-    
+
     # end setup_vm
 
     @attr(type=['cb_sanity', 'sanity', 'vcenter', 'vrouter_gw', 'vcenter_compute'])
@@ -163,7 +163,7 @@ class TestPolicyAcl(BasePolicyTest):
                 inputs=self.inputs,
                 connections=self.connections, api=True))
 
-        
+
         rules = []
         rules = [{'direction': '<>',
                   'protocol': 'any',
@@ -513,7 +513,7 @@ class TestPolicyAcl(BasePolicyTest):
 
         return result
 
-    # end test_policy_inheritance_src_pol_dst_any 
+    # end test_policy_inheritance_src_pol_dst_any
 
     @tcutils.wrappers.preposttest_wrapper
     def test_policy_cidr_src_policy_dst_cidr(self):
@@ -631,15 +631,14 @@ class TestPolicyAcl(BasePolicyTest):
         ret = self.VM11_fixture.ping_with_certainty(expectation=False,
                                     dst_vm_fixture=self.VM21_fixture)
         if ret == True :
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                    self.VM11_fixture.vm_ip, self.VM21_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:D(Policy)\|Action:D(OutPolicy)\""
             cmd = cmd + " | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info("Found %s matching flows" % flow_record)
                 self.logger.info("Test with src as policy and dst as cidr PASSED")
@@ -756,14 +755,13 @@ class TestPolicyAcl(BasePolicyTest):
                                     dst_vm_fixture=self.VM21_fixture)
 
         if ret == True :
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                    self.VM11_fixture.vm_ip, self.VM21_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:D(Policy)\" | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info("Test with src as VN and dst as cidr PASSED")
             else:
@@ -936,14 +934,13 @@ class TestPolicyAcl(BasePolicyTest):
                                     dst_vm_fixture=self.VM21_fixture)
 
         if ret == True :
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                    self.VM11_fixture.vm_ip, self.VM21_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:D(Policy)\" | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info("Test with src as VN and dst as cidr PASSED")
             else:
@@ -959,14 +956,13 @@ class TestPolicyAcl(BasePolicyTest):
                                     dst_vm_fixture=self.VM31_fixture)
 
         if ret == True :
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                    self.VM11_fixture.vm_ip, self.VM31_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:D(Policy)\" | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info("Test with src as VN and dst as cidr PASSED")
             else:
@@ -1083,14 +1079,13 @@ class TestPolicyAcl(BasePolicyTest):
                                      dst_vm_fixture=self.VM11_fixture)
 
         if ((ret1 == True) and (ret2 == True)):
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                    self.VM11_fixture.vm_ip, self.VM21_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:D(Policy)\" | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info("Found %s matching flows" % flow_record)
                 self.logger.info("Test with src as CIDR and dst as ANY PASSED")
@@ -1306,14 +1301,13 @@ class TestPolicyAcl(BasePolicyTest):
         ret = self.VM11_fixture.ping_with_certainty(expectation=False,
                                     dst_vm_fixture=self.VM12_fixture)
         if ret == True :
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                   self.VM11_fixture.vm_ip, self.VM12_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:D(Policy)\" | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info(
                 "ICMP traffic is not allowed between VM11 and VM12, by policy1112 and policy1211.")
@@ -1334,14 +1328,13 @@ class TestPolicyAcl(BasePolicyTest):
         ret = self.VM11_fixture.ping_with_certainty(expectation=True,
                                     dst_vm_fixture=self.VM21_fixture)
         if ret == True :
-            cmd = "flow -l | grep %s -A3 | grep %s -A3 " % (
+            cmd = "contrail-tools flow -l | grep %s -A3 | grep %s -A3 " % (
                   self.VM11_fixture.vm_ip, self.VM21_fixture.vm_ip)
             cmd = cmd + "| grep \"Action:F\" | wc -l"
             flow_record = self.inputs.run_cmd_on_server(
                 self.VM11_fixture.vm_node_ip, cmd,
                 self.inputs.host_data[self.VM11_fixture.vm_node_ip]['username'],
-                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'],
-                container='agent')
+                self.inputs.host_data[self.VM11_fixture.vm_node_ip]['password'])
             if int(flow_record) > 0:
                 self.logger.info(
                 "ICMP traffic is allowed between VM11 and VM21, by policy1121 and policy2111.")

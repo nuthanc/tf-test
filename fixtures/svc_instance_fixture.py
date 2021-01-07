@@ -228,7 +228,7 @@ class SvcInstanceFixture(fixtures.Fixture):
         self._vnc.assoc_health_check_to_si(self.si_fq_name, hc_uuid, intf_type)
         d = {'uuid': hc_uuid, 'intf_type': intf_type}
         if d not in self.hc_list:
-            self.hc_list.append(d) 
+            self.hc_list.append(d)
 
     def disassociate_hc(self, hc_uuid):
         self.logger.debug(
@@ -766,9 +766,18 @@ class SvcInstanceFixture(fixtures.Fixture):
         return result
     # end verify_on_cleanup
 
-    def delete_port_tuple(self, port_tuples_uuid):
-        pass
-
+    def delete_port_tuple(self, port_tuples):
+        pt_name = port_tuples.get('name')
+        si_obj = port_tuples.get('si_obj')
+        pt_uuid = port_tuples.get('pt_uuid')
+        for intf_type, vmi_id in port_tuples.items():
+            if intf_type == 'name' or intf_type == 'si_obj' or intf_type == 'pt_uuid':
+                continue
+            vmi_obj = self.vnc_lib.virtual_machine_interface_read(id=vmi_id)
+            pt_obj = PortTuple(name=pt_name, parent_obj=self.si_obj)
+            vmi_obj.del_port_tuple(pt_obj)
+            self.vnc_lib.virtual_machine_interface_update(vmi_obj)
+        self.vnc_lib.port_tuple_delete(id=pt_uuid)
 
 #    def add_port_tuple(self, svm, pt_name):
     def add_port_tuple(self, svm_pt_props={}):

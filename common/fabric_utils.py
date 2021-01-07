@@ -17,7 +17,8 @@ NODE_PROFILES = ['juniper-mx', 'juniper-qfx10k',
                  'juniper-qfx5k', 'juniper-qfx5k-lean', 'juniper-srx']
 VALID_OVERLAY_ROLES = ['dc-gateway', 'crb-access', 'dci-gateway',
                        'ar-client', 'crb-gateway', 'erb-ucast-gateway',
-                       'crb-mcast-gateway', 'ar-replicator','route-reflector']
+                       'crb-mcast-gateway', 'ar-replicator', 'route-reflector',
+                       'collapsed-spine', 'pnf-servicechain']
 DEFAULT_UPGRADE_PARAMS = {
     'bulk_device_upgrade_count': 4,
     'health_check_abort': True,
@@ -70,10 +71,10 @@ class FabricUtils(object):
         return (True, fabric)
 
     def onboard_fabric(self, fabric_dict, wait_for_finish=True,
-                       name=None, cleanup=False, enterprise_style=True, dc_asn=None):
+                       name=None, cleanup=False, enterprise_style=True, dc_asn=None ,serList=None):
         interfaces = {'physical': [], 'logical': []}
         devices = list()
-        name = get_random_name(name) if name else get_random_name('fabric')
+        name = name if name else get_random_name('fabric')
 
         fq_name = ['default-global-system-config',
                    'fabric_onboard_template']
@@ -89,12 +90,14 @@ class FabricUtils(object):
                    "supplemental_day_0_cfg":[{"name": dct["supplemental_day_0_cfg"]["name"],\
                                               "cfg": dct["supplemental_day_0_cfg"]["cfg"]}
                         for dct in list(self.inputs.physical_routers_data.values()) \
-                           if dct.get('supplemental_day_0_cfg')],
+                           if dct.get('supplemental_day_0_cfg') \
+                               if serList is None or dct["serial_number"] in serList],
                    'device_to_ztp': [{"serial_number": dct['serial_number'], \
                                       "hostname": dct['name'], \
                                       "supplemental_day_0_cfg": dct.get("supplemental_day_0_cfg",{}).get('name','')} \
                        for dct in list(self.inputs.physical_routers_data.values()) \
-                           if dct.get('serial_number')],
+                           if dct.get('serial_number') \
+                               if serList is None or dct["serial_number"] in serList],
                    'node_profiles': [{"node_profile_name": profile}
                        for profile in fabric_dict.get('node_profiles')\
                                       or NODE_PROFILES],
@@ -105,7 +108,7 @@ class FabricUtils(object):
                    'overlay_ibgp_asn': dc_asn or fabric_dict['namespaces']['overlay_ibgp_asn'],
                    'fabric_asn_pool': [{"asn_max": fabric_dict['namespaces']['asn'][0]['max'],
                                        "asn_min": fabric_dict['namespaces']['asn'][0]['min']}]
-                   } 
+                   }
         if os_version:
             payload['os_version'] = os_version
         self.logger.info('Onboarding new fabric %s %s'%(name, payload))
@@ -216,12 +219,11 @@ class FabricUtils(object):
         time.sleep(30)
 
     #routine to fetch the gdo info from the nodes
-    def get_chassis_gdo_info(self, fabric_dict, wait_for_finish=True,
-                                cleanup=False,
-                                gdo_type="chassis hardware"):
+    def get_chassis_gdo_info(self, fabric_dict, fq_name, payload, gdo_type,
+                                wait_for_finish=True, cleanup=False):
         fq_name = ['default-global-system-config',
-                   'show_chassis_info_template']
-        payload = {'chassis_detail': gdo_type
+                   fq_name]
+        payload = {payload: gdo_type
                    }
         self.logger.info('Fetching info from the fabric nodes')
         execution_id = self.vnc_h.execute_job(fq_name, payload)
@@ -247,6 +249,18 @@ class FabricUtils(object):
             return True
         else:
             return False
+
+    #routine to fetch the gdo info from the nodes
+    def get_chassis_gdo_info_multiple(self, fabric_dict, fq_name, payload1, value1, payload2, value2,
+                                wait_for_finish=True, cleanup=False):
+        fq_name = ['default-global-system-config',
+                   fq_name]
+        payload = {payload1: value1, payload2: value2
+                   }
+        self.logger.info('Fetching info from the fabric nodes')
+        execution_id = self.vnc_h.execute_job(fq_name, payload)
+        status = self.check_gdo_details(value2)
+        assert status, 'Mismatch between the fabric info and the details fetched from the nodes'
 
     def cleanup_fabric(self, fabric, devices=None, interfaces=None,
                        verify=True, wait_for_finish=True, retry=True):
@@ -463,6 +477,10 @@ class FabricUtils(object):
         payload = {'fabric_fq_name': fabric.fq_name, 'role_assignments': list()}
         for device, role in roles_dict.items():
             if role == 'leaf':
+                # skip role assignment of leaf devices with Collapsed-l2
+                # role in case of collapsed-spine topology.
+                if rb_roles.get(device.name) == ['Collapsed-l2']:
+                    continue
                 routing_bridging_role = rb_roles.get(
                     device.name, ['CRB-Access'])
             elif role == 'pnf':
@@ -477,8 +495,6 @@ class FabricUtils(object):
                              'routing_bridging_roles': routing_bridging_role}
             payload['role_assignments'].append(dev_role_dict)
         for device_roles in payload['role_assignments']:
-            if device_roles['physical_role'].lower() == 'pnf':
-                continue
             device = device_roles['device_fq_name']
             self.vnc_h.associate_physical_role(device,
                 device_roles['physical_role'])

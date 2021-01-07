@@ -340,7 +340,7 @@ class ConfigSvcChain(object):
     def create_service_vms(self, vns, service_mode='transparent', max_inst=1,
             svc_img_name=None, service_type='firewall',
             hosts=[]):
-        non_docker_zones = [x for x in self.orch.get_zones() if x != 'nova/docker']
+        valid_zones = [x for x in self.orch.get_zones() if x not in ['nova/docker', 'nova-baremetal']]
         svm_fixtures = []
         svc_img_name = svc_img_name or SVC_TYPE_PROPS[service_type][service_mode]
         for i in range(max_inst):
@@ -350,7 +350,7 @@ class ConfigSvcChain(object):
                 image_name=svc_img_name,
                 vns=vns,
                 node_name=hosts[i%len(hosts)] if hosts else None,
-                zone=random.choice(non_docker_zones))
+                zone=random.choice(valid_zones))
             svm_fixtures.append(svm_fixture)
             if service_type == 'analyzer':
                 svm_fixture.disable_interface_policy()
@@ -439,6 +439,8 @@ class ConfigSvcChain(object):
                         svm_fixtures=[],
                         create_svms=False,
                         evpn=False,
+                        modify_rules=False,
+                        policy_action='pass',
                         hosts=[],
                         **kwargs):
         '''
@@ -455,7 +457,7 @@ class ConfigSvcChain(object):
 
         if self.inputs.vcenter_compute_ips:
             svc_img_name = VC_SVC_TYPE_PROPS[service_type][service_mode]
-        elif self.inputs.orchestrator == 'vcenter':#Fixing tinycore image 
+        elif self.inputs.orchestrator == 'vcenter':#Fixing tinycore image
                                                    #for vcenter-only mode
             svc_img_name = SVC_TYPE_PROPS[service_type][service_mode]
         else:
@@ -584,7 +586,7 @@ class ConfigSvcChain(object):
             si_name = get_random_name('si')
             si_fixture = self.config_si(si_name,
                 st_fixture,
-		mgmt_vn_fq_name=self._get_if_needed(svc_img_name, 'management', mgmt_vn_fq_name),
+                mgmt_vn_fq_name=self._get_if_needed(svc_img_name, 'management', mgmt_vn_fq_name),
                 left_vn_fq_name=self._get_if_needed(svc_img_name, 'left', si_left_vn_fq_name),
                 right_vn_fq_name=self._get_if_needed(svc_img_name, 'right', si_right_vn_fq_name),
                 port_tuples_props=port_tuples_props,
@@ -606,6 +608,27 @@ class ConfigSvcChain(object):
             self.verify_vm(left_vm_fixture)
         if created_right_vm:
             self.verify_vm(right_vm_fixture)
+
+
+        if policy_fixture and modify_rules:
+            si_fq_name_list = [si_fixture.fq_name_str]
+            if policy_action == 'deny':
+                action_list = {'simple_action' : 'deny',
+                        'apply_service': si_fq_name_list}
+            else:
+                action_list = {'simple_action' : 'pass',
+                        'apply_service': si_fq_name_list}
+            rules = []
+            rules.append({
+                    'direction': '<>',
+                    'protocol': proto,
+                    'source_network': left_vn_fq_name,
+                    'src_ports': src_ports,
+                    'dest_network': right_vn_fq_name,
+                    'dst_ports': dst_ports,
+                    'action_list': action_list,
+                    })
+            policy_fixture.update_policy_api(rules)
 
         if not policy_fixture:
             policy_name = get_random_name('policy')
@@ -803,6 +826,45 @@ class ConfigSvcChain(object):
 
         return ret_dict
     # end config_multi_inline_svc
+
+
+    def replace_svm_on_si(self, **kwargs):
+
+        # Remove the svm port tuple from SI
+        si_fixture=kwargs.get('si_fixture')
+        pt_props=si_fixture.port_tuples_props[0]
+        pt_name=pt_props.get('name')
+        pt_uuid=si_fixture.port_tuples_uuids
+        si_obj = self.vnc_lib.service_instance_read(fq_name=si_fixture.si_fq_name)
+        pt_props['si_obj']=si_obj
+        pt_props['name']=pt_name
+        pt_props['pt_uuid']=pt_uuid[0]
+        si_fixture.delete_port_tuple(pt_props)
+
+        # prepare dict for routine 'verify_svc_chain' to create new svm and apply to same SI
+        ret_dict={}
+        ret_dict['left_vn_fixture']=kwargs.get('left_vn_fixture')
+        ret_dict['mgmt_vn_fixture']=kwargs.get('mgmt_vn_fixture')
+        ret_dict['left_lr_child_vn_fixture']=kwargs.get('left_lr_child_vn_fixture')
+        ret_dict['right_lr_child_vn_fixture']=kwargs.get('right_lr_child_vn_fixture')
+        ret_dict['svm_fixtures']=kwargs.get('svm_fixtures')
+        ret_dict['policy_fixture']=kwargs.get('policy_fixture')
+        ret_dict['modify_rules']=True
+        ret_dict['right_vm_fixture']=kwargs.get('right_vm_fixture')
+        ret_dict['left_vm_fixture']=kwargs.get('left_vm_fixture')
+        if kwargs['service_mode'] == 'transparent':
+            ret_dict['service_mode']='transparent'
+            ret_dict['right_vn_fixture']=kwargs.get('right_vn_fixture')
+            ret_dict['trans_left_vn_fixture']=kwargs.get('si_left_vn_fixture')
+            ret_dict['trans_right_vn_fixture']=kwargs.get('si_right_vn_fixture')
+        if kwargs['service_mode'] == 'in-network':
+            ret_dict['service_mode']='in-network'
+            ret_dict['right_vn_fixture']=kwargs.get('right_vn_fixture')
+        if kwargs['service_mode'] == 'in-network-nat':
+            ret_dict['service_mode']='in-network-nat'
+            ret_dict['right_vn_fixture']=public_vn_fixture
+            ret_dict['right_vn_subnets']=public_vn_subnet
+        return ret_dict
 
     def setup_ecmp_config_hash_svc(self, max_inst=1, service_mode='in-network-nat',
                                    ecmp_hash='default',config_level='global'):

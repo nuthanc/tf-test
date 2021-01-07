@@ -97,7 +97,7 @@ class TestInputs(with_metaclass(Singleton, object)):
         self.logger = logger or contrail_logging.getLogger(__name__)
 
         self.tor_agent_data = {}
-        self.sriov_data = {}
+        self.sriov_data = []
         self.dpdk_data = {}
         self.mysql_token = None
         self.pcap_on_vm = False
@@ -296,6 +296,7 @@ class TestInputs(with_metaclass(Singleton, object)):
         self.collector_ips = []
         self.collector_control_ips = []
         self.collector_names = []
+        self.alarmgen_nrs = 0
         self.database_ips = []
         self.database_names = []
         self.database_control_ips = []
@@ -330,10 +331,11 @@ class TestInputs(with_metaclass(Singleton, object)):
         self.vgw_data = {}
         self.hypervisors = {}
         self.is_dpdk_cluster = False
+        self.is_sriov_cluster = False
         provider_configs = (self.config.get('provider_config') or {}).get('bms') or {}
         username = provider_configs.get('ssh_user') or 'root'
         password = provider_configs.get('ssh_pwd') or 'c0ntrail123'
-        domainsuffix = provider_configs.get('domainsuffix') or 'englab.juniper.net'
+        self.domainsuffix = provider_configs.get('domainsuffix') or 'englab.juniper.net'
         for host, values  in (self.config.get('instances') or {}).items():
             roles = values.get('roles') or {}
             host_data = dict()
@@ -394,7 +396,7 @@ class TestInputs(with_metaclass(Singleton, object)):
                     if self.deployer == 'rhosp' and len(hostname.split('.')) > 1:
                         host_data['name'] = hostname
                     else:
-                        host_data['name'] = '.'.join([hostname,domainsuffix])
+                        host_data['name'] = '.'.join([hostname,self.domainsuffix])
                 #
                 if roles['vrouter'] and roles['vrouter'].get('TSN_EVPN_MODE'):
                     self.contrail_service_nodes.append(hostname)
@@ -466,9 +468,13 @@ class TestInputs(with_metaclass(Singleton, object)):
                 self.k8s_slave_ips.append(host_data['host_ip'])
             if 'contrail_command' in roles:
                 self.command_server_ip = host_data['host_ip']
+            if 'analytics_alarm' in roles:
+                self.alarmgen_nrs += 1
             host_data['data-ip'] = host_data['host_data_ip'] = host_data_ip
             host_data['control-ip'] = host_data['host_control_ip'] = host_control_ip
             self.host_data[host_data_ip] = self.host_data[host_control_ip] = host_data
+            if isinstance(self.sriov_data[0], dict):
+                self.is_sriov_cluster = True
         # end for
 
     def get_roles(self, host):
@@ -533,12 +539,16 @@ class TestInputs(with_metaclass(Singleton, object)):
         self.deployer = deployment_configs.get('deployer', 'contrail-ansible-deployer')
         self.contrail_configs = contrail_configs = \
             self.config.get('contrail_configuration') or {}
+        self.sriov_data.append (self.config.get('sriov_configuration'))
         self.orchestrator_configs = orchestrator_configs = \
             self.config.get('orchestrator_configuration') or {}
         test_configs = self.config.get('test_configuration') or {}
         self.orchestrator = deployment_configs.get('orchestrator') or 'openstack'
         self.slave_orchestrator = deployment_configs.get('slave_orchestrator',None)
+        self.additional_orchestrator = deployment_configs.get('additional_orchestrator', None)
         if self.deployer == 'openshift':
+            kube_config_file = OPENSHIFT_CONFIG_FILE
+        if self.deployer == 'juju' or self.additional_orchestrator == 'kubernetes':
             kube_config_file = OPENSHIFT_CONFIG_FILE
         else:
             kube_config_file = K8S_CONFIG_FILE
@@ -595,6 +605,8 @@ class TestInputs(with_metaclass(Singleton, object)):
             self.admin_tenant = self.k8s_cluster_name + '-default'
         elif self.slave_orchestrator == 'kubernetes':
             self.k8s_clusters = test_configs['k8s_nested']['clusters']
+        elif self.additional_orchestrator == 'kubernetes':
+            self.k8s_cluster_name = contrail_configs.get('KUBERNETES_CLUSTER_NAME') or "k8s"
 
         # test specific configs
         self.auth_url = test_configs.get('auth_url') or os.getenv('OS_AUTH_URL',
@@ -636,6 +648,7 @@ class TestInputs(with_metaclass(Singleton, object)):
         #    name,type,mgmt_ip,model,vendor,asn,ssh_username,ssh_password,tunnel_ip,ports
 
         self.data_sw_ip = test_configs.get('data_sw_ip')
+        self.data_sw_password = test_configs.get('data_sw_password')
         self.data_sw_compute_bond_interface = test_configs.get('data_sw_compute_bond_interface')
 
         self.physical_routers_data = test_configs.get('physical_routers',{})
@@ -739,7 +752,7 @@ class TestInputs(with_metaclass(Singleton, object)):
             self.vro_username = self.vro_server['username']
             self.vro_password = self.vro_server['password']
             self.vro_port = str(self.vro_server['port'])
-                
+
 
     def get_os_env(self, var, default=''):
         if var in os.environ:
@@ -803,7 +816,7 @@ class TestInputs(with_metaclass(Singleton, object)):
         host_dict['containers'] = {}
         if  host_dict.get('type', None) == 'esxi':
             return
-        cmd = 'docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner" | awk \'{print $NF}\''
+        cmd = 'docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk \'{print $NF}\''
         output = self.run_cmd_on_server(host_dict['host_ip'], cmd, as_sudo=True)
         # If not a docker cluster, return
         if not output:
@@ -814,7 +827,7 @@ class TestInputs(with_metaclass(Singleton, object)):
         nodemgr_cntrs = [x for x in containers if 'nodemgr' in x]
         containers = set(containers) - set(nodemgr_cntrs)
 
-        # Observed in Openshift scenario, recent container-name changes causing issue picking wrong container which is down/inactive after fail-over 
+        # Observed in Openshift scenario, recent container-name changes causing issue picking wrong container which is down/inactive after fail-over
         # and solving this with Sorting the Set and as this is simple sorting only and so should not impact any other scneario like Openstack/K8s etc
         nodemgr_cntrs = sorted(nodemgr_cntrs, reverse=True)
         containers = sorted(containers, reverse=True)
@@ -1048,7 +1061,7 @@ class ContrailTestInit(object):
         # address_family = read_config_option(self.config,
         #                      'Basic', 'AddressFamily', 'dual')
         self.address_family = 'v4'
-        if self.orchestrator == 'kubernetes':
+        if self.orchestrator == 'kubernetes' or self.additional_orchestrator == 'kubernetes':
             if not os.path.exists(self.kube_config_file):
                  self.copy_file_from_server(self.k8s_master_ip,
                         self.kube_config_file, self.kube_config_file)
@@ -1279,7 +1292,7 @@ class ContrailTestInit(object):
                'contrail-database': 'analytics-cassandra',
                'contrail-database-nodemgr': 'analyticsdb-nodemgr',
                'contrail-vrouter-agent': 'agent',
-               'contrail-vrouter-agent-dpdk': 'agent-dpdk',
+               'contrail-vrouter-agent-dpdk': 'contrail-vrouter-agent-dpdk',
                'contrail-vrouter-nodemgr': 'vrouter-nodemgr',
                'contrail-control': 'control',
                'contrail-control-nodemgr': 'control-nodemgr',
@@ -1311,7 +1324,7 @@ class ContrailTestInit(object):
 
     def is_container_up(self, host, service):
         container = self.host_data[host]['containers'][service]
-        cmd = "docker ps -f NAME=%s -f status=running 2>/dev/null"%container
+        cmd = "docker ps -f name=%s -f status=running 2>/dev/null"%container
         for i in range(3):
             output = self.run_cmd_on_server(host, cmd, as_sudo=True)
             if not output or 'Up' not in output:
@@ -1455,8 +1468,8 @@ class ContrailTestInit(object):
         for host in bgp_ips:
             host_name = self.host_data[host]['name']
             issue_cmd = "python /usr/share/contrail-utils/provision_control.py \
-			--host_name '%s' --host_ip '%s' --router_asn '%s' \
-			--api_server_ip '%s' --api_server_port '%s' --oper '%s'" % (host_name,
+                --host_name '%s' --host_ip '%s' --router_asn '%s' \
+                --api_server_ip '%s' --api_server_port '%s' --oper '%s'" % (host_name,
                                                                host,
                                                                router_asn,
                                                                api_server_ip,
@@ -1484,9 +1497,9 @@ class ContrailTestInit(object):
         username = self.host_data[self.cfgm_ip]['username']
         password = self.host_data[self.cfgm_ip]['password']
         issue_cmd = "python /usr/share/contrail-utils/provision_mx.py \
-			--api_server_ip '%s' --api_server_port '%s' \
-			--router_name '%s' --router_ip '%s'  \
-			--router_asn '%s' --oper '%s'" % (
+            --api_server_ip '%s' --api_server_port '%s' \
+            --router_name '%s' --router_ip '%s'  \
+            --router_asn '%s' --oper '%s'" % (
             api_server_ip, api_server_port,
             router_name, router_ip, router_asn, oper)
         output = self.run_cmd_on_server(
@@ -1723,7 +1736,7 @@ class ContrailTestInit(object):
     def enable_vro(self, knob=False):
         self.vro_based = knob
     #end enable_vro
-    
+
 def _parse_args( args_str):
     parser = argparse.ArgumentParser()
     args, remaining_argv = parser.parse_known_args(args_str.split())

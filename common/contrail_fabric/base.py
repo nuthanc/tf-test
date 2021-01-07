@@ -11,10 +11,12 @@ from common.neutron.base import BaseNeutronTest
 from common.fabric_utils import FabricUtils
 from bms_fixture import BMSFixture
 from vm_test import VMFixture
+from interface_route_table_fixture import InterfaceRouteTableFixture
 from tcutils.util import Singleton, skip_because, get_random_vxlan_id, get_an_ip
 from tcutils.util import create_netns, delete_netns, get_intf_name_from_mac, run_dhcp_server
 from future.utils import with_metaclass
 from netaddr import *
+from string import Template
 
 class FabricSingleton(with_metaclass(Singleton, type('NewBase', (FabricUtils, GenericTestBase), {}))):
     def __init__(self, connections):
@@ -151,7 +153,7 @@ class BaseFabricTest(BaseNeutronTest, FabricUtils):
                 obj.cleanup()
             if self.inputs.is_ironic_enabled:
                 obj.create_ironic_provision_vn(self.admin_connections)
-        assert obj.fabric and obj.devices and obj.interfaces 
+        assert obj.fabric and obj.devices and obj.interfaces
         if len(self.inputs.fabrics) > 1:
             assert obj.fabric2 and obj.devices2, "Onboarding fabric failed"
             self.fabric2 = obj.fabric2
@@ -340,6 +342,17 @@ class BaseFabricTest(BaseNeutronTest, FabricUtils):
             lr.add_physical_router(spine.uuid)
         return lr
 
+    def create_interface_route_table(self, rvn_uuid, prefixes,
+                                      community_action=None):
+        name = 'irt' + rvn_uuid
+        irt_fixture = self.useFixture(InterfaceRouteTableFixture(
+            connections=self.connections, name=name,
+            prefixes=prefixes, community_action=community_action))
+        irt_fixture.setUp()
+
+        return irt_fixture
+    # end create_irt
+
     def start_dhcp_server(self, vn_fixtures, dhcp_server=None,
                           bms_node=None, namespace=None):
         subnet_ranges = list()
@@ -408,3 +421,15 @@ class BaseFabricTest(BaseNeutronTest, FabricUtils):
             self.addCleanup(self.vnc_h.delete_device_image, name)
             device_images[device] = name
         return device_images
+
+    def send_l2_traffic(self,vm1_fixture,iface):
+
+        python_code = Template('''
+from scapy.all import *
+payload = 'ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ'
+a=Ether(src='$mac1',dst='$mac2')/payload
+sendp(a, count=10, inter=0, iface='$iface')
+            ''')
+        python_code = python_code.substitute(mac1=self.mac1,mac2=self.mac2,iface=iface)
+        return vm1_fixture.run_python_code(python_code)
+    #end send_l2_traffic

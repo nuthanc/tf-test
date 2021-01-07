@@ -36,7 +36,7 @@ class TestDpdkBondStatus(GenericTestBase):
         assert self.analytics_obj._verify_contrail_alarms(None, 'vrouter', 'vrouter_interface', multi_instances=multi_instances, verify_alarm_cleared=verify_alarm_cleared) , 'Alarms not not cleared'
 
         return True
-    #end test_dpdkbond_status_basic 
+    #end test_dpdkbond_status_basic
 
     @preposttest_wrapper
     @skip_because(dpdk_cluster=False)
@@ -51,7 +51,7 @@ class TestDpdkBondStatus(GenericTestBase):
 
         dpdk_compute = self.inputs.dpdk_ips[0]
 
-        self.inputs.restart_service('contrail-vrouter-agent-dpdk', [dpdk_compute], container='agent-dpdk')
+        self.inputs.restart_service('contrail-vrouter-agent-dpdk', [dpdk_compute], container='contrail-vrouter-agent-dpdk')
 
         cip = self.inputs.collector_ips[0]
         self.inputs.restart_service('analytics_collector_1', [cip], container='collector')
@@ -60,7 +60,7 @@ class TestDpdkBondStatus(GenericTestBase):
 
         state, state1 = self.inputs.verify_service_state(cip, service='collector')
         assert state,'contrail collector is inactive'
-        state, state1 = self.inputs.verify_service_state(dpdk_compute, service='agent-dpdk')
+        state, state1 = self.inputs.verify_service_state(dpdk_compute, service='contrail-vrouter-agent-dpdk')
         assert state,'contrail agent is inactive'
         self.logger.info('contrail agent is active')
 
@@ -80,7 +80,7 @@ class TestDpdkBondStatus(GenericTestBase):
         assert self.analytics_obj._verify_contrail_alarms(None, 'vrouter', 'vrouter_interface', multi_instances=multi_instances, verify_alarm_cleared=verify_alarm_cleared) , 'Alarms not not cleared'
 
         return True
-    #end test_dpdkbond_status_restart 
+    #end test_dpdkbond_status_restart
 
     @preposttest_wrapper
     @skip_because(dpdk_cluster=False)
@@ -97,12 +97,13 @@ class TestDpdkBondStatus(GenericTestBase):
         bond_interface_list = self.inputs.data_sw_compute_bond_interface
         if (mgmt_ip is None) or (bond_interface_list is None):
             raise self.skipTest("Skipping Test. Need management switch IP and bond interface details.")
-        handle = NetconfConnection(host = mgmt_ip,username='root',password='Embe1mpls')
+        handle = NetconfConnection(host = mgmt_ip,username='root',password=self.inputs.data_sw_password)
+
         handle.connect()
         time.sleep(10)
 
         self.logger.info('Bring down data switch bond interface connected to compute.')
-    
+
         self.addCleanup(self.cleanup_data_sw, mgmt_ip)
 
         cmd = []
@@ -115,9 +116,9 @@ class TestDpdkBondStatus(GenericTestBase):
 
         self.logger.info('Validate bond/slave interface status.')
         self.logger.info('Ensure slave members are present in vif --list output.')
-        assert self.agent_inspect[dpdk_compute].validate_bondVifListStatus(bondStatus="DOWN",slaveStatus="DOWN")
+        assert not self.agent_inspect[dpdk_compute].validate_bondVifListStatus(bondStatus="UP",slaveStatus="DOWN")
         self.logger.info('Ensure slave members status is present in agent introspect.')
-        assert self.agent_inspect[dpdk_compute].validate_bondStatus(bondStatus="Inactive",slaveStatus="DOWN")
+        assert not self.agent_inspect[dpdk_compute].validate_bondStatus(bondStatus="Active",slaveStatus="DOWN")
 
         self.logger.info('Ensure alarms are present since interface is down.')
 
@@ -145,14 +146,14 @@ class TestDpdkBondStatus(GenericTestBase):
         assert self.analytics_obj._verify_contrail_alarms(None, 'vrouter', 'vrouter_interface', multi_instances=multi_instances, verify_alarm_cleared=verify_alarm_cleared)
 
         return True
-    #end test_dpdkbond_status_flap 
+    #end test_dpdkbond_status_flap
 
     def cleanup_data_sw(self, ip):
         '''
             Cleanup configs done on data s/w.
         '''
 
-        handle = NetconfConnection(host = ip,username='root',password='Embe1mpls')
+        handle = NetconfConnection(host = ip,username='root',password=self.inputs.data_sw_password)
         handle.connect()
 
         cmd = []

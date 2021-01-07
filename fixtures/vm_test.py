@@ -202,7 +202,7 @@ class VMFixture(fixtures.Fixture):
                 self.image_name = image['name']
                 self.set_image_details(self.vm_obj)
             except Exception as e:
-                pass 
+                pass
 
     def setUp(self):
         super(VMFixture, self).setUp()
@@ -956,7 +956,7 @@ class VMFixture(fixtures.Fixture):
                     self.local_ips[vn_fq_name] = self.get_tap_intf_of_vmi(
                         vmi)['mdata_ip_addr']
                 except Exception as e:
-                    self.logger.exception(e) 
+                    self.logger.exception(e)
         return self.local_ips
 
     def get_local_ip(self, refresh=False):
@@ -1224,7 +1224,7 @@ class VMFixture(fixtures.Fixture):
                 host_string='%s@%s' % (host['username'], self.vm_node_ip),
                 password=host['password'],
                     warn_only=True, abort_on_prompts=False):
-                #		output = run('ping %s -c 1' % (self.local_ips[vn_fq_name]))
+                #        output = run('ping %s -c 1' % (self.local_ips[vn_fq_name]))
                 #                expected_result = ' 0% packet loss'
                 output = safe_run('ping %s -c 2 -W %s' %
                                  (self.local_ips[vn_fq_name], timeout))
@@ -1236,9 +1236,9 @@ class VMFixture(fixtures.Fixture):
                     "Ping to Metadata IP %s of VM %s failed!" %
                     (self.local_ips[vn_fq_name], self.vm_name))
                     vn_obj = self.vnc_lib_h.virtual_network_read(fq_name = vn_fq_name.split(":"))
-                    #The below code is just to make sure that 
+                    #The below code is just to make sure that
                     #vn is assigned a gateway.In some cases(specifically vcenter case),
-                    #it was observed that the gateway was not assigned to the vn 
+                    #it was observed that the gateway was not assigned to the vn
                     for ipam_ref in vn_obj.network_ipam_refs:
                         for ipam_subnet in ipam_ref['attr'].get_ipam_subnets():
                             gateway = ipam_subnet.get_default_gateway()
@@ -1364,7 +1364,7 @@ class VMFixture(fixtures.Fixture):
                 return False
         return True
 
-    def ping_to_ip(self, ip, return_output=False, other_opt='', size='56', count='3', timewait='1', expectation=True):
+    def ping_to_ip(self, ip, intf=None, return_output=False, other_opt='', size='56', count='3', timewait='1', expectation=True):
         """Ping from a VM to an IP specified.
         This method logs into the VM from the host machine using ssh and runs ping test to an IP.
         """
@@ -1385,14 +1385,20 @@ class VMFixture(fixtures.Fixture):
             else:
                 util = 'ping6' if af == 'v6' else 'ping'
 
-            cmd = '%s -s %s -c %s -W %s %s %s' % (
-                util, str(size), str(count), str(timewait), other_opt, ip
-            )
+            if intf is None:
+                cmd = '%s -s %s -c %s -W %s %s %s' % (
+                      util, str(size), str(count), str(timewait), other_opt, ip
+                )
+            else:
+                cmd = '%s -I %s -s %s -c %s -W %s %s %s' % (
+                      util, intf, str(size), str(count), str(timewait), other_opt, ip
+                )
 
+            timeout = int(count) if int(count) > 120 else 120
             output = remote_cmd(
                 vm_host_string, cmd, gateway_password=host['password'],
                 gateway='%s@%s' % (host['username'], self.vm_node_ip),
-                with_sudo=True, password=self.vm_password,
+                with_sudo=True, password=self.vm_password, timeout = int(timeout),
                 logger=self.logger
             )
             self.logger.debug(output)
@@ -2079,7 +2085,7 @@ class VMFixture(fixtures.Fixture):
         self.delete()
         super(VMFixture, self).cleanUp()
 
-    def delete(self, verify=False):
+    def delete(self, verify=False, force=False):
         do_cleanup = True
         if self.inputs.fixture_cleanup == 'no':
             do_cleanup = False
@@ -2090,8 +2096,14 @@ class VMFixture(fixtures.Fixture):
         if do_cleanup:
             if self.inputs.orchestrator != 'vcenter' and \
                not self.inputs.ns_agilio_vrouter_data:
-                for each_port_id in self.port_ids or []:
-                    self.interface_detach(each_port_id)
+                if self.is_vm_active:
+                    # detach cannot work for VMs in ERROR state
+                    for each_port_id in self.port_ids or []:
+                        self.interface_detach(each_port_id)
+                else:
+                    self.logger.info(
+                        "Skip interface_detach for VM %s in state %s" % \
+                        (self.vm_obj.name, self.vm_obj.status))
             for vm_obj in list(self.vm_objs):
                 for sec_grp in self.sg_ids:
                     self.logger.info("Removing the security group"
@@ -2101,7 +2113,7 @@ class VMFixture(fixtures.Fixture):
                 if self.inputs.is_gui_based_config():
                     self.webui.delete_vm(self)
                 else:
-                    self.orch.delete_vm(vm_obj)
+                    self.orch.delete_vm(vm_obj, force=force)
                     self.vm_objs.remove(vm_obj)
                 if self.inputs.ns_agilio_vrouter_data:
                     #hack for port deletion to wait till vm info cleared from api_server
@@ -2684,7 +2696,7 @@ class VMFixture(fixtures.Fixture):
 
     @retry(delay=2, tries=15)
     def verify_vm_flows_removed(self):
-        cmd = 'flow -l '
+        cmd = 'contrail-tools flow -l '
         result = True
         # TODO Change the logic so that check is not global(causes problems
         # when run in parallel if same IP is across Vns or projects)
@@ -2694,8 +2706,7 @@ class VMFixture(fixtures.Fixture):
         output = self.inputs.run_cmd_on_server(self.vm_node_ip, cmd,
                                                self.inputs.host_data[
                                                    self.vm_node_ip]['username'],
-                                               self.inputs.host_data[self.vm_node_ip]['password'],
-                                               container='agent')
+                                               self.inputs.host_data[self.vm_node_ip]['password'])
         matches = [x for x in self.vm_ips if '%s:' % x in output]
         if matches:
             self.logger.warn(
@@ -2708,7 +2719,7 @@ class VMFixture(fixtures.Fixture):
     # end verify_vm_flows_removed
 
     def start_webserver(self, listen_port=8000, content=None):
-        '''Start Web server on the specified port.                                                                                                                                                                                          
+        '''Start Web server on the specified port.
         '''
         host = self.inputs.host_data[self.vm_node_ip]
         try:
@@ -3205,21 +3216,21 @@ class VMFixture(fixtures.Fixture):
     def setup_subintf(self, device=None, vlan=None):
         cmd = 'vconfig add %s %s; dhclient %s.%s'%(device, vlan, device, vlan)
         self.run_cmd_on_vm([cmd], timeout=60, as_sudo=True)
-    
+
     def get_route_nh_from_host(self, compute_ip, vrf_id, prefix):
         #cmd = "rt --dump %s | grep %s | awk \'{print $5}\'" %(vrf_id, prefix)
         rt_dict = {}
         nh_dict ={}
         rt_keys = ['prefix','prefix_len','label','label_flags','nh_id']
         nh_keys = ['oif', 'flags', 'dip','type']
-        cmd = "rt --dump %s | grep %s " %(vrf_id, prefix)
-        output = self.inputs.run_cmd_on_server(compute_ip, cmd, container='agent')
+        cmd = "contrail-tools rt --dump %s 2>/dev/null | grep %s " %(vrf_id, prefix)
+        output = self.inputs.run_cmd_on_server(compute_ip, cmd)
         if output:
             rt_values = output.split()[:-1]
-            rt_dict = dict(zip(rt_keys,rt_values)) 
+            rt_dict = dict(zip(rt_keys,rt_values))
             if int(rt_dict['nh_id']) > 0:
-                nh_cmd = 'nh --get %s'%rt_dict['nh_id']
-                output = self.inputs.run_cmd_on_server(compute_ip, nh_cmd, container='agent')
+                nh_cmd = 'contrail-tools nh --get %s'%rt_dict['nh_id']
+                output = self.inputs.run_cmd_on_server(compute_ip, nh_cmd)
                 if output:
                     output = output.split()
                     for out in output:
@@ -3236,12 +3247,12 @@ class VMFixture(fixtures.Fixture):
                             nh_dict['flags'] = 'TUNNEL'
                 rt_dict['nh'] = nh_dict
             return [rt_dict]
-                    
+
         return []
-                
-                
-            
-        
+
+
+
+
 
     def __repr__(self):
         return '<VMFixture: %s>' % (self.vm_name)

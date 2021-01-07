@@ -179,7 +179,7 @@ class NovaHelper(object):
         for host in hosts:
             self.obj.aggregates.remove_host(agg_id,host)
         return
- 
+
     def delete_agg(self,agg_id):
         return self.obj.aggregates.delete(agg_id)
 
@@ -231,7 +231,7 @@ class NovaHelper(object):
     # end get_flavor
 
     def get_flavor_list(self):
-        flavor = [] 
+        flavor = []
         try:
             flavor = self.obj.flavors.list()
         except novaException:
@@ -570,7 +570,7 @@ class NovaHelper(object):
             nova_services = self.get_nova_compute_service_list()
             for compute_svc in nova_services:
                 if compute_svc.host == node_name or \
-                   self.get_host_name(compute_svc.host) == node_name:
+                   self.get_host_name(compute_svc.host) == self.get_host_name(node_name):
                     node_name = compute_svc.host
                     zone = True
                     break
@@ -733,7 +733,7 @@ class NovaHelper(object):
                 if vm_obj.__dict__['OS-EXT-SRV-ATTR:hypervisor_hostname']\
                     == hypervisor.hypervisor_hostname:
                     if hypervisor.hypervisor_type == 'QEMU':
-                        host_name = vm_obj.__dict__['OS-EXT-SRV-ATTR:host']
+                        host_name = vm_obj.__dict__['OS-EXT-SRV-ATTR:hypervisor_hostname']
                         return host_name and self.get_host_name(host_name)
                     if 'VMware' in hypervisor.hypervisor_type:
                         host_name = vcenter_libs.get_contrail_vm_by_vm_uuid(self.inputs,vm_obj.id)
@@ -768,9 +768,9 @@ class NovaHelper(object):
                 self._hypervisors = self.admin_obj.obj.hypervisors.list()
         return self._hypervisors
     #end
-
-    def delete_vm(self, vm_obj):
-        compute_host = self.get_nova_host_of_vm(vm_obj)
+    def delete_vm(self, vm_obj, force=False):
+        if not force:
+            compute_host = self.get_nova_host_of_vm(vm_obj)
         vm_obj.delete()
     # end _delete_vm
 
