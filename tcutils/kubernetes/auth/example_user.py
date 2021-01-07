@@ -15,7 +15,7 @@ class ExampleUser(O7kLib):
     @staticmethod
     def get_auth_url():
         cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
-        auth_ip = cti_obj.run_cmd_on_server(server_ip='192.168.7.29',issue_cmd="juju status | grep 5000 | awk '{print $5}'")
+        auth_ip = cti_obj.run_cmd_on_server(server_ip='192.168.7.18', username='root', password='c0ntrail123', issue_cmd="juju status | grep 5000 | awk '{print $5}'")
         print(auth_ip)
         # auth_ip = check_output(
         #     , shell=True, universal_newlines=True).strip()
