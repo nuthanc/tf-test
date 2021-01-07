@@ -1,28 +1,30 @@
+from common.k8s.base import BaseK8sTest
 from tcutils.kubernetes.auth.example_user import ExampleUser
 from tcutils.kubernetes.auth.resource_util import ResourceUtil
 from tcutils.kubernetes.auth import create_policy
 from tcutils.wrappers import preposttest_wrapper
-from common.k8s.base import BaseK8sTest
-import os
 
 
 class TestPolicyCombo(BaseK8sTest):
     @classmethod
     def setUpClass(cls):
         # Create the required users, projects and domains
-        admin = ExampleUser.admin()
-        admin.create_all(user_name='userD', password='c0ntrail123', role='Member',
+        super(TestPolicyCombo, cls).setUpClass()
+        cls.admin = ExampleUser.admin()
+        cls.admin.create_all(user_name='userD', password='c0ntrail123', role='Member',
                          project_name='userD_project', domain_name='userD_domain')
-        admin.create_all(user_name='userA', password='c0ntrail123', role='Member',
+        cls.admin.create_all(user_name='userA', password='c0ntrail123', role='Member',
                          project_name='userA_project', domain_name='userA_domain')
-        admin.create_all(user_name='userB', password='c0ntrail123', role='Member',
+        cls.admin.create_all(user_name='userB', password='c0ntrail123', role='Member',
                          project_name='userB_project', domain_name='userB_domain')
-        admin.create_all(user_name='userC', password='c0ntrail123', role='Member',
+        cls.admin.create_all(user_name='userC', password='c0ntrail123', role='Member',
                          project_name='userC_project', domain_name='userC_domain')
         ResourceUtil.source_stackrc(**ResourceUtil.admin_stackrc())
         # MSG Use Util's execute_cmds_on_remote cmd
-        os.system('kubectl create ns zomsrc')
-        os.system('kubectl create ns easy')
+        # os.system('kubectl create ns zomsrc')
+        # os.system('kubectl create ns easy')
+        cls.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+                          issue_cmd="kubectl create ns nuthan; kubectl create ns kirthan")
         admin_policy = create_policy.get_admin_policy()
         userA_policy = create_policy.get_userA_policy()
         userB_policy = create_policy.get_userB_policy()
@@ -42,13 +44,12 @@ class TestPolicyCombo(BaseK8sTest):
         '''
         print("\n"+self.id())
         print("For userA user, only create pods and deployments and nothing else")
-        admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userA',
             'password': 'c0ntrail123',
             'project_name': 'userA_project',
             'domain_name': 'userA_domain',
-            'auth_url': admin.auth_url
+            'auth_url': self.__class__.admin.auth_url
         }
         resource_expectation_list = ['pod-expected', 'deployment-expected', 'service', 'namespace',
                                      'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
@@ -62,13 +63,12 @@ class TestPolicyCombo(BaseK8sTest):
         '''
         print("\n"+self.id())
         print("\nFor userB user, only delete pods and deployments and nothing else")
-        admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userB',
             'password': 'c0ntrail123',
             'project_name': 'userB_project',
             'domain_name': 'userB_domain',
-            'auth_url': admin.auth_url
+            'auth_url': self.__class__.admin.auth_url
         }
         resource_expectation_list = ['pod-expected', 'deployment-expected', 'service', 'namespace',
                                      'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
@@ -82,13 +82,12 @@ class TestPolicyCombo(BaseK8sTest):
         '''
         print("\n"+self.id())
         print("\nFor userC user, create service in zomsrc namespace and nothing else should work")
-        admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userC',
             'password': 'c0ntrail123',
             'project_name': 'userC_project',
             'domain_name': 'userC_domain',
-            'auth_url': admin.auth_url
+            'auth_url': self.__class__.admin.auth_url
         }
         resource_expectation_list = ['pod', 'deployment', 'service-expected', 'namespace',
                                      'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
@@ -104,13 +103,12 @@ class TestPolicyCombo(BaseK8sTest):
         '''
         print("\n"+self.id())
         print("\nFor userD user, any operation on pods, deployments and services but only in easy namespace")
-        admin = ExampleUser.admin()
         stackrc_dict = {
             'user_name': 'userD',
             'password': 'c0ntrail123',
             'project_name': 'userD_project',
             'domain_name': 'userD_domain',
-            'auth_url': admin.auth_url
+            'auth_url': self.__class__.admin.auth_url
         }
         resource_expectation_list = ['pod-expected', 'deployment-expected', 'service-expected', 'namespace-expected',
                                      'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
