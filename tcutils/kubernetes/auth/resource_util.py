@@ -46,18 +46,18 @@ class ResourceUtil(Util):
                     logger.error(f'Error while {resource} {verb}')
 
     @staticmethod
-    def create_policy_and_perform_operations(resource={}, match=[], resource_expectation_list=[], stackrc_dict={}):
+    def create_policy_and_perform_operations(resource={}, match=[], resource_expectation={}, stackrc_dict={}):
         create_policy.create_and_apply_policies(resource=resource, match=match)
         ResourceUtil.perform_operations(
-            stackrc_dict, resource_expectation_list)
+            stackrc_dict, resource_expectation)
 
     @staticmethod
-    def perform_operations(stackrc_dict={}, resource_expectation_list=[], namespace='default'):
-        Util.source_stackrc(**stackrc_dict)
+    def perform_operations(stackrc_dict={}, resource_expectation={}, namespace='default'):
+        stackrc_file = Util.source_stackrc_to_file(**stackrc_dict)
         ResourceUtil.resource_with_expectation(
-            verb='create', resource_expectation_list=resource_expectation_list, namespace=namespace)
+            verb='create', resource_expectation=resource_expectation, namespace=namespace)
         ResourceUtil.resource_with_expectation(
-            verb='delete', resource_expectation_list=resource_expectation_list, namespace=namespace)
+            verb='delete', resource_expectation=resource_expectation, namespace=namespace)
 
     @staticmethod
     def create_test_user_openstack_objects_and_return_match_list_and_stackrc_dict(rand=False):

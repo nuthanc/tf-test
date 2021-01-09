@@ -10,6 +10,7 @@ class TestPolicyCombo(BaseK8sTest):
     def setUpClass(cls):
         # Create the required users, projects and domains
         super(TestPolicyCombo, cls).setUpClass()
+        # MSG Need to use existing resources to create Openstack objects, but first see what create_all is doing
         cls.admin = ExampleUser.admin()
         cls.admin.create_all(user_name='userD', password='c0ntrail123', role='Member',
                          project_name='userD_project', domain_name='userD_domain')
@@ -20,11 +21,9 @@ class TestPolicyCombo(BaseK8sTest):
         cls.admin.create_all(user_name='userC', password='c0ntrail123', role='Member',
                          project_name='userC_project', domain_name='userC_domain')
         ResourceUtil.source_stackrc(**ResourceUtil.admin_stackrc())
-        # MSG Use Util's execute_cmds_on_remote cmd
-        # os.system('kubectl create ns zomsrc')
-        # os.system('kubectl create ns easy')
-        cls.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
-                          issue_cmd="kubectl create ns nuthan; kubectl create ns kirthan")
+        cmd = "kubectl create ns nuthan; kubectl create ns kirthan"
+        cls.inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+                          issue_cmd=cmd)
         admin_policy = create_policy.get_admin_policy()
         userA_policy = create_policy.get_userA_policy()
         userB_policy = create_policy.get_userB_policy()
@@ -35,7 +34,7 @@ class TestPolicyCombo(BaseK8sTest):
         filename = create_policy.insert_policies_in_template_file(
             policies, 'all_in_one_policy.yaml')
         create_policy.apply_policies_and_check_in_config_map(
-            policies, filename)
+            policies, filename, cls.inputs)
 
     @preposttest_wrapper
     def test_only_pods_and_deployments_create(self):
@@ -51,10 +50,12 @@ class TestPolicyCombo(BaseK8sTest):
             'domain_name': 'userA_domain',
             'auth_url': self.__class__.admin.auth_url
         }
+        # MSG Replace every resource_expectation_list with just resource_expectation
         resource_expectation_list = ['pod-expected', 'deployment-expected', 'service', 'namespace',
                                      'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
+        resource_expectation = { 'pod': True, 'deployment': True }
         ResourceUtil.perform_operations(
-            stackrc_dict=stackrc_dict, resource_expectation_list=resource_expectation_list)
+            stackrc_dict=stackrc_dict, resource_expectation=resource_expectation)
 
     @preposttest_wrapper
     def test_only_pods_and_deployments_delete(self):

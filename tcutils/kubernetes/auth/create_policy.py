@@ -135,34 +135,33 @@ def create_policies(resource={}, match=[]):
     return policies
 
 
-
-def check_policy_in_config_map(policies):
-    admin = ExampleUser.admin()
-    Util.source_stackrc(user_name='admin', password='password',
-                        project_name='admin', domain_name='admin_domain', auth_url=admin.auth_url)
-    out = check_output("kubectl describe configmap -n kube-system k8s-auth-policy",
-                       shell=True, universal_newlines=True)
-    cmd_policy_string = out.split("policies")[1].split("\n")[2]
+def check_policy_in_config_map(policies, inputs):
+    cmds = "kubectl config use-context juju-context; kubectl describe configmap -n kube-system k8s-auth-policy"
+    out = inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+                             issue_cmd=cmds)
+    cmd_policy_string = out.split("policies")[1].split("\n")[2].strip()
     policies_json = json.dumps(policies)
     policies_string = str(policies_json)
 
     logger.info("Waiting for policy to update in ConfigMap")
     while cmd_policy_string != policies_string:
-        out = check_output("kubectl describe configmap -n kube-system k8s-auth-policy",
-                           shell=True, universal_newlines=True)
-        cmd_policy_string = out.split("policies")[1].split("\n")[2]
+        out = inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+                                       issue_cmd=cmds)
+        cmd_policy_string = out.split("policies")[1].split("\n")[2].strip()
         time.sleep(2)
     time.sleep(5)  # For master to stabilize, give additional 5 seconds
     logger.info("Policy updated in ConfigMap")
-    check_output(
-        "kubectl config use-context keystone", shell=True, universal_newlines=True)
+    cmd = 'kubectl config use-context keystone'
+    inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+                             issue_cmd=cmd)
 
 
-def apply_policies_and_check_in_config_map(policies, filename):
+def apply_policies_and_check_in_config_map(policies, filename, inputs):
     logger.info(f"Applying policy file: {filename}")
-    os.system(
-        f'juju config kubernetes-master keystone-policy="$(cat {filename})"')
-    check_policy_in_config_map(policies)
+    cmd = f'juju config kubernetes-master keystone-policy="$(cat {filename})"'
+    inputs.run_cmd_on_server(server_ip='192.168.7.18', username='root', password='c0ntrail123',
+                             issue_cmd=cmd)
+    check_policy_in_config_map(policies, inputs)
 
 
 def create_and_apply_policies(resource={}, match=[], filename=None):

@@ -10,6 +10,7 @@ logger = contrail_logging.getLogger(__name__)
 
 
 class Util:
+    # MSG Copy templates to the node running the test container instead of mounting tf-test
     cwd = os.path.dirname(os.path.realpath(__file__))
     templates = {
         'pod': f'{cwd}/templates/pod.yaml',
@@ -32,18 +33,29 @@ class Util:
         output, error = p.communicate()
         return output, error
 
-
     @staticmethod
-    def source_stackrc(user_name='admin', password='password', project_name='admin', domain_name='admin_domain', auth_url=None):
-        os.environ['OS_IDENTITY_API_VERSION'] = '3'
-        os.environ['OS_USER_DOMAIN_NAME'] = domain_name
-        os.environ['OS_USERNAME'] = user_name
-        os.environ['OS_PROJECT_DOMAIN_NAME'] = domain_name
-        os.environ['OS_PROJECT_NAME'] = project_name
-        os.environ['OS_PASSWORD'] = password
-        os.environ['OS_AUTH_URL'] = auth_url
-        os.environ['OS_DOMAIN_NAME'] = domain_name
-        
+    def source_stackrc_to_file(
+            user_name='admin',
+            password='password',
+            project_name='admin',
+            domain_name='admin_domain',
+            auth_url=None):
+        export_list = [
+            'export OS_IDENTITY_API_VERSION=3',
+            f'export OS_USER_DOMAIN_NAME={domain_name}',
+            f'export OS_USERNAME={user_name}',
+            f'export OS_PROJECT_DOMAIN_NAME={domain_name}',
+            f'export OS_PROJECT_NAME={project_name}',
+            f'export OS_PASSWORD={password}',
+            f'export OS_AUTH_URL={auth_url}',
+            f'export OS_DOMAIN_NAME={domain_name}'
+        ]
+        filename = Util.templates['stackrc']
+        with open(filename, 'w') as f:
+            for exports in export_list:
+                f.write(exports + os.linesep)
+        return filename
+
 
     @staticmethod
     def resource(verb, resource_list):
