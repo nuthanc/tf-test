@@ -5,6 +5,7 @@ import shlex
 import string
 import random
 from common import log_orig as contrail_logging
+from common.contrail_test_init import ContrailTestInit
 
 logger = contrail_logging.getLogger(__name__)
 
@@ -21,16 +22,17 @@ class Util:
         'network_policy': f'{cwd}/templates/network_policy.yaml',
         'ingress': f'{cwd}/templates/ingress.yaml',
         'daemonset': f'{cwd}/templates/daemonset.yaml',
+        'stackrc': f'{cwd}/templates/stackrc.sh'
     }
 
     @staticmethod
-    def exec_kubectl_cmd_on_file(verb, template_file, namespace):
+    def exec_kubectl_cmd_on_file(verb, template_file, namespace, stackrc_file=None):
         # kubectl = 'kubectl -v=5 --insecure-skip-tls-verify=true -s https://192.168.30.29:6443'
         kubectl = 'kubectl'
-        cmd = shlex.split(f'{kubectl} {verb} -f {template_file} -n {namespace}')
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
-        # p = Popen(f'{kubectl} {verb} -f {template_file}', stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
-        output, error = p.communicate()
+        cmd = [f'{kubectl} {verb} -f {template_file} -n {namespace}']
+        cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
+        output, error = Util.execute_cmds_on_remote(
+            ip=cti_obj.juju_server, cmd_list=cmd, stackrc_file=stackrc_file)
         return output, error
 
     @staticmethod
@@ -79,24 +81,27 @@ class Util:
 
 
     @staticmethod
-    def execute_cmds_on_remote(ip, cmd_list):
+    def execute_cmds_on_remote(ip, cmd_list, stackrc_file=None, username='root', password='c0ntrail123'):
+        output = ""
+        error = ""
         client = paramiko.SSHClient()
         try:
-            # k = paramiko.RSAKey.from_private_key_file('~/.ssh/id_rsa')
-            client.load_system_host_keys()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            client.connect(hostname=ip, username='ubuntu')
+            client.connect(ip, username=username, password=password)
         except:
             print("[!] Cannot connect to the SSH Server")
             exit()
 
         for cmd in cmd_list:
+            if stackrc_file is not None:
+                source_stackrc = f'source {stackrc_file}'
+                cmd = f"{source_stackrc};{cmd}"
             stdin, stdout, stderr = client.exec_command(cmd)
-            print(stdout.read().decode())
-            err = stderr.read().decode()
-        if err:
-            print(err)
+            output = stdout.read().decode()
+            error = stderr.read().decode()
+            import pdb;pdb.set_trace()
         client.close()
+        return output, error
 
     # MSG Need to get the kubemanager ip from contrail_test_input
     @staticmethod

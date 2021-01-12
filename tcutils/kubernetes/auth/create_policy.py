@@ -137,7 +137,7 @@ def create_policies(resource={}, match=[]):
 
 def check_policy_in_config_map(policies, inputs):
     cmds = "kubectl config use-context juju-context; kubectl describe configmap -n kube-system k8s-auth-policy"
-    out = inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+    out = inputs.run_cmd_on_server(server_ip=inputs.juju_server, username='root', password='c0ntrail123',
                              issue_cmd=cmds)
     cmd_policy_string = out.split("policies")[1].split("\n")[2].strip()
     policies_json = json.dumps(policies)
@@ -145,21 +145,21 @@ def check_policy_in_config_map(policies, inputs):
 
     logger.info("Waiting for policy to update in ConfigMap")
     while cmd_policy_string != policies_string:
-        out = inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+        out = inputs.run_cmd_on_server(server_ip=inputs.juju_server, username='root', password='c0ntrail123',
                                        issue_cmd=cmds)
         cmd_policy_string = out.split("policies")[1].split("\n")[2].strip()
         time.sleep(2)
     time.sleep(5)  # For master to stabilize, give additional 5 seconds
     logger.info("Policy updated in ConfigMap")
     cmd = 'kubectl config use-context keystone'
-    inputs.run_cmd_on_server(server_ip='192.168.7.29', username='root', password='c0ntrail123',
+    inputs.run_cmd_on_server(server_ip=inputs.juju_server, username='root', password='c0ntrail123',
                              issue_cmd=cmd)
 
 
 def apply_policies_and_check_in_config_map(policies, filename, inputs):
     logger.info(f"Applying policy file: {filename}")
     cmd = f'juju config kubernetes-master keystone-policy="$(cat {filename})"'
-    inputs.run_cmd_on_server(server_ip='192.168.7.18', username='root', password='c0ntrail123',
+    inputs.run_cmd_on_server(server_ip=inputs.juju_server, username='root', password='c0ntrail123',
                              issue_cmd=cmd)
     check_policy_in_config_map(policies, inputs)
 

@@ -1,5 +1,3 @@
-
-import os
 from tcutils.kubernetes.auth import create_policy
 from tcutils.kubernetes.auth.util import Util
 from tcutils.kubernetes.auth.example_user import ExampleUser
@@ -13,17 +11,22 @@ logger = contrail_logging.getLogger(__name__)
 
 class ResourceUtil(Util):
     @staticmethod
-    def resource_with_expectation(verb, resource_expectation_list, namespace):
-        for resource_exp in resource_expectation_list:
+    def resource_with_expectation(verb, resource_expectation, namespace, stackrc_file):
+        resources = ['pod', 'deployment', 'service', 'namespace',
+                    'network_attachment_definition', 'network_policy', 'ingress', 'daemonset']
+        for key in resources:
+            if key not in resource_expectation.keys():
+                resource_expectation[key] = False
+        for resource_exp in resource_expectation:
             expectation = False
-            if "-expected" in resource_exp:
-                resource = resource_exp.split("-")[0]
+            if resource_expectation[resource_exp]:
+                resource = resource_exp
                 expectation = True
             else:
                 resource = resource_exp
 
             output, error = Util.exec_kubectl_cmd_on_file(
-                verb=verb, template_file=Util.templates[resource], namespace=namespace)
+                verb=verb, template_file=Util.templates[resource], namespace=namespace, stackrc_file=stackrc_file)
             if verb in output:
                 if expectation == True:
                     logger.info(f'{verb} {resource} successful in {namespace} namespace')
@@ -34,10 +37,12 @@ class ResourceUtil(Util):
             else:
                 if 'already' in error:
                     Util.exec_kubectl_cmd_on_file(
-                        verb='delete', template_file=Util.templates[resource], namespace=namespace)
-                    time.sleep(10)
+                        verb='delete', template_file=Util.templates[resource], namespace=namespace, stackrc_file=stackrc_file)
+                    # time.sleep(10)
                     Util.exec_kubectl_cmd_on_file(
-                        verb='create', template_file=Util.templates[resource], namespace=namespace)
+                        verb='create', template_file=Util.templates[resource], namespace=namespace, stackrc_file=stackrc_file)
+                    logger.info(
+                        f'{verb} {resource} successful in {namespace} namespace')
                 else:
                     if '[' in error:
                         errorObject = error.split("[")[1].split("]")[0]
@@ -55,9 +60,9 @@ class ResourceUtil(Util):
     def perform_operations(stackrc_dict={}, resource_expectation={}, namespace='default'):
         stackrc_file = Util.source_stackrc_to_file(**stackrc_dict)
         ResourceUtil.resource_with_expectation(
-            verb='create', resource_expectation=resource_expectation, namespace=namespace)
+            verb='create', resource_expectation=resource_expectation, namespace=namespace, stackrc_file=stackrc_file)
         ResourceUtil.resource_with_expectation(
-            verb='delete', resource_expectation=resource_expectation, namespace=namespace)
+            verb='delete', resource_expectation=resource_expectation, namespace=namespace, stackrc_file=stackrc_file)
 
     @staticmethod
     def create_test_user_openstack_objects_and_return_match_list_and_stackrc_dict(rand=False):
