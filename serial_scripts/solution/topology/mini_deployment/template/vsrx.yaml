@@ -1,0 +1,60 @@
+description: vSRX-Scale
+heat_template_version: 'train'
+
+resources:
+  My_IPAM:
+    type: OS::ContrailV2::NetworkIpam
+    properties:
+      name: my-scale-ipam
+
+  My_VN:
+    depends_on: [My_IPAM]
+    properties:
+      name: my-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 27.27.0.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 16,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  ParentPort:
+    depends_on: [My_VN]
+    properties:
+      name: parent-port-scale
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  SubInterface:
+    depends_on: [My_VN]
+    properties:
+      name: sub-interface-scale
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 1}
+      virtual_machine_interface_refs:
+      - {get_resource: ParentPort}
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VSRX-Nuthan:
+    depends_on: [ParentPort, SubInterface]
+    properties:
+      availability_zone: kernel-computes
+      config_drive: 'true'
+      user_data_format: RAW
+      personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/vrp31_config.txt } }
+      flavor: contrail_flavor_2cpu
+      image: vsrx
+      name: VSRX-Nuthan
+      networks:
+      - port: {get_resource: ParentPort}
+      - port: {get_resource: SubInterface}
+    type: OS::Nova::Server
