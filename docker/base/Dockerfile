@@ -1,4 +1,4 @@
-FROM centos:7.4.1708
+FROM svl-artifactory.juniper.net/atom-docker-remote/centos:7.8.2003
 
 # Setup Chrome Repo
 COPY google-chrome.repo /etc/yum.repos.d/google-chrome.repo
