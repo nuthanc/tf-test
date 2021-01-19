@@ -1,5 +1,5 @@
 description: vSRX-Scale
-heat_template_version: 'train'
+heat_template_version: 'rocky'
 
 resources:
   My_IPAM:
@@ -26,7 +26,7 @@ resources:
          },
         ]
     type: OS::ContrailV2::VirtualNetwork
-
+  
   ParentPort:
     depends_on: [My_VN]
     properties:
@@ -44,13 +44,21 @@ resources:
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
     type: OS::ContrailV2::VirtualMachineInterface
 
+  VMI_IP : {
+            type : OS::ContrailV2::InstanceIp,
+            depends_on : [ ParentPort, My_VN ],
+            properties : {
+                virtual_machine_interface_refs : [{ get_resource : ParentPort }],
+                virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+            }
+        }
+
   VSRX-Nuthan:
-    depends_on: [ParentPort, SubInterface]
+    depends_on: [VMI_IP, ParentPort, SubInterface]
     properties:
-      availability_zone: kernel-computes
       config_drive: 'true'
       user_data_format: RAW
-      personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/vrp31_config.txt } }
+      # personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
       flavor: contrail_flavor_2cpu
       image: vsrx
       name: VSRX-Nuthan
@@ -58,3 +66,17 @@ resources:
       - port: {get_resource: ParentPort}
       - port: {get_resource: SubInterface}
     type: OS::Nova::Server
+
+  BGP_TAGGED-1:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64512
+      bgpaas_ip_address: 11.10.1.3
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGP_TAGGED-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService

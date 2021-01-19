@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from builtins import str
 from builtins import range
-from .base import BaseSolutionsTest
+from base import BaseSolutionsTest
 from common.heat.base import BaseHeatTest
 from tcutils.wrappers import preposttest_wrapper
 import test
@@ -30,7 +30,7 @@ class OrangeSolutionTest(BaseSolutionsTest):
         #Can update deployment path based on variable.
         cls.deploy_path=os.getenv('DEPLOYMENT_PATH',
                             'serial_scripts/solution/topology/mini_deployment/')
-        cls.setup_vepg()
+        cls.setup_vsrx()
 
     @classmethod
     def tearDownClass(cls):
@@ -61,7 +61,7 @@ class OrangeSolutionTest(BaseSolutionsTest):
                                 stack_name=cls.connections.project_name+'_vsrx_scale',
                                 template=cls.vsrx_template,
                                 timeout_mins=15)
-        # cls.vsrx_stack.setUp()
+        cls.vsrx_stack.setUp()
 
 
     @classmethod
@@ -298,3 +298,5 @@ class OrangeSolutionTest(BaseSolutionsTest):
     # end test_orange_deploy
 
 #end class OrangeSolutionTest
+if __name__ == '__main__':
+    OrangeSolutionTest.setUpClass()
