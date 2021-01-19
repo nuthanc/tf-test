@@ -10,7 +10,7 @@ resources:
   My_VN:
     depends_on: [My_IPAM]
     properties:
-      name: my-scale-vn
+      name: my-scale-vn-new
       network_ipam_refs: [{ get_resource: My_IPAM }]
       network_ipam_refs_data:
         [{
@@ -44,7 +44,7 @@ resources:
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
     type: OS::ContrailV2::VirtualMachineInterface
 
-  VMI_IP : {
+  VMI_parent_IP : {
             type : OS::ContrailV2::InstanceIp,
             depends_on : [ ParentPort, My_VN ],
             properties : {
@@ -53,8 +53,17 @@ resources:
             }
         }
 
+  VMI_sub_IP : {
+            type : OS::ContrailV2::InstanceIp,
+            depends_on : [ SubInterface, My_VN ],
+            properties : {
+                virtual_machine_interface_refs : [{ get_resource : SubInterface }],
+                virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+            }
+        }
+
   VSRX-Nuthan:
-    depends_on: [VMI_IP, ParentPort, SubInterface]
+    depends_on: [VMI_parent_IP, VMI_sub_IP, ParentPort, SubInterface]
     properties:
       config_drive: 'true'
       user_data_format: RAW
