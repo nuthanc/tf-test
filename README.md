@@ -34,3 +34,4 @@ python3 serial_scripts/solution/test_orange_solution.py
                                 timeout_mins=15)
         cls.vsrx_stack.setUp()
 ```
+* **I think bgp configuration should be given in personality**

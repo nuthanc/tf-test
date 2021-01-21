@@ -298,5 +298,3 @@ class OrangeSolutionTest(BaseSolutionsTest):
     # end test_orange_deploy
 
 #end class OrangeSolutionTest
-if __name__ == '__main__':
-    OrangeSolutionTest.setUpClass()

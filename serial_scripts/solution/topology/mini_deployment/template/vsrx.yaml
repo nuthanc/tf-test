@@ -10,7 +10,7 @@ resources:
   My_VN:
     depends_on: [My_IPAM]
     properties:
-      name: my-scale-vn-new
+      name: sub-scale-vn
       network_ipam_refs: [{ get_resource: My_IPAM }]
       network_ipam_refs_data:
         [{
@@ -30,14 +30,14 @@ resources:
   ParentPort:
     depends_on: [My_VN]
     properties:
-      name: parent-port-scale
+      name: parent-port-1
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
     type: OS::ContrailV2::VirtualMachineInterface
 
   SubInterface:
     depends_on: [My_VN]
     properties:
-      name: sub-interface-scale
+      name: sub-interface-1
       virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 1}
       virtual_machine_interface_refs:
       - {get_resource: ParentPort}
@@ -79,13 +79,13 @@ resources:
   BGP_TAGGED-1:
     depends_on: [SubInterface]
     properties:
-      autonomous_system: 64512
-      bgpaas_ip_address: 11.10.1.3
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.27.27.27
       bgpaas_session_attributes:
         bgpaas_session_attributes_address_families:
           bgpaas_session_attributes_address_families_family: [inet]
         bgpaas_session_attributes_as_override: true
-      name: BGP_TAGGED-1
+      name: BGPAAS-1
       virtual_machine_interface_refs:
       - {get_resource: SubInterface}
     type: OS::ContrailV2::BgpAsAService
