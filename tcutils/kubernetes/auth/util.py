@@ -11,15 +11,15 @@ logger = contrail_logging.getLogger('auth')
 class Util:
     cwd = os.path.dirname(os.path.realpath(__file__))
     templates = {
-        'pod': f'{cwd}/templates/pod.yaml',
-        'deployment': f'{cwd}/templates/deployment.yaml',
-        'service': f'{cwd}/templates/service.yaml',
-        'namespace': f'{cwd}/templates/namespace.yaml',
-        'network_attachment_definition': f'{cwd}/templates/network_attachment_definition.yaml',
-        'network_policy': f'{cwd}/templates/network_policy.yaml',
-        'ingress': f'{cwd}/templates/ingress.yaml',
-        'daemonset': f'{cwd}/templates/daemonset.yaml',
-        'stackrc': f'{cwd}/templates/stackrc.sh'
+        'pod': '/var/tmp/templates/pod.yaml',
+        'deployment': '/var/tmp/templates/deployment.yaml',
+        'service': '/var/tmp/templates/service.yaml',
+        'namespace': '/var/tmp/templates/namespace.yaml',
+        'network_attachment_definition': '/var/tmp/templates/network_attachment_definition.yaml',
+        'network_policy': '/var/tmp/templates/network_policy.yaml',
+        'ingress': '/var/tmp/templates/ingress.yaml',
+        'daemonset': '/var/tmp/templates/daemonset.yaml',
+        'stackrc': '/var/tmp/templates/stackrc.sh'
     }
 
     @staticmethod
