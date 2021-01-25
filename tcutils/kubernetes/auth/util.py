@@ -9,7 +9,6 @@ logger = contrail_logging.getLogger('auth')
 
 
 class Util:
-    cwd = os.path.dirname(os.path.realpath(__file__))
     templates = {
         'pod': '/var/tmp/templates/pod.yaml',
         'deployment': '/var/tmp/templates/deployment.yaml',
@@ -23,14 +22,13 @@ class Util:
     }
 
     @staticmethod
-    def exec_kubectl_cmd_on_file(verb, resource, namespace, stackrc_file):
+    def exec_kubectl_cmd_on_file(verb, resource, namespace, stackrc_file, inputs):
         # kubectl = 'kubectl -v=5 --insecure-skip-tls-verify=true -s https://192.168.30.29:6443'
         kubectl = 'kubectl'
         template_file = Util.templates[resource]
         cmd = [f'{kubectl} {verb} -f {template_file} -n {namespace}']
-        cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
         out, err = Util.execute_cmds_on_remote(
-            ip=cti_obj.juju_server, cmd_list=cmd, stackrc_file=stackrc_file)
+            ip=inputs.juju_server, cmd_list=cmd, stackrc_file=stackrc_file)
         return out, err
 
     @staticmethod
@@ -39,7 +37,8 @@ class Util:
             password='password',
             project_name='admin',
             domain_name='admin_domain',
-            auth_url=None):
+            auth_url=None,
+            inputs=None):
         export_list = [
             'export OS_IDENTITY_API_VERSION=3',
             f'export OS_USER_DOMAIN_NAME={domain_name}',
@@ -50,31 +49,17 @@ class Util:
             f'export OS_AUTH_URL={auth_url}',
             f'export OS_DOMAIN_NAME={domain_name}'
         ]
-        filename = Util.templates['stackrc']
+        filename = '/contrail-test/tcutils/kubernetes/auth/templates/stackrc.sh'
         with open(filename, 'w') as f:
             for exports in export_list:
                 f.write(exports + os.linesep)
-        return filename
+        inputs.copy_file_to_server(
+            ip=inputs.juju_server,
+            src=filename,
+            dst='stackrc.sh',
+            dstdir='/var/tmp/templates')
+        return Util.templates['stackrc']
 
-    @staticmethod
-    def resource(verb, resource_list):
-        for resource in resource_list:
-            output, error = Util.exec_kubectl_cmd_on_file(
-                verb=verb, resource=resource, namespace='default')
-            if verb in output:
-                logger.info(f'{verb} {resource} successful')
-            elif 'forbidden' in error:
-                logger.info(f'{verb} {resource} forbidden')
-            else:
-                errorObject = error.split("[")[1].split("]")[0]
-                import json
-                errorMessage = json.loads(errorObject)['message']
-                logger.error(errorMessage)
-
-    @staticmethod
-    def get_random_string(size=8):
-        return ''.join(random.choices(string.ascii_lowercase +
-                                      string.digits, k=size))
 
     @staticmethod
     def execute_cmds_on_remote(
@@ -102,20 +87,3 @@ class Util:
             error = stderr.read().decode()
         client.close()
         return output, error
-
-    # MSG Need to get the kubemanager ip from contrail_test_input
-
-    @staticmethod
-    def restart_kube_manager():
-        cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
-        ip = cti_obj.inputs.kube_manager_ips[0]
-        Util.execute_cmds_on_remote(
-            ip, ['sudo docker restart contrailkubernetesmaster_kubemanager_1'])
-
-    # MSG Need to get vrouter agent ip from contrail_test_input
-    @staticmethod
-    def restart_vrouter_agent():
-        cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
-        ip = cti_obj.inputs.k8s_slave_ips[0]
-        Util.execute_cmds_on_remote(
-            ip, ['sudo docker restart vrouter_vrouter-agent_1'])

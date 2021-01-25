@@ -12,6 +12,10 @@ class TestPolicyCombo(BaseK8sAuth):
     @classmethod
     def setUpClass(cls):
         # Create the required users, projects and domains
+        cmd = 'kubectl config use-context juju-context'
+        cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
+        cti_obj.run_cmd_on_server(server_ip=cti_obj.juju_server, username='root', password='c0ntrail123',
+                                  issue_cmd=cmd)
         super(TestPolicyCombo, cls).setUpClass()
         cls.admin = ExampleUser.admin()
         cls.admin.create_all(
@@ -39,11 +43,9 @@ class TestPolicyCombo(BaseK8sAuth):
             project_name='userC_project',
             domain_name='userC_domain')
 
-        cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
-        cmds = ['kubectl config use-context juju-context',
-                'kubectl create ns zomsrc', 'kubectl create ns easy']
-        ResourceUtil.execute_cmds_on_remote(
-            ip=cti_obj.juju_server, cmd_list=cmds)
+        cmd = 'kubectl create ns zomsrc; kubectl create ns easy'
+        cls.inputs.run_cmd_on_server(server_ip=cti_obj.juju_server, username='root', password='c0ntrail123',
+                                  issue_cmd=cmd)
         admin_policy = create_policy.get_admin_policy()
         userA_policy = create_policy.get_userA_policy()
         userB_policy = create_policy.get_userB_policy()
@@ -52,9 +54,30 @@ class TestPolicyCombo(BaseK8sAuth):
         policies = [admin_policy, userA_policy,
                     userB_policy, userC_policy, userD_policy]
         filename = create_policy.insert_policies_in_template_file(
-            policies, 'all_in_one_policy.yaml')
+            policies, filename='all_in_one_policy.yaml', inputs=cls.inputs)
         create_policy.apply_policies_and_check_in_config_map(
-            policies, filename)
+            policies, filename, cti_obj.juju_server)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestPolicyCombo, cls).tearDownClass()
+        cls.admin.delete_all(
+            user_name='userD',
+            project_name='userD_project',
+            domain_name='userD_domain')
+        cls.admin.delete_all(
+            user_name='userA',
+            project_name='userA_project',
+            domain_name='userA_domain')
+        cls.admin.delete_all(
+            user_name='userB',
+            project_name='userB_project',
+            domain_name='userB_domain')
+        cls.admin.delete_all(
+            user_name='userC',
+            project_name='userC_project',
+            domain_name='userC_domain')
+
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -75,18 +98,10 @@ class TestPolicyCombo(BaseK8sAuth):
             'domain_name': 'userA_domain',
             'auth_url': self.__class__.admin.auth_url
         }
-        resource_expectation_list = [
-            'pod-expected',
-            'deployment-expected',
-            'service',
-            'namespace',
-            'network_attachment_definition',
-            'network_policy',
-            'ingress',
-            'daemonset']
+        resource_expectation = {'pod': True, 'deployment': True}
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict,
-            resource_expectation_list=resource_expectation_list)
+            resource_expectation=resource_expectation, inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -107,18 +122,10 @@ class TestPolicyCombo(BaseK8sAuth):
             'domain_name': 'userB_domain',
             'auth_url': self.__class__.admin.auth_url
         }
-        resource_expectation_list = [
-            'pod-expected',
-            'deployment-expected',
-            'service',
-            'namespace',
-            'network_attachment_definition',
-            'network_policy',
-            'ingress',
-            'daemonset']
+        resource_expectation = {'pod': True, 'deployment': True}
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict,
-            resource_expectation_list=resource_expectation_list)
+            resource_expectation=resource_expectation, inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -139,22 +146,14 @@ class TestPolicyCombo(BaseK8sAuth):
             'domain_name': 'userC_domain',
             'auth_url': self.__class__.admin.auth_url
         }
-        resource_expectation_list = [
-            'pod',
-            'deployment',
-            'service-expected',
-            'namespace',
-            'network_attachment_definition',
-            'network_policy',
-            'ingress',
-            'daemonset']
+        resource_expectation = {'service': True}
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict,
-            resource_expectation_list=resource_expectation_list)
+            resource_expectation=resource_expectation, inputs=self.inputs)
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict,
-            resource_expectation_list=resource_expectation_list,
-            namespace='zomsrc')
+            resource_expectation=resource_expectation,
+            namespace='zomsrc', inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -176,19 +175,12 @@ class TestPolicyCombo(BaseK8sAuth):
             'domain_name': 'userD_domain',
             'auth_url': self.__class__.admin.auth_url
         }
-        resource_expectation_list = [
-            'pod-expected',
-            'deployment-expected',
-            'service-expected',
-            'namespace-expected',
-            'network_attachment_definition',
-            'network_policy',
-            'ingress',
-            'daemonset']
+        resource_expectation = {
+            'pod': True, 'deployment': True, 'service': True, 'namespace': True}
         ResourceUtil.perform_operations(
-            resource_expectation_list=resource_expectation_list,
-            stackrc_dict=stackrc_dict)
+            resource_expectation=resource_expectation,
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
         ResourceUtil.perform_operations(
             stackrc_dict=stackrc_dict,
-            resource_expectation_list=resource_expectation_list,
-            namespace='easy')
+            resource_expectation=resource_expectation,
+            namespace='easy', inputs=self.inputs)

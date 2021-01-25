@@ -10,10 +10,9 @@ from tcutils.kubernetes.auth.util import Util
 from common import log_orig as contrail_logging
 
 logger = contrail_logging.getLogger('auth')
-cti_obj = ContrailTestInit(input_file='contrail_test_input.yaml')
 
 
-def insert_policies_in_template_file(policies, filename=None):
+def insert_policies_in_template_file(policies, filename=None, inputs=None):
     THIS_DIR = os.path.dirname(os.path.realpath(__file__))
     TEMPLATE_DIR = os.path.join(THIS_DIR, 'templates')
 
@@ -27,7 +26,13 @@ def insert_policies_in_template_file(policies, filename=None):
     template = env.get_template("policy.yaml.j2")
     with open(filename, 'w') as f:
         f.write(template.render(policies=policies_json))
-    return filename
+    inputs.copy_file_to_server(
+        ip=inputs.juju_server,
+        src='/contrail-test/tcutils/kubernetes/auth/templates/',
+        dst='templates',
+        dstdir='/var/tmp/templates')
+    rel_file = os.path.join('/var/tmp/templates', filename.split('templates/')[1])
+    return rel_file
 
 
 def get_custom_user_policy(
@@ -148,11 +153,11 @@ def create_policies(resource={}, match=[]):
     return policies
 
 
-def check_policy_in_config_map(policies):
+def check_policy_in_config_map(policies, juju_server):
     cmds = ["kubectl config use-context juju-context",
             "kubectl describe configmap -n kube-system k8s-auth-policy"]
     out, err = Util.execute_cmds_on_remote(
-        ip=cti_obj.juju_server, cmd_list=cmds)
+        ip=juju_server, cmd_list=cmds)
     cmd_policy_string = out.split("policies")[1].split("\n")[2].strip()
     policies_json = json.dumps(policies)
     policies_string = str(policies_json)
@@ -160,25 +165,25 @@ def check_policy_in_config_map(policies):
     logger.info("Waiting for policy to update in ConfigMap")
     while cmd_policy_string != policies_string:
         out, err = Util.execute_cmds_on_remote(
-            ip=cti_obj.juju_server, cmd_list=cmds)
+            ip=juju_server, cmd_list=cmds)
         cmd_policy_string = out.split("policies")[1].split("\n")[2]
         time.sleep(2)
     time.sleep(5)  # For master to stabilize, give additional 5 seconds
     logger.info("Policy updated in ConfigMap")
     cmd = ["kubectl config use-context keystone"]
     out, err = Util.execute_cmds_on_remote(
-        ip=cti_obj.juju_server, cmd_list=cmd)
+        ip=juju_server, cmd_list=cmd)
 
 
-def apply_policies_and_check_in_config_map(policies, filename):
+def apply_policies_and_check_in_config_map(policies, filename, juju_server):
     logger.info(f"Applying policy file: {filename}")
     cmd = [f'juju config kubernetes-master keystone-policy="$(cat {filename})"']
     out, err = Util.execute_cmds_on_remote(
-        ip=cti_obj.juju_server, cmd_list=cmd)
-    check_policy_in_config_map(policies)
+        ip=juju_server, cmd_list=cmd)
+    check_policy_in_config_map(policies, juju_server)
 
 
-def create_and_apply_policies(resource={}, match=[], filename=None):
+def create_and_apply_policies(resource={}, match=[], inputs=None, filename=None):
     policies = create_policies(resource=resource, match=match)
-    filename = insert_policies_in_template_file(policies)
-    apply_policies_and_check_in_config_map(policies, filename)
+    filename = insert_policies_in_template_file(policies, filename=filename, inputs=inputs)
+    apply_policies_and_check_in_config_map(policies, filename, inputs.juju_server)

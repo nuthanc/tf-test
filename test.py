@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 from tcutils.util import get_unique_random_name
 import logging as std_logging
 from common import log_orig as contrail_logging
@@ -10,8 +12,6 @@ import time
 import os
 import functools
 from builtins import object
-from gevent import monkey
-monkey.patch_all()
 
 #from common import config
 

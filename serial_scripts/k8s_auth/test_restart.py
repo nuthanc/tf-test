@@ -1,23 +1,24 @@
 from serial_scripts.k8s_auth.base import BaseK8sAuth
 from tcutils.kubernetes.auth.resource_util import ResourceUtil
+from tcutils.kubernetes.auth.example_user import ExampleUser
 from tcutils.kubernetes.auth.wrappers import preposttest_wrapper
 import test
 
 
-class TestRestart(BaseK8sAuth)
- resource_expectation = {
-      'pod': True,
-       'deployment': True,
-      'service': True,
-            'namespace': True,
-            'network_attachment_definition': True,
-            'network_policy': True,
-            'ingress': True,
-            'daemonset': True
+class TestRestart(BaseK8sAuth):
+    resource_expectation = {
+        'pod': True,
+        'deployment': True,
+        'service': True,
+        'namespace': True,
+        'network_attachment_definition': True,
+        'network_policy': True,
+        'ingress': True,
+        'daemonset': True
       }
 
-  @classmethod
-   def setUpClass(cls):
+    @classmethod
+    def setUpClass(cls):
         super(TestRestart, cls).setUpClass()
 
     @test.attr(type=['auth'])
@@ -38,11 +39,11 @@ class TestRestart(BaseK8sAuth)
         stackrc_dict = ResourceUtil.admin_stackrc()
         ResourceUtil.create_policy_and_perform_operations(
             resource_expectation=TestRestart.resource_expectation,
-            stackrc_dict=stackrc_dict)
-        ResourceUtil.restart_kube_manager()
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
+        self.restart_kube_manager()
         ResourceUtil.create_policy_and_perform_operations(
             resource_expectation=TestRestart.resource_expectation,
-            stackrc_dict=stackrc_dict)
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -61,11 +62,11 @@ class TestRestart(BaseK8sAuth)
         stackrc_dict = ResourceUtil.admin_stackrc()
         ResourceUtil.create_policy_and_perform_operations(
             resource_expectation=TestRestart.resource_expectation,
-            stackrc_dict=stackrc_dict)
-        ResourceUtil.restart_vrouter_agent()
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
+        self.restart_vrouter_agent()
         ResourceUtil.create_policy_and_perform_operations(
             resource_expectation=TestRestart.resource_expectation,
-            stackrc_dict=stackrc_dict)
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -85,13 +86,13 @@ class TestRestart(BaseK8sAuth)
         match, stackrc_dict = ResourceUtil.get_custom_match_stackrc()
         ResourceUtil.create_policy_and_perform_operations(
             match=match,
-            resource_expectation=TestResource.resource_expectation,
-            stackrc_dict=stackrc_dict)
-        ResourceUtil.restart_kube_manager()
+            resource_expectation=TestRestart.resource_expectation,
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
+        self.restart_kube_manager()
         ResourceUtil.create_policy_and_perform_operations(
             match=match,
             resource_expectation=TestRestart.resource_expectation,
-            stackrc_dict=stackrc_dict)
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -111,13 +112,13 @@ class TestRestart(BaseK8sAuth)
         match, stackrc_dict = ResourceUtil.get_custom_match_stackrc()
         ResourceUtil.create_policy_and_perform_operations(
             match=match,
-            resource_expectation=TestRestart.resource_expectation_list,
-            stackrc_dict=stackrc_dict)
-        ResourceUtil.restart_vrouter_agent()
+            resource_expectation=TestRestart.resource_expectation,
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
+        self.restart_vrouter_agent()
         ResourceUtil.create_policy_and_perform_operations(
             match=match,
-            resource_expectation=TestRestart.resource_expectation_list,
-            stackrc_dict=stackrc_dict)
+            resource_expectation=TestRestart.resource_expectation,
+            stackrc_dict=stackrc_dict, inputs=self.inputs)
 
 
 class TestRestartWithPodResource(BaseK8sAuth):
@@ -126,15 +127,15 @@ class TestRestartWithPodResource(BaseK8sAuth):
 
     @classmethod
     def setUpClass(cls):
-        super(TestRestart, cls).setUpClass()
+        super(TestRestartWithPodResource, cls).setUpClass()
 
     def setUp(self):
-        super(TestResourceCustom, self).setUp()
+        super(TestRestartWithPodResource, self).setUp()
         self.match, self.stackrc_dict = ResourceUtil.get_custom_match_stackrc(
             rand=True)
 
     def tearDown(self):
-        super(TestResourceCustom, self).tearDown()
+        super(TestRestartWithPodResource, self).tearDown()
         user = ExampleUser.admin()
         user.delete_user(
             user_name=self.stackrc_dict['user_name'],
@@ -156,16 +157,16 @@ class TestRestartWithPodResource(BaseK8sAuth):
          Maintainer : nuthanc@juniper.net
         '''
         ResourceUtil.create_policy_and_perform_operations(
-            resource=TestRestartPod.resource,
+            resource=TestRestartWithPodResource.resource,
             match=self.match,
             stackrc_dict=self.stackrc_dict,
-            resource_expectation=TestRestartPod.resource_expectation)
-        ResourceUtil.restart_kube_manager()
+            resource_expectation=TestRestartWithPodResource.resource_expectation, inputs=self.inputs)
+        self.restart_kube_manager()
         ResourceUtil.create_policy_and_perform_operations(
-            resource=TestRestartPod.resource,
+            resource=TestRestartWithPodResource.resource,
             match=self.match,
             stackrc_dict=self.stackrc_dict,
-            resource_expectation=TestRestartPod.resource_expectation)
+            resource_expectation=TestRestartWithPodResource.resource_expectation, inputs=self.inputs)
 
     @test.attr(type=['auth'])
     @preposttest_wrapper
@@ -182,13 +183,13 @@ class TestRestartWithPodResource(BaseK8sAuth):
          Maintainer : nuthanc@juniper.net
         '''
         ResourceUtil.create_policy_and_perform_operations(
-            resource=TestRestartPod.resource,
+            resource=TestRestartWithPodResource.resource,
             match=self.match,
             stackrc_dict=self.stackrc_dict,
-            resource_expectation=TestRestartPod.resource_expectation)
-        ResourceUtil.restart_vrouter_agent()
+            resource_expectation=TestRestartWithPodResource.resource_expectation, inputs=self.inputs)
+        self.restart_vrouter_agent()
         ResourceUtil.create_policy_and_perform_operations(
-            resource=TestRestartPod.resource,
+            resource=TestRestartWithPodResource.resource,
             match=self.match,
             stackrc_dict=self.stackrc_dict,
-            resource_expectation=TestRestartPod.resource_expectation)
+            resource_expectation=TestRestartWithPodResource.resource_expectation, inputs=self.inputs)
