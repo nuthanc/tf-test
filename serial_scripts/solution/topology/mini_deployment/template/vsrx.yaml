@@ -18,7 +18,7 @@ resources:
             [{
               network_ipam_refs_data_ipam_subnets_subnet:
                 {
-                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 27.27.0.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 27.47.0.0,
                   network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 16,
                 },
                 network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
@@ -38,7 +38,7 @@ resources:
     depends_on: [My_VN]
     properties:
       name: sub-interface-1
-      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 1}
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 2}
       virtual_machine_interface_refs:
       - {get_resource: ParentPort}
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
@@ -67,20 +67,19 @@ resources:
     properties:
       config_drive: 'true'
       user_data_format: RAW
-      # personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
+      personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
       flavor: contrail_flavor_2cpu
       image: vsrx
       name: VSRX-Nuthan
       networks:
       - port: {get_resource: ParentPort}
-      - port: {get_resource: SubInterface}
     type: OS::Nova::Server
 
-  BGP_TAGGED-1:
+  BGP_TAGGED-2:
     depends_on: [SubInterface]
     properties:
       autonomous_system: 64500
-      bgpaas_ip_address: 27.27.27.27
+      bgpaas_ip_address: 27.47.0.7
       bgpaas_session_attributes:
         bgpaas_session_attributes_address_families:
           bgpaas_session_attributes_address_families_family: [inet]
