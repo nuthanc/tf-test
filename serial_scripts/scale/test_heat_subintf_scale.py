@@ -8,6 +8,7 @@ from vnc_api.gen.resource_test import *
 from heat_test import HeatStackFixture
 from nova_test import *
 from jinja2 import Environment, FileSystemLoader
+import yaml
 
 
 class SubIntfScaleTest(BaseScaleTest):
@@ -56,4 +57,4 @@ class SubIntfScaleTest(BaseScaleTest):
 
 if __name__ == '__main__':
     SubIntfScaleTest.load_template()
-    # SubIntfScaleTest.setUpClass()
+    SubIntfScaleTest.setUpClass()

@@ -34,16 +34,6 @@ resources:
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
     type: OS::ContrailV2::VirtualMachineInterface
 
-  SubInterface:
-    depends_on: [My_VN]
-    properties:
-      name: sub-interface-1
-      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 2}
-      virtual_machine_interface_refs:
-      - {get_resource: ParentPort}
-      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
-    type: OS::ContrailV2::VirtualMachineInterface
-
   VMI_parent_IP :
     type: OS::ContrailV2::InstanceIp
     depends_on : [ ParentPort, My_VN ]
@@ -51,15 +41,27 @@ resources:
       virtual_machine_interface_refs : [{ get_resource : ParentPort }]
       virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
 
-  VMI_sub_IP :
+{% for i in range(10) %}
+  SubInterface-{{ i+1 }}:
+    depends_on: [My_VN]
+    properties:
+      name: sub-interface-{{ i+1 }}
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: {{ i+1 }}}
+      virtual_machine_interface_refs:
+      - {get_resource: ParentPort}
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-{{ i+1 }} :
     type: OS::ContrailV2::InstanceIp
-    depends_on : [ SubInterface, My_VN ]
+    depends_on : [ SubInterface-{{ i+1 }}, My_VN ]
     properties :
-      virtual_machine_interface_refs : [{ get_resource : SubInterface }]
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-{{ i+1 }} }]
       virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+{% endfor %}
 
   VSRX-Nuthan:
-    depends_on: [VMI_parent_IP, VMI_sub_IP, ParentPort, SubInterface]
+    depends_on: [My_VN, ParentPort, {% for i in range(10) %}SubInterface-{{ i+1 }}, {% endfor %}]
     properties:
       config_drive: 'true'
       user_data_format: RAW
@@ -73,7 +75,7 @@ resources:
 
 {% for i in range(10) %}
   BGP_TAGGED-{{ i+1 }}:
-    depends_on: [SubInterface]
+    depends_on: [{% for i in range(10) %}SubInterface-{{ i+1 }}, {% endfor %}]
     properties:
       autonomous_system: 64500
       bgpaas_ip_address: 27.47.0.7
@@ -81,8 +83,8 @@ resources:
         bgpaas_session_attributes_address_families:
           bgpaas_session_attributes_address_families_family: [inet]
         bgpaas_session_attributes_as_override: true
-      name: BGPAAS-1
+      name: BGPAAS-{{ i+1 }}
       virtual_machine_interface_refs:
-      - {get_resource: SubInterface}
+      - {get_resource: SubInterface-{{ i+1 }}}
     type: OS::ContrailV2::BgpAsAService
 {% endfor %}
