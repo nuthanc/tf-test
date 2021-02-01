@@ -55,7 +55,7 @@ class SubIntfScaleTest(BaseBGPaaS):
     @preposttest_wrapper
     def test_subintf_scale(self):
         vn_name = get_random_name('scale_bgpaas_vn')
-        vn_subnets = ['7.27.0.0/16']
+        vn_subnets = ['97.27.0.0/16']
         vn_fixture = self.create_vn(vn_name, vn_subnets)
         
         bgpaas_vm1 = self.create_vm(vn_fixture, 'bgpaas_vm1',
@@ -66,7 +66,7 @@ class SubIntfScaleTest(BaseBGPaaS):
             bgpaas_vm1_state = bgpaas_vm1.wait_till_vm_is_up()
             if bgpaas_vm1_state:
                break
-        autonomous_system1 = 62227
+        autonomous_system1 = 64297
         bgpaas_fixture1 = self.create_bgpaas(
             bgpaas_shared=True, autonomous_system=autonomous_system1, bgpaas_ip_address=bgpaas_vm1.vm_ip)
         port1 = bgpaas_vm1.vmi_ids[bgpaas_vm1.vn_fq_name]

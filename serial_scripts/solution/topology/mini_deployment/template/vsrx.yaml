@@ -44,30 +44,26 @@ resources:
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
     type: OS::ContrailV2::VirtualMachineInterface
 
-  VMI_parent_IP : {
-            type : OS::ContrailV2::InstanceIp,
-            depends_on : [ ParentPort, My_VN ],
-            properties : {
-                virtual_machine_interface_refs : [{ get_resource : ParentPort }],
-                virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
-            }
-        }
+  VMI_parent_IP :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ ParentPort, My_VN ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : ParentPort }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
 
-  VMI_sub_IP : {
-            type : OS::ContrailV2::InstanceIp,
-            depends_on : [ SubInterface, My_VN ],
-            properties : {
-                virtual_machine_interface_refs : [{ get_resource : SubInterface }],
-                virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
-            }
-        }
+  VMI_sub_IP :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface, My_VN ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
 
   VSRX-Nuthan:
     depends_on: [VMI_parent_IP, VMI_sub_IP, ParentPort, SubInterface]
     properties:
       config_drive: 'true'
       user_data_format: RAW
-      personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
+      # personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
       flavor: contrail_flavor_2cpu
       image: vsrx
       name: VSRX-Nuthan

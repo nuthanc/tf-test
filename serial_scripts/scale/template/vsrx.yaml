@@ -1,0 +1,1473 @@
+description: vSRX-Scale
+heat_template_version: 'rocky'
+
+resources:
+  My_IPAM:
+    type: OS::ContrailV2::NetworkIpam
+    properties:
+      name: my-scale-ipam
+
+  My_VN:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 27.47.0.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 16,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+  
+  ParentPort:
+    depends_on: [My_VN]
+    properties:
+      name: parent-port-1
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  SubInterface:
+    depends_on: [My_VN]
+    properties:
+      name: sub-interface-1
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 2}
+      virtual_machine_interface_refs:
+      - {get_resource: ParentPort}
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_parent_IP :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ ParentPort, My_VN ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : ParentPort }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+
+  VMI_sub_IP :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface, My_VN ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+
+  VSRX-Nuthan:
+    depends_on: [VMI_parent_IP, VMI_sub_IP, ParentPort, SubInterface]
+    properties:
+      config_drive: 'true'
+      user_data_format: RAW
+      # personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
+      flavor: contrail_flavor_2cpu
+      image: vsrx
+      name: VSRX-Nuthan
+      networks:
+      - port: {get_resource: ParentPort}
+    type: OS::Nova::Server
+
+
+  BGP_TAGGED-1:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-2:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-3:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-4:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-5:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-6:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-7:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-8:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-9:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-10:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-11:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-12:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-13:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-14:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-15:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-16:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-17:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-18:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-19:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-20:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-21:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-22:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-23:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-24:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-25:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-26:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-27:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-28:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-29:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-30:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-31:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-32:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-33:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-34:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-35:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-36:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-37:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-38:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-39:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-40:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-41:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-42:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-43:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-44:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-45:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-46:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-47:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-48:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-49:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-50:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-51:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-52:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-53:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-54:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-55:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-56:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-57:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-58:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-59:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-60:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-61:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-62:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-63:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-64:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-65:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-66:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-67:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-68:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-69:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-70:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-71:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-72:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-73:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-74:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-75:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-76:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-77:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-78:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-79:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-80:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-81:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-82:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-83:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-84:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-85:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-86:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-87:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-88:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-89:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-90:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-91:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-92:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-93:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-94:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-95:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-96:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-97:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-98:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-99:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
+
+  BGP_TAGGED-100:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService
