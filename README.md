@@ -35,3 +35,10 @@ python3 serial_scripts/solution/test_orange_solution.py
         cls.vsrx_stack.setUp()
 ```
 * **I think bgp configuration should be given in personality**
+
+### What's required in config.txt and yaml file
+* sub-interface with ip and vlan id
+* BGPaaS with sami ip as sub-interface
+* VMI with vmi_refs
+* Instance IPs
+* ParentVMI as port in networks of vSRX(Type NovaServer)
