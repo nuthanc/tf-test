@@ -548,11 +548,12 @@ class TestInputs(with_metaclass(Singleton, object)):
         self.additional_orchestrator = deployment_configs.get('additional_orchestrator', None)
         if self.deployer == 'openshift':
             kube_config_file = OPENSHIFT_CONFIG_FILE
-        if self.deployer == 'juju' or self.additional_orchestrator == 'kubernetes':
+        elif self.deployer == 'juju' or self.additional_orchestrator == 'kubernetes':
             kube_config_file = OPENSHIFT_CONFIG_FILE
         else:
             kube_config_file = K8S_CONFIG_FILE
         self.kube_config_file = test_configs.get('kube_config_file') or kube_config_file
+        self.juju_server = test_configs.get('juju_server')
 
         self.parse_topo()
         if self.deployer != 'contrail_command':
