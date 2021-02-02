@@ -46,25 +46,28 @@ class SubIntfScaleTest(BaseScaleTest):
     @staticmethod
     def load_template():
         from ipaddress import IPv4Network
-        # net = IPv4Network("27.27.0.0/16")
-        net = IPv4Network("27.27.0.0/28")
+        # cidr = IPv4Network("27.27.0.0/16")
+        cidr = IPv4Network("27.27.0.0/28")
+        network = str(cidr.network_address)
+        mask = cidr.prefixlen
         ips = []
-        for i, ip in enumerate(net):
-            if i < 3 or i == net.num_addresses - 1:
+        for i, ip in enumerate(cidr):
+            # Skipping 3 address in the beginning, 1 for gw, 1 for dns, 1 for parent port
+            if i < 4 or i == cidr.num_addresses - 1:
                 continue
             ips.append(ip)
         deploy_path = os.getenv('DEPLOYMENT_PATH',
                                 '/contrail-test/serial_scripts/scale/')
         template_dir = deploy_path+"template/"
         env = Environment(loader=FileSystemLoader(template_dir))
-        template = env.get_template("vsrx.yaml.j2")
+        vsrx_temp = env.get_template("vsrx.yaml.j2")
         filename = template_dir + "vsrx.yaml"
         with open(filename, 'w') as f:
-            f.write(template.render(ips=ips))
+            f.write(vsrx_temp.render(ips=ips, network=network, mask=mask))
 
 
 
 if __name__ == '__main__':
     SubIntfScaleTest.load_template()
-    # SubIntfScaleTest.setUpClass()
-    # SubIntfScaleTest.tearDownClass()
+    SubIntfScaleTest.setUpClass()
+    SubIntfScaleTest.tearDownClass()

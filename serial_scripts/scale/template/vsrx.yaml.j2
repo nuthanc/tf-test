@@ -18,8 +18,8 @@ resources:
             [{
               network_ipam_refs_data_ipam_subnets_subnet:
                 {
-                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 27.47.0.0,
-                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 16,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: {{ network }},
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: {{ mask }},
                 },
                 network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
          }]
@@ -41,28 +41,28 @@ resources:
       virtual_machine_interface_refs : [{ get_resource : ParentPort }]
       virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
 
-{% for i, ip in enumerate(ips) %}
-  SubInterface-{{ i+1 }}:
+{% for ip in ips %}
+  SubInterface-{{ loop.index+1 }}:
     depends_on: [My_VN]
     properties:
-      name: sub-interface-{{ i+1 }}
-      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: {{ i+1 }}}
+      name: sub-interface-{{ loop.index+1 }}
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: {{ loop.index+1 }}}
       virtual_machine_interface_refs:
       - {get_resource: ParentPort}
       virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
     type: OS::ContrailV2::VirtualMachineInterface
 
-  VMI_sub_IP-{{ i+1 }} :
+  VMI_sub_IP-{{ loop.index+1 }} :
     type: OS::ContrailV2::InstanceIp
-    depends_on : [ SubInterface-{{ i+1 }}, My_VN ]
+    depends_on : [ SubInterface-{{ loop.index+1 }}, My_VN ]
     properties :
-      virtual_machine_interface_refs : [{ get_resource : SubInterface-{{ i+1 }} }]
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-{{ loop.index+1 }} }]
       virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
       instance_ip_address: {{ ip }}
 {% endfor %}
 
   VSRX-Nuthan:
-    depends_on: [My_VN, ParentPort, {% for i, ip in enumerate(ips) %}SubInterface-{{ i+1 }}, {% endfor %}]
+    depends_on: [My_VN, ParentPort, {% for ip in ips %}SubInterface-{{ loop.index+1 }}, {% endfor %}]
     properties:
       config_drive: 'true'
       user_data_format: RAW
@@ -74,18 +74,18 @@ resources:
       - port: {get_resource: ParentPort}
     type: OS::Nova::Server
 
-{% for i, ip in enumerate(ips) %}
-  BGP_TAGGED-{{ i+1 }}:
-    depends_on: [{% for i, ip in enumerate(ips) %}SubInterface-{{ i+1 }}, {% endfor %}]
+{% for ip in ips %}
+  BGP_TAGGED-{{ loop.index+1 }}:
+    depends_on: [{% for ip in ips %}SubInterface-{{ loop.index+1 }}, {% endfor %}]
     properties:
       autonomous_system: 64500
-      bgpaas_ip_address: 27.47.1.{{ i+1 }}
+      bgpaas_ip_address: {{ ip }}
       bgpaas_session_attributes:
         bgpaas_session_attributes_address_families:
           bgpaas_session_attributes_address_families_family: [inet]
         bgpaas_session_attributes_as_override: true
-      name: BGPAAS-{{ i+1 }}
+      name: BGPAAS-{{ loop.index+1 }}
       virtual_machine_interface_refs:
-      - {get_resource: SubInterface-{{ i+1 }}}
+      - {get_resource: SubInterface-{{ loop.index+1 }}}
     type: OS::ContrailV2::BgpAsAService
 {% endfor %}
