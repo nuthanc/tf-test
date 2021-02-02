@@ -1,0 +1,74 @@
+#junos-config - vEPC VSFO Control Plane
+
+system {
+    root-authentication {
+        encrypted-password "$6$sg7yK0wP$XKPfVjffdOp6g38R1UXui4Lxx5QZHARNdNfgkpXofFr7hT5R2sjUyFrdo5AitBujdpGvAOy2ziJG4oS8jOoiu1";
+    }
+    login {
+        user admin {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$6$sg7yK0wP$XKPfVjffdOp6g38R1UXui4Lxx5QZHARNdNfgkpXofFr7hT5R2sjUyFrdo5AitBujdpGvAOy2ziJG4oS8jOoiu1";
+            }
+        }
+    }
+    host-name vsfo_cp-1 
+    services {
+        ssh {
+            root-login allow;
+        }
+        web-management {
+            http {
+                interface fxp0.0;
+            }
+        }
+    }
+    syslog {
+        file messages {
+            any any;
+        }
+    }
+}
+
+interfaces {
+  ge-0/0/0 {
+      vlan-tagging;
+      unit 0 {
+          vlan-id 1;
+          description "Parent port";
+          family inet {
+              address {{ parent_ip }};
+          }
+      }
+{% for ip in ips %}show
+      unit {{ loop.index+1 }} {
+          description "Sub port";
+          vlan-id {{ loop.index+1 }};
+          family inet {
+              address {{ ip }};
+          }
+      }
+{% endfor %}
+    }
+}
+
+
+protocols {
+    bgp {
+{% for ip in ips %}
+        group bgpaas-{{ loop.index+1 }} {
+            type external;
+            peer-as {{ peer_as }};
+            family inet {
+                unicast;
+            }
+            local-address {{ ip }};
+            neighbor {{ neighbor1 }};
+            neighbor {{ neighbor2 }};
+        }
+{% endfor %}
+    }
+}
+
+      
