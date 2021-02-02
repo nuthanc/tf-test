@@ -1,0 +1,86 @@
+description: vSRX-Scale
+heat_template_version: 'rocky'
+
+resources:
+  My_IPAM:
+    type: OS::ContrailV2::NetworkIpam
+    properties:
+      name: my-scale-ipam
+
+  My_VN:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 27.47.0.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 16,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+  
+  ParentPort:
+    depends_on: [My_VN]
+    properties:
+      name: parent-port-1
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  SubInterface:
+    depends_on: [My_VN]
+    properties:
+      name: sub-interface-1
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 2}
+      virtual_machine_interface_refs:
+      - {get_resource: ParentPort}
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ My_VN, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_parent_IP :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ ParentPort, My_VN ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : ParentPort }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+
+  VMI_sub_IP :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface, My_VN ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
+
+  VSRX-Nuthan:
+    depends_on: [VMI_parent_IP, VMI_sub_IP, ParentPort, SubInterface]
+    properties:
+      config_drive: 'true'
+      user_data_format: RAW
+      # personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
+      flavor: contrail_flavor_2cpu
+      image: vsrx
+      name: VSRX-Nuthan
+      networks:
+      - port: {get_resource: ParentPort}
+    type: OS::Nova::Server
+
+  BGP_TAGGED-2:
+    depends_on: [SubInterface]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 27.47.0.7
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-1
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface}
+    type: OS::ContrailV2::BgpAsAService

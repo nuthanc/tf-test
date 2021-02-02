@@ -1,0 +1,71 @@
+#junos-config - vEPC VSFO Control Plane
+
+system {
+    root-authentication {
+        encrypted-password "$6$sg7yK0wP$XKPfVjffdOp6g38R1UXui4Lxx5QZHARNdNfgkpXofFr7hT5R2sjUyFrdo5AitBujdpGvAOy2ziJG4oS8jOoiu1";
+    }
+    login {
+        user admin {
+            uid 2000;
+            class super-user;
+            authentication {
+                encrypted-password "$6$sg7yK0wP$XKPfVjffdOp6g38R1UXui4Lxx5QZHARNdNfgkpXofFr7hT5R2sjUyFrdo5AitBujdpGvAOy2ziJG4oS8jOoiu1";
+            }
+        }
+    }
+    host-name vsfo_cp-1 
+    services {
+        ssh {
+            root-login allow;
+        }
+        web-management {
+            http {
+                interface fxp0.0;
+            }
+        }
+    }
+    syslog {
+        file messages {
+            any any;
+        }
+    }
+}
+interfaces {
+  ge-0/0/0 {
+      vlan-tagging;
+      unit 0 {
+          description "Parent port";
+          family inet {
+              address 27.47.0.10;
+          }
+      }
+      unit 2 {
+          description "Sub port";
+          vlan-id 2;
+          family inet {
+              address 27.47.0.7;
+          }
+      }
+    }
+}
+
+routing-instances {
+  my_ri {
+    protocols {
+    bgp {
+        group bgpaas {
+          type external;
+          peer-as 64500;
+          description "My ri";
+          family inet {
+              unicast;
+          }
+          local-address 27.47.0.7;
+          neighbor 27.47.0.1;
+          neighbor 27.47.0.2;
+        }
+    }
+  }
+  }
+}
+      
