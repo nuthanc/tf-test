@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from builtins import str
 from builtins import range
-from .base import BaseSolutionsTest
+from base import BaseSolutionsTest
 from common.heat.base import BaseHeatTest
 from tcutils.wrappers import preposttest_wrapper
 import test
@@ -30,12 +30,39 @@ class OrangeSolutionTest(BaseSolutionsTest):
         #Can update deployment path based on variable.
         cls.deploy_path=os.getenv('DEPLOYMENT_PATH',
                             'serial_scripts/solution/topology/mini_deployment/')
-        cls.setup_vepg()
+        cls.setup_vsrx()
 
     @classmethod
     def tearDownClass(cls):
         cls.delete_vepg()
         super(OrangeSolutionTest, cls).tearDownClass()
+
+    @classmethod
+    def setup_vsrx(cls):
+        #Create vSRX with sub-interfaces
+        cls.vsrx_template_file=cls.deploy_path+"template/vsrx.yaml"
+        with open(cls.vsrx_template_file, 'r') as fd:
+            cls.vsrx_template = yaml.load(fd, Loader=yaml.FullLoader)
+
+        for each_resource in cls.vsrx_template['resources']:
+            if 'personality' in cls.vsrx_template['resources']\
+                                    [each_resource]['properties']:
+                inject_file='/config/junos-config/configuration.txt'
+                fp1=open(cls.vsrx_template['resources'][each_resource]\
+                                ['properties']['personality'][inject_file]\
+                                ['get_file'], 'r')
+                data=fp1.read()
+                cls.vsrx_template['resources'][each_resource]['properties']\
+                    ['personality'][inject_file]=data
+                fp1.close()
+
+        cls.vsrx_stack = HeatStackFixture(
+                                connections=cls.connections,
+                                stack_name=cls.connections.project_name+'_vsrx_scale',
+                                template=cls.vsrx_template,
+                                timeout_mins=15)
+        cls.vsrx_stack.setUp()
+
 
     @classmethod
     def setup_vepg(cls):
