@@ -71,7 +71,7 @@ class SubIntfScaleTest(BaseScaleTest):
         network = '27.7.57.0'
         mask = '29'
         parent_ip = '27.7.57.3'
-        cidr = IPv4Network("7.97.0.0/16")
+        cidr = IPv4Network("17.97.0.0/16")
         # for sn in cidr.subnets(new_prefix=28):
         ips = []
         neighbor1_list = []
