@@ -42,7 +42,7 @@ interfaces {
           }
       }
 {% for ip in ips %}
-      unit {{ loop.index+1 }} {
+      unit {{ loop.index }} {
           description "Sub port";
           vlan-id {{ loop.index+1 }};
           family inet {
@@ -57,7 +57,7 @@ interfaces {
 protocols {
     bgp {
 {% for ip in ips %}
-        group bgpaas-{{ loop.index+1 }} {
+        group bgpaas-{{ loop.index }} {
             type external;
             local-as {{ local_as }};
             peer-as 64512;
@@ -65,8 +65,8 @@ protocols {
                 unicast;
             }
             local-address {{ ip }};
-            neighbor {{ neighbor1 }};
-            neighbor {{ neighbor2 }};
+            neighbor {{ neighbor1_list[loop.index-1] }};
+            neighbor {{ neighbor2_list[loop.index-1] }};
         }
 {% endfor %}
     }

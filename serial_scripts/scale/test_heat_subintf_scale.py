@@ -68,23 +68,34 @@ class SubIntfScaleTest(BaseScaleTest):
     @staticmethod
     def load_template():
         from ipaddress import IPv4Network
-        # cidr = IPv4Network("27.27.0.0/16")
-        cidr = IPv4Network("27.37.47.0/28")
-        network = str(cidr.network_address)
-        mask = cidr.prefixlen
-        parent_ip = ''
-        neighbors = []
-        local_as = 64500
+        network = '27.37.47.0'
+        mask = '29'
+        parent_ip = '27.37.47.3'
+        cidr = IPv4Network("7.17.0.0/16")
+        # for sn in cidr.subnets(new_prefix=28):
         ips = []
-        for i, ip in enumerate(cidr):
-            # Skipping 3 address in the beginning, 1 for gw, 1 for dns, 1 for parent port
-            if i < 4 or i == cidr.num_addresses - 1:
-                if i == 1 or i == 2:
-                    neighbors.append(ip)
-                if i == 3:
-                    parent_ip = ip
-                continue
-            ips.append(ip)
+        neighbor1_list = []
+        neighbor2_list = []
+        sub_intf_nets = []
+        sub_intf_masks = []
+        for sn in cidr.subnets(new_prefix=18):
+            sub_intf_cidr = IPv4Network(sn)
+            sub_intf_net = str(sub_intf_cidr.network_address)
+            sub_intf_mask = sub_intf_cidr.prefixlen
+            sub_intf_nets.append(sub_intf_net)
+            sub_intf_masks.append(sub_intf_mask)
+            for i,ip in enumerate(sub_intf_cidr):
+                if i == 0:
+                    continue
+                elif i == 1:
+                    neighbor1_list.append(ip)
+                elif i == 2:
+                    neighbor2_list.append(ip)
+                elif i == 3:
+                    ips.append(ip)
+                else:
+                    break
+        local_as = 64500
         deploy_path = os.getenv('DEPLOYMENT_PATH',
                                 '/contrail-test/serial_scripts/scale/')
         template_dir = deploy_path+"template/"
@@ -94,10 +105,11 @@ class SubIntfScaleTest(BaseScaleTest):
         filename1 = template_dir + "vsrx.yaml"
         filename2 = template_dir + "junos_config.txt"
         with open(filename1, 'w') as f:
-            f.write(vsrx_temp.render(ips=ips, network=network, mask=mask))
+            f.write(vsrx_temp.render(ips=ips, network=network,
+                                     mask=mask, sub_intf_nets=sub_intf_nets, sub_intf_masks=sub_intf_masks))
         with open(filename2, 'w') as f:
             f.write(junos_temp.render(ips=ips, local_as=local_as,
-                                      parent_ip=parent_ip, neighbor1=neighbors[0], neighbor2=neighbors[1]))
+                                      parent_ip=parent_ip, neighbor1_list=neighbor1_list, neighbor2_list=neighbor2_list))
 
 
 
