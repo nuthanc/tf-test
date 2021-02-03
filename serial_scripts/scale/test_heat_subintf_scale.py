@@ -68,17 +68,18 @@ class SubIntfScaleTest(BaseScaleTest):
     @staticmethod
     def load_template():
         from ipaddress import IPv4Network
-        network = '27.37.47.0'
+        network = '27.7.57.0'
         mask = '29'
-        parent_ip = '27.37.47.3'
-        cidr = IPv4Network("7.17.0.0/16")
+        parent_ip = '27.7.57.3'
+        cidr = IPv4Network("7.97.0.0/16")
         # for sn in cidr.subnets(new_prefix=28):
         ips = []
         neighbor1_list = []
         neighbor2_list = []
         sub_intf_nets = []
         sub_intf_masks = []
-        for sn in cidr.subnets(new_prefix=18):
+        sub_mask = 18
+        for sn in cidr.subnets(new_prefix=sub_mask):
             sub_intf_cidr = IPv4Network(sn)
             sub_intf_net = str(sub_intf_cidr.network_address)
             sub_intf_mask = sub_intf_cidr.prefixlen
@@ -109,7 +110,7 @@ class SubIntfScaleTest(BaseScaleTest):
                                      mask=mask, sub_intf_nets=sub_intf_nets, sub_intf_masks=sub_intf_masks))
         with open(filename2, 'w') as f:
             f.write(junos_temp.render(ips=ips, local_as=local_as,
-                                      parent_ip=parent_ip, neighbor1_list=neighbor1_list, neighbor2_list=neighbor2_list))
+                                      parent_ip=parent_ip, neighbor1_list=neighbor1_list, neighbor2_list=neighbor2_list, sub_mask=sub_mask))
 
 
 

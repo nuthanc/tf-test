@@ -1,35 +1,4 @@
-#junos-config - vEPC VSFO Control Plane
 
-system {
-    root-authentication {
-        encrypted-password "$6$sg7yK0wP$XKPfVjffdOp6g38R1UXui4Lxx5QZHARNdNfgkpXofFr7hT5R2sjUyFrdo5AitBujdpGvAOy2ziJG4oS8jOoiu1";
-    }
-    login {
-        user admin {
-            uid 2000;
-            class super-user;
-            authentication {
-                encrypted-password "$6$sg7yK0wP$XKPfVjffdOp6g38R1UXui4Lxx5QZHARNdNfgkpXofFr7hT5R2sjUyFrdo5AitBujdpGvAOy2ziJG4oS8jOoiu1";
-            }
-        }
-    }
-    host-name vsfo_cp-1 
-    services {
-        ssh {
-            root-login allow;
-        }
-        web-management {
-            http {
-                interface fxp0.0;
-            }
-        }
-    }
-    syslog {
-        file messages {
-            any any;
-        }
-    }
-}
 
 interfaces {
   ge-0/0/0 {
@@ -46,7 +15,7 @@ interfaces {
           description "Sub port";
           vlan-id {{ loop.index+1 }};
           family inet {
-              address {{ ip }};
+              address {{ ip }}/{{ sub_mask }};
           }
       }
 {% endfor %}
@@ -72,4 +41,37 @@ protocols {
     }
 }
 
-      
+security {
+    policies {
+        from-zone trust to-zone trust {
+            policy default-pol {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            interfaces {
+{% for ip in ips %}
+                ge-0/0/0.{{ loop.index }} {
+                    host-inbound-traffic {
+                        system-services {
+                            all;
+                        }
+                        protocols {
+                            all;
+                        }
+                    }
+                }
+{% endfor %}
+            }
+        }
+    }
+}
