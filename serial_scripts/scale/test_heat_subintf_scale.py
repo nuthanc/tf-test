@@ -44,37 +44,23 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.vsrx_stack.setUp()
         op = cls.vsrx_stack.heat_client_obj.stacks.get(
             cls.vsrx_stack.stack_name).outputs
-        import pdb
-        pdb.set_trace()
         vsrx_id = op[0]['output_value']
         vsrx = VMFixture(connections=cls.connections, uuid=vsrx_id, image_name='vsrx')
         vsrx.read()
         vsrx.verify_on_setup()
-        file_names = f'{cls.deploy_path}template/junos_config.txt {cls.deploy_path}template/config.sh'
-        cmd = 'sshpass -p \'%s\'' % (vsrx.vm_password)
-        cmd = cmd+' scp -o StrictHostKeyChecking=no %s heat-admin@%s:/tmp/'\
-            % (file_names, vsrx.vm_node_ip)
-        op = os.system(cmd)
-        if op is not 0:
-            cls.logger.error("Failed to copy vsrx config file %s to %s"
-                             % (file_names, vsrx.vm_node_ip))
-        file_name = f'/tmp/junos_config.txt /tmp/config.sh'
-        cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no heat-admin@%s \
-                     sshpass -p \'%s\' scp -o StrictHostKeyChecking=no -o \
-                     UserKnownHostsFile=/dev/null %s root@%s:/tmp/'\
-                     % (vsrx.vm_password, vsrx.vm_node_ip,
-                        vsrx.vm_password, file_name,
-                        vsrx.local_ip)
-        if op is not 0:
-            cls.logger.error("Failed to copy vsrx config file %s to %s"
-                             % (file_name, vsrx.local_ip))
-        cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no heat-admin@%s \
+        vsrx.vm_password = 'c0ntrail123'
+        file1 = f'/contrail-test/{cls.deploy_path}template/junos_config.txt'
+        file2 = f'/contrail-test/{cls.deploy_path}template/config.sh'
+        vsrx.copy_file_to_vm(localfile=file1, dstdir='/root')
+        vsrx.copy_file_to_vm(localfile=file2, dstdir='/root')
+        cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no root@%s \
                      sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no -o \
                      UserKnownHostsFile=/dev/null \
-                     root@%s \'sh /tmp/config.sh\' '\
+                     root@%s \'sh /root/config.sh\' '\
                      % (vsrx.vm_password, vsrx.vm_node_ip,
                         vsrx.vm_password, vsrx.local_ip)
         op = os.popen(cmd).read()
+        import pdb;pdb.set_trace()
         if 'commit complete' not in op:
             cls.logger.error("Failed to commit vsrx config on %s"
                              % (vsrx.vm_name))
@@ -88,7 +74,7 @@ class SubIntfScaleTest(BaseScaleTest):
         mask = cidr.prefixlen
         parent_ip = ''
         neighbors = []
-        peer_as = 64500
+        local_as = 64500
         ips = []
         for i, ip in enumerate(cidr):
             # Skipping 3 address in the beginning, 1 for gw, 1 for dns, 1 for parent port
@@ -110,7 +96,7 @@ class SubIntfScaleTest(BaseScaleTest):
         with open(filename1, 'w') as f:
             f.write(vsrx_temp.render(ips=ips, network=network, mask=mask))
         with open(filename2, 'w') as f:
-            f.write(junos_temp.render(ips=ips, peer_as=peer_as,
+            f.write(junos_temp.render(ips=ips, local_as=local_as,
                                       parent_ip=parent_ip, neighbor1=neighbors[0], neighbor2=neighbors[1]))
 
 
