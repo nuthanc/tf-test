@@ -78,7 +78,7 @@ class SubIntfScaleTest(BaseScaleTest):
         neighbor2_list = []
         sub_intf_nets = []
         sub_intf_masks = []
-        sub_mask = 18
+        sub_mask = 20
         for sn in cidr.subnets(new_prefix=sub_mask):
             sub_intf_cidr = IPv4Network(sn)
             sub_intf_net = str(sub_intf_cidr.network_address)
