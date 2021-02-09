@@ -43,6 +43,10 @@ class SubIntfScaleTest(BaseScaleTest):
             stack_name=cls.connections.project_name+'_vsrx_scale',
             template=cls.vsrx_template,
             timeout_mins=15)
+
+        
+
+
         cls.vsrx_stack.setUp()
         op = cls.vsrx_stack.heat_client_obj.stacks.get(
             cls.vsrx_stack.stack_name).outputs
@@ -64,9 +68,7 @@ class SubIntfScaleTest(BaseScaleTest):
                         vsrx.vm_password, vsrx.local_ip)
         op = os.popen(cmd).read()
         import pdb;pdb.set_trace()
-        if 'commit complete' not in op:
-            cls.logger.error("Failed to commit vsrx config on %s"
-                             % (vsrx.vm_name))
+        
 
     @staticmethod
     def load_template():
@@ -74,14 +76,14 @@ class SubIntfScaleTest(BaseScaleTest):
         network = '27.7.57.0'
         mask = '29'
         parent_ip = '27.7.57.3'
-        cidr = IPv4Network("17.97.0.0/16")
+        cidr = IPv4Network("17.27.0.0/16")
         # for sn in cidr.subnets(new_prefix=28):
         ips = []
         neighbor1_list = []
         neighbor2_list = []
         sub_intf_nets = []
         sub_intf_masks = []
-        sub_mask = 20
+        sub_mask = 22
         for sn in cidr.subnets(new_prefix=sub_mask):
             sub_intf_cidr = IPv4Network(sn)
             sub_intf_net = str(sub_intf_cidr.network_address)
