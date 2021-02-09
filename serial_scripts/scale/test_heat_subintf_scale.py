@@ -33,6 +33,7 @@ class SubIntfScaleTest(BaseScaleTest):
     def setup_vsrx(cls):
         #Create vSRX with sub-interfaces
         cls.vsrx_image = cls.nova_h.get_image('vsrx')
+        cls.flavor = cls.nova_h.get_flavor('contrail_flavor_2cpu')
         cls.vsrx_template_file = cls.deploy_path+"template/vsrx.yaml"
         with open(cls.vsrx_template_file, 'r') as fd:
             cls.vsrx_template = yaml.load(fd, Loader=yaml.FullLoader)
