@@ -55,9 +55,7 @@ class SubIntfScaleTest(BaseScaleTest):
         file2 = f'/contrail-test/{cls.deploy_path}template/config.sh'
         vsrx.copy_file_to_vm(localfile=file1, dstdir='/root')
         vsrx.copy_file_to_vm(localfile=file2, dstdir='/root')
-        cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no root@%s \'yum install -y sshpass\' '\
-                     % (vsrx.vm_password, vsrx.vm_node_ip)
-        op = os.popen(cmd).read()
+        cls.inputs.run_cmd_on_server(vsrx.vm_node_ip, 'yum install -y sshpass')
         cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no root@%s \
                      sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no -o \
                      UserKnownHostsFile=/dev/null \
