@@ -10,6 +10,7 @@ from nova_test import *
 from vm_test import *
 from jinja2 import Environment, FileSystemLoader
 import yaml
+from port_fixture import PortFixture
 from ipaddress import IPv4Network
 
 
@@ -48,6 +49,22 @@ class SubIntfScaleTest(BaseScaleTest):
             cls.vsrx_stack.stack_name).outputs
         import pdb;pdb.set_trace()
         vsrx_id = op[0]['output_value']
+        port_fq_name = op[1]['output_value']
+        port_uuid = op[2]['output_value']
+
+
+        cls.sub_intf_file = f'{cls.template_path}/sub_intf.yaml'
+        env = Environment(loader=FileSystemLoader(cls.template_path))
+        vsrx_temp = env.get_template("sub.yaml.j2")
+        with open(cls.sub_intf_file, 'w') as f:
+            f.write(vsrx_temp.render(uuid=port_uuid))
+        with open(cls.sub_intf_file, 'r') as fd:
+            cls.sub_template = yaml.load(fd, Loader=yaml.FullLoader)
+        cls.sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=cls.sub_template,timeout_mins=15)
+        cls.sub_stack.setUp()
+
+        # with open(cls.sub_intf_file, 'r') as fd: cls.sub_template = yaml.load(fd, Loader=yaml.FullLoader)
+
 
         vsrx = VMFixture(connections=cls.connections, uuid=vsrx_id, image_name='vsrx')
         vsrx.read()
@@ -120,5 +137,5 @@ class SubIntfScaleTest(BaseScaleTest):
 
 if __name__ == '__main__':
     SubIntfScaleTest.setUpClass()
-    SubIntfScaleTest.load_template()
-    SubIntfScaleTest.tearDownClass()
+    # SubIntfScaleTest.load_template()
+    # SubIntfScaleTest.tearDownClass()
