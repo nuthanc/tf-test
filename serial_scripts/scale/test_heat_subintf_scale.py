@@ -34,17 +34,21 @@ class SubIntfScaleTest(BaseScaleTest):
     def setup_vsrx(cls):
         cls.nova_h.get_image('vsrx')
         cls.nova_h.get_flavor('contrail_flavor_2cpu')
-        cls.vsrx_template = f'{cls.template_path}/vsrx.yaml'
+        cls.vsrx_file = f'{cls.template_path}/vsrx.yaml'
+        with open(cls.vsrx_file, 'r') as fd:
+            cls.vsrx_template = yaml.load(fd, Loader=yaml.FullLoader)
         cls.vsrx_stack = HeatStackFixture(
             connections=cls.connections,
             stack_name=cls.connections.project_name+'_vsrx_scale',
             template=cls.vsrx_template,
             timeout_mins=15)
-
         cls.vsrx_stack.setUp()
+
         op = cls.vsrx_stack.heat_client_obj.stacks.get(
             cls.vsrx_stack.stack_name).outputs
+        import pdb;pdb.set_trace()
         vsrx_id = op[0]['output_value']
+
         vsrx = VMFixture(connections=cls.connections, uuid=vsrx_id, image_name='vsrx')
         vsrx.read()
         vsrx.verify_on_setup()
@@ -65,7 +69,6 @@ class SubIntfScaleTest(BaseScaleTest):
         
     @classmethod
     def generate_network_objects(cls, num):
-        cls.parent_ip = '27.7.57.3'
         cidr = IPv4Network("17.27.0.0/16")
         # for sn in cidr.subnets(new_prefix=28):
         cls.ips = []
@@ -116,6 +119,6 @@ class SubIntfScaleTest(BaseScaleTest):
 
 
 if __name__ == '__main__':
-    SubIntfScaleTest.load_template()
     SubIntfScaleTest.setUpClass()
+    SubIntfScaleTest.load_template()
     SubIntfScaleTest.tearDownClass()
