@@ -24,6 +24,7 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.template_path = os.getenv('DEPLOYMENT_PATH',
                                     'serial_scripts/scale/template')
         cls.setup_vsrx()
+        cls.setup_sub_intfs()
 
     @classmethod
     def tearDownClass(cls):
@@ -47,24 +48,8 @@ class SubIntfScaleTest(BaseScaleTest):
 
         op = cls.vsrx_stack.heat_client_obj.stacks.get(
             cls.vsrx_stack.stack_name).outputs
-        import pdb;pdb.set_trace()
-        vsrx_id = op[0]['output_value']
-        port_fq_name = op[1]['output_value']
-        port_uuid = op[2]['output_value']
-
-
-        cls.sub_intf_file = f'{cls.template_path}/sub_intf.yaml'
-        env = Environment(loader=FileSystemLoader(cls.template_path))
-        vsrx_temp = env.get_template("sub.yaml.j2")
-        with open(cls.sub_intf_file, 'w') as f:
-            f.write(vsrx_temp.render(uuid=port_uuid))
-        with open(cls.sub_intf_file, 'r') as fd:
-            cls.sub_template = yaml.load(fd, Loader=yaml.FullLoader)
-        cls.sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=cls.sub_template,timeout_mins=15)
-        cls.sub_stack.setUp()
-
-        # with open(cls.sub_intf_file, 'r') as fd: cls.sub_template = yaml.load(fd, Loader=yaml.FullLoader)
-
+        cls.vsrx_id = op[0]['output_value']
+        cls.port_uuid = op[1]['output_value']
 
         vsrx = VMFixture(connections=cls.connections, uuid=vsrx_id, image_name='vsrx')
         vsrx.read()
@@ -82,6 +67,44 @@ class SubIntfScaleTest(BaseScaleTest):
                      % (vsrx.vm_password, vsrx.vm_node_ip,
                         vsrx.vm_password, vsrx.local_ip)
         op = os.popen(cmd).read()
+
+    @classmethod
+    def call_heat_stack_with_template(cls, sub_intf_file, sub_intf_temp, start_index, end_index):
+        with open(sub_intf_file, 'w') as f:
+            # f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid=cls.port_uuid))
+            f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid='zoro_port'))
+        # with open(sub_intf_file, 'r') as fd:
+        #     sub_template = yaml.load(fd, Loader=yaml.FullLoader)
+        # sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=sub_template,timeout_mins=15)
+        # sub_stack.setUp()
+        # return sub_stack
+        return "success"
+
+    @classmethod
+    def setup_sub_intfs(cls):
+        cls.sub_intf_stacks = []
+        num = 10
+        cls.generate_network_objects(num)
+        num_per_file = 50
+        env = Environment(loader=FileSystemLoader(cls.template_path))
+        sub_intf_temp = env.get_template("sub_bgp.yaml.j2")
+
+        # Logic for number of files
+        perfect_num = num // num_per_file
+        partial_num = num % num_per_file
+        for i in range(perfect_num):
+            start_index = i * num_per_file
+            end_index = (i+1) * num_per_file
+            sub_intf_file = f'{cls.template_path}/sub_bgp_part{i}.yaml'
+            sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
+            cls.sub_intf_stacks.append(sub_intf_stack)
+
+        # For the last partial file
+        start_index = perfect_num * num_per_file
+        end_index = start_index + partial_num
+        sub_intf_file = f'{cls.template_path}/sub_bgp_part{perfect_num+1}.yaml'
+        sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
+        cls.sub_intf_stacks.append(sub_intf_stack)
         import pdb;pdb.set_trace()
         
     @classmethod
@@ -136,6 +159,7 @@ class SubIntfScaleTest(BaseScaleTest):
 
 
 if __name__ == '__main__':
-    SubIntfScaleTest.setUpClass()
+    SubIntfScaleTest.setup_sub_intfs()
+    # SubIntfScaleTest.setUpClass()
     # SubIntfScaleTest.load_template()
     # SubIntfScaleTest.tearDownClass()
