@@ -85,7 +85,7 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.sub_intf_stacks = []
         num = 10
         cls.generate_network_objects(num)
-        num_per_file = 50
+        num_per_file = 5
         env = Environment(loader=FileSystemLoader(cls.template_path))
         sub_intf_temp = env.get_template("sub_bgp.yaml.j2")
 
@@ -100,11 +100,12 @@ class SubIntfScaleTest(BaseScaleTest):
             cls.sub_intf_stacks.append(sub_intf_stack)
 
         # For the last partial file
-        start_index = perfect_num * num_per_file
-        end_index = start_index + partial_num
-        sub_intf_file = f'{cls.template_path}/sub_bgp_part{perfect_num+1}.yaml'
-        sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
-        cls.sub_intf_stacks.append(sub_intf_stack)
+        if partial_num != 0:
+            start_index = perfect_num * num_per_file
+            end_index = start_index + partial_num
+            sub_intf_file = f'{cls.template_path}/sub_bgp_part{perfect_num}.yaml'
+            sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
+            cls.sub_intf_stacks.append(sub_intf_stack)
         import pdb;pdb.set_trace()
         
     @classmethod
