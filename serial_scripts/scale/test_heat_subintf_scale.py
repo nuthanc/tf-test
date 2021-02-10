@@ -23,7 +23,7 @@ class SubIntfScaleTest(BaseScaleTest):
         #Can update deployment path based on variable.
         cls.template_path = os.getenv('DEPLOYMENT_PATH',
                                     'serial_scripts/scale/template')
-        cls.setup_vsrx()
+        # cls.setup_vsrx()
         cls.setup_sub_intfs()
 
     @classmethod
@@ -72,7 +72,7 @@ class SubIntfScaleTest(BaseScaleTest):
     def call_heat_stack_with_template(cls, sub_intf_file, sub_intf_temp, start_index, end_index):
         with open(sub_intf_file, 'w') as f:
             # f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid=cls.port_uuid))
-            f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid='zoro_port'))
+            f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, sub_intf_nets=cls.sub_intf_nets, sub_intf_masks=cls.sub_intf_masks, ips=cls.ips, uuid='zoro_port'))
         # with open(sub_intf_file, 'r') as fd:
         #     sub_template = yaml.load(fd, Loader=yaml.FullLoader)
         # sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=sub_template,timeout_mins=15)
@@ -118,7 +118,7 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.sub_intf_masks = []
         cls.sub_mask = 28
         cls.local_as = 64500
-        for n, sn in enumerate(cidr.subnets(new_prefix=sub_mask)):
+        for n, sn in enumerate(cidr.subnets(new_prefix=cls.sub_mask)):
             if n == num:
                 break
             sub_intf_cidr = IPv4Network(sn)
@@ -159,7 +159,6 @@ class SubIntfScaleTest(BaseScaleTest):
 
 
 if __name__ == '__main__':
-    SubIntfScaleTest.setup_sub_intfs()
-    # SubIntfScaleTest.setUpClass()
+    SubIntfScaleTest.setUpClass()
     # SubIntfScaleTest.load_template()
     # SubIntfScaleTest.tearDownClass()
