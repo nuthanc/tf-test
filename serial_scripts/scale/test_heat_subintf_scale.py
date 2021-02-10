@@ -29,8 +29,9 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.cidr = "47.27.0.0/16"
         try:
             cls.generate_network_objects()
-            cls.setup_vsrx()
+            cls.setup_port()
             cls.setup_sub_intfs()
+            cls.setup_vsrx()
         except:
             print("Nuthan, there is an exception-------------------------->")
         finally:
@@ -46,13 +47,34 @@ class SubIntfScaleTest(BaseScaleTest):
         for stack in cls.sub_intf_stacks():
             stack.cleanUp()
         super(SubIntfScaleTest, cls).tearDownClass()
+
+    @classmethod
+    def setup_port():
+        cls.port_file = f'{cls.template_path}/port.yaml'
+        with open(cls.port_file, 'r') as fd:
+            cls.port_template = yaml.load(fd, Loader=yaml.FullLoader)
+        cls.port_stack = HeatStackFixture(
+            connections=cls.connections,
+            stack_name=cls.connections.project_name+'_vsrx_scale',
+            template=cls.port_template,
+            timeout_mins=15)
+        cls.port_stack.setUp()
+
+        op = cls.vsrx_stack.heat_client_obj.stacks.get(
+            cls.vsrx_stack.stack_name).outputs
+        cls.port_uuid = op[0]['output_value']
         
 
     @classmethod
     def setup_vsrx(cls):
         cls.nova_h.get_image('vsrx')
         cls.nova_h.get_flavor('contrail_flavor_2cpu')
+
+        vsrx_temp = cls.env.get_template("vsrx.yaml.j2")
         cls.vsrx_file = f'{cls.template_path}/vsrx.yaml'
+        with open(vsrx_file, 'w') as f:
+            f.write(vsrx_temp.render(uuid=cls.port_uuid))
+
         with open(cls.vsrx_file, 'r') as fd:
             cls.vsrx_template = yaml.load(fd, Loader=yaml.FullLoader)
         cls.vsrx_stack = HeatStackFixture(
@@ -65,7 +87,6 @@ class SubIntfScaleTest(BaseScaleTest):
         op = cls.vsrx_stack.heat_client_obj.stacks.get(
             cls.vsrx_stack.stack_name).outputs
         cls.vsrx_id = op[0]['output_value']
-        cls.port_uuid = op[1]['output_value']
 
         vsrx = VMFixture(connections=cls.connections, uuid=cls.vsrx_id, image_name='vsrx')
         vsrx.read()

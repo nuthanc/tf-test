@@ -2,10 +2,6 @@ description: vsrx_scale
 heat_template_version: 'rocky'
 
 outputs:
-  vsrx_id:
-    description: vsrx handle
-    value:
-      get_attr: [vsrx_scale, show, id]
   port_id:
     description: port handle
     value: 
@@ -50,16 +46,3 @@ resources:
     properties :
       virtual_machine_interface_refs : [{ get_resource : ParentPort }]
       virtual_network_refs : [{ list_join : [':', { get_attr : [ My_VN , fq_name ] } ] }]
-
-  vsrx_scale:
-    depends_on: [My_VN, ParentPort]
-    properties:
-      config_drive: 'true'
-      user_data_format: RAW
-      # personality: { /config/junos-config/configuration.txt: { get_file: /contrail-test/serial_scripts/solution/topology/mini_deployment/vsrx_config/bgpaas_config.txt } }
-      flavor: contrail_flavor_2cpu
-      image: vsrx
-      name: vsrx_scale
-      networks:
-      - port: {get_resource: ParentPort}
-    type: OS::Nova::Server
