@@ -26,41 +26,51 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.env = Environment(loader=FileSystemLoader(cls.template_path))
         cls.num = 10
         cls.num_per_file = 5
-        cls.generate_network_objects()
-        cls.setup_vsrx()
-        cls.setup_sub_intfs()
+        cls.cidr = "47.27.0.0/16"
+        try:
+            cls.generate_network_objects()
+            cls.setup_vsrx()
+            cls.setup_sub_intfs()
+        except:
+            print("Nuthan, there is an exception-------------------------->")
+        finally:
+            cls.vsrx_stack.cleanUp()
+            import pdb.pdb.set_trace()
+            for stack in cls.sub_intf_stacks():
+                stack.cleanUp()
+            super(SubIntfScaleTest, cls).tearDownClass()
 
     @classmethod
     def tearDownClass(cls):
         cls.vsrx_stack.cleanUp()
+        for stack in cls.sub_intf_stacks():
+            stack.cleanUp()
         super(SubIntfScaleTest, cls).tearDownClass()
         
 
     @classmethod
     def setup_vsrx(cls):
-        # Uncomment this
+        cls.nova_h.get_image('vsrx')
+        cls.nova_h.get_flavor('contrail_flavor_2cpu')
+        cls.vsrx_file = f'{cls.template_path}/vsrx.yaml'
+        with open(cls.vsrx_file, 'r') as fd:
+            cls.vsrx_template = yaml.load(fd, Loader=yaml.FullLoader)
+        cls.vsrx_stack = HeatStackFixture(
+            connections=cls.connections,
+            stack_name=cls.connections.project_name+'_vsrx_scale',
+            template=cls.vsrx_template,
+            timeout_mins=15)
+        cls.vsrx_stack.setUp()
 
-        # cls.nova_h.get_image('vsrx')
-        # cls.nova_h.get_flavor('contrail_flavor_2cpu')
-        # cls.vsrx_file = f'{cls.template_path}/vsrx.yaml'
-        # with open(cls.vsrx_file, 'r') as fd:
-        #     cls.vsrx_template = yaml.load(fd, Loader=yaml.FullLoader)
-        # cls.vsrx_stack = HeatStackFixture(
-        #     connections=cls.connections,
-        #     stack_name=cls.connections.project_name+'_vsrx_scale',
-        #     template=cls.vsrx_template,
-        #     timeout_mins=15)
-        # cls.vsrx_stack.setUp()
+        op = cls.vsrx_stack.heat_client_obj.stacks.get(
+            cls.vsrx_stack.stack_name).outputs
+        cls.vsrx_id = op[0]['output_value']
+        cls.port_uuid = op[1]['output_value']
 
-        # op = cls.vsrx_stack.heat_client_obj.stacks.get(
-        #     cls.vsrx_stack.stack_name).outputs
-        # cls.vsrx_id = op[0]['output_value']
-        # cls.port_uuid = op[1]['output_value']
-
-        # vsrx = VMFixture(connections=cls.connections, uuid=vsrx_id, image_name='vsrx')
-        # vsrx.read()
-        # vsrx.verify_on_setup()
-        # vsrx.vm_password = 'c0ntrail123'
+        vsrx = VMFixture(connections=cls.connections, uuid=cls.vsrx_id, image_name='vsrx')
+        vsrx.read()
+        vsrx.verify_on_setup()
+        vsrx.vm_password = 'c0ntrail123'
 
         junos_temp = cls.env.get_template("junos_config.txt.j2")
         junos_file = f'{cls.template_path}/junos_config.txt'
@@ -68,36 +78,35 @@ class SubIntfScaleTest(BaseScaleTest):
             f.write(junos_temp.render(ips=cls.ips, local_as=cls.local_as,
                                     neighbor1_list=cls.neighbor1_list, neighbor2_list=cls.neighbor2_list, sub_mask=cls.sub_mask))
 
-
-        # Uncomment this
-
-        # file1 = f'/contrail-test/{cls.template_path}/junos_config.txt'
-        # file2 = f'/contrail-test/{cls.template_path}/config.sh'
-        # vsrx.copy_file_to_vm(localfile=file1, dstdir='/root')
-        # vsrx.copy_file_to_vm(localfile=file2, dstdir='/root')
+        file1 = f'/contrail-test/{cls.template_path}/junos_config.txt'
+        file2 = f'/contrail-test/{cls.template_path}/config.sh'
+        vsrx.copy_file_to_vm(localfile=file1, dstdir='/root')
+        vsrx.copy_file_to_vm(localfile=file2, dstdir='/root')
         # cls.inputs.run_cmd_on_server(vsrx.vm_node_ip, 'yum install -y sshpass')
-        # cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no root@%s \
-        #              sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no -o \
-        #              UserKnownHostsFile=/dev/null \
-        #              root@%s \'sh /root/config.sh\' '\
-        #              % (vsrx.vm_password, vsrx.vm_node_ip,
-        #                 vsrx.vm_password, vsrx.local_ip)
-        # op = os.popen(cmd).read()
+        cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no root@%s \
+                     sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no -o \
+                     UserKnownHostsFile=/dev/null \
+                     root@%s \'sh /root/config.sh\' '\
+                     % (vsrx.vm_password, vsrx.vm_node_ip,
+                        vsrx.vm_password, vsrx.local_ip)
+        op = os.popen(cmd).read()
+        print("=======Output======:\n", op)
 
 
     @classmethod
     def call_heat_stack_with_template(cls, sub_intf_file, sub_intf_temp, start_index, end_index):
-        with open(sub_intf_file, 'w') as f:
-            # Uncomment this
-            # f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid=cls.port_uuid))
-            f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, sub_intf_nets=cls.sub_intf_nets, sub_intf_masks=cls.sub_intf_masks, ips=cls.ips, uuid='zoro_port'))
-        # Uncomment this
-        # with open(sub_intf_file, 'r') as fd:
-        #     sub_template = yaml.load(fd, Loader=yaml.FullLoader)
-        # sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=sub_template,timeout_mins=15)
-        # sub_stack.setUp()
-        # return sub_stack
-        return "success" # Remove this line later
+        try:
+            with open(sub_intf_file, 'w') as f:
+                f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid=cls.port_uuid))
+                f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, sub_intf_nets=cls.sub_intf_nets, sub_intf_masks=cls.sub_intf_masks, ips=cls.ips, uuid='zoro_port'))
+            with open(sub_intf_file, 'r') as fd:
+                sub_template = yaml.load(fd, Loader=yaml.FullLoader)
+            sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=sub_template,timeout_mins=15)
+            sub_stack.setUp()
+        except Exception as e: 
+            print(e)
+            import pdb;pdb.set_trace()
+        return sub_stack
 
     @classmethod
     def setup_sub_intfs(cls):
@@ -125,7 +134,7 @@ class SubIntfScaleTest(BaseScaleTest):
         
     @classmethod
     def generate_network_objects(cls):
-        cidr = IPv4Network("17.27.0.0/16")
+        cidr = IPv4Network(cls.cidr)
         cls.ips = []
         cls.neighbor1_list = []
         cls.neighbor2_list = []
@@ -156,5 +165,6 @@ class SubIntfScaleTest(BaseScaleTest):
 
 if __name__ == '__main__':
     SubIntfScaleTest.setUpClass()
-    # Uncomment this
-    # SubIntfScaleTest.tearDownClass()
+    SubIntfScaleTest.tearDownClass()
+    
+
