@@ -31,11 +31,12 @@ class SubIntfScaleTest(BaseScaleTest):
             cls.generate_network_objects()
             cls.setup_vsrx()
             cls.setup_sub_intfs()
-        except:
+        except Exception as e:
             print("Nuthan, there is an exception-------------------------->")
+            print(e)
+            import pdb;pdb.set_trace()
         finally:
             cls.vsrx_stack.cleanUp()
-            import pdb.pdb.set_trace()
             for stack in cls.sub_intf_stacks():
                 stack.cleanUp()
             super(SubIntfScaleTest, cls).tearDownClass()
@@ -82,7 +83,7 @@ class SubIntfScaleTest(BaseScaleTest):
         file2 = f'/contrail-test/{cls.template_path}/config.sh'
         vsrx.copy_file_to_vm(localfile=file1, dstdir='/root')
         vsrx.copy_file_to_vm(localfile=file2, dstdir='/root')
-        # cls.inputs.run_cmd_on_server(vsrx.vm_node_ip, 'yum install -y sshpass')
+        cls.inputs.run_cmd_on_server(vsrx.vm_node_ip, 'yum install -y sshpass')
         cmd = 'sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no root@%s \
                      sshpass -p \'%s\' ssh -o StrictHostKeyChecking=no -o \
                      UserKnownHostsFile=/dev/null \
@@ -95,17 +96,12 @@ class SubIntfScaleTest(BaseScaleTest):
 
     @classmethod
     def call_heat_stack_with_template(cls, sub_intf_file, sub_intf_temp, start_index, end_index):
-        try:
-            with open(sub_intf_file, 'w') as f:
-                f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, uuid=cls.port_uuid))
-                f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, sub_intf_nets=cls.sub_intf_nets, sub_intf_masks=cls.sub_intf_masks, ips=cls.ips, uuid='zoro_port'))
-            with open(sub_intf_file, 'r') as fd:
-                sub_template = yaml.load(fd, Loader=yaml.FullLoader)
-            sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+'_sub_scale',template=sub_template,timeout_mins=15)
-            sub_stack.setUp()
-        except Exception as e: 
-            print(e)
-            import pdb;pdb.set_trace()
+        with open(sub_intf_file, 'w') as f:
+            f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, sub_intf_nets=cls.sub_intf_nets, sub_intf_masks=cls.sub_intf_masks, ips=cls.ips, uuid=cls.port_uuid))
+        with open(sub_intf_file, 'r') as fd:
+            sub_template = yaml.load(fd, Loader=yaml.FullLoader)
+        sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+f'_sub_scale{start_index}',template=sub_template,timeout_mins=15)
+        sub_stack.setUp()
         return sub_stack
 
     @classmethod

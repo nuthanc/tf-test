@@ -29,7 +29,7 @@ resources:
     type: OS::ContrailV2::VirtualNetwork
 
   SubInterface-{{ i }}:
-    depends_on: [Sub_VN-0]
+    depends_on: [Sub_VN-{{ i }}]
     properties:
       name: sub-interface-{{ i }}
       virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: {{ i+1 }}}
@@ -39,7 +39,7 @@ resources:
 
   VMI_sub_IP-{{ i }} :
     type: OS::ContrailV2::InstanceIp
-    depends_on : [ SubInterface-{{ i }}, My_VN ]
+    depends_on : [ SubInterface-{{ i }}, Sub_VN-{{ i }} ]
     properties :
       virtual_machine_interface_refs : [{ get_resource : SubInterface-{{ i }} }]
       virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-{{ i }} , fq_name ] } ] }]
