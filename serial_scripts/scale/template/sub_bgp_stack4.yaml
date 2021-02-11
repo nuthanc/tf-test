@@ -1,0 +1,2560 @@
+description: sub_intf_scale
+heat_template_version: 'rocky'
+
+resources:
+  My_IPAM:
+    type: OS::ContrailV2::NetworkIpam
+    properties:
+      name: my-scale-ipam
+  
+
+  Sub_VN-200:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.128,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-200:
+    depends_on: [Sub_VN-200]
+    properties:
+      name: sub-interface-200
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 200}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-200, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-200 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-200, Sub_VN-200 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-200 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-200 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.131
+
+  BGP_TAGGED-200:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.131
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-200
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-200}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-201:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.144,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-201:
+    depends_on: [Sub_VN-201]
+    properties:
+      name: sub-interface-201
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 201}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-201, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-201 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-201, Sub_VN-201 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-201 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-201 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.147
+
+  BGP_TAGGED-201:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.147
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-201
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-201}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-202:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.160,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-202:
+    depends_on: [Sub_VN-202]
+    properties:
+      name: sub-interface-202
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 202}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-202, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-202 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-202, Sub_VN-202 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-202 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-202 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.163
+
+  BGP_TAGGED-202:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.163
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-202
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-202}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-203:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.176,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-203:
+    depends_on: [Sub_VN-203]
+    properties:
+      name: sub-interface-203
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 203}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-203, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-203 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-203, Sub_VN-203 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-203 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-203 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.179
+
+  BGP_TAGGED-203:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.179
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-203
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-203}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-204:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.192,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-204:
+    depends_on: [Sub_VN-204]
+    properties:
+      name: sub-interface-204
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 204}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-204, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-204 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-204, Sub_VN-204 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-204 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-204 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.195
+
+  BGP_TAGGED-204:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.195
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-204
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-204}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-205:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.208,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-205:
+    depends_on: [Sub_VN-205]
+    properties:
+      name: sub-interface-205
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 205}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-205, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-205 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-205, Sub_VN-205 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-205 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-205 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.211
+
+  BGP_TAGGED-205:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.211
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-205
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-205}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-206:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.224,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-206:
+    depends_on: [Sub_VN-206]
+    properties:
+      name: sub-interface-206
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 206}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-206, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-206 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-206, Sub_VN-206 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-206 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-206 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.227
+
+  BGP_TAGGED-206:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.227
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-206
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-206}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-207:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.12.240,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-207:
+    depends_on: [Sub_VN-207]
+    properties:
+      name: sub-interface-207
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 207}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-207, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-207 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-207, Sub_VN-207 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-207 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-207 , fq_name ] } ] }]
+      instance_ip_address: 67.27.12.243
+
+  BGP_TAGGED-207:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.12.243
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-207
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-207}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-208:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-208:
+    depends_on: [Sub_VN-208]
+    properties:
+      name: sub-interface-208
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 208}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-208, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-208 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-208, Sub_VN-208 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-208 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-208 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.3
+
+  BGP_TAGGED-208:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.3
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-208
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-208}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-209:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.16,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-209:
+    depends_on: [Sub_VN-209]
+    properties:
+      name: sub-interface-209
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 209}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-209, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-209 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-209, Sub_VN-209 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-209 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-209 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.19
+
+  BGP_TAGGED-209:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.19
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-209
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-209}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-210:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.32,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-210:
+    depends_on: [Sub_VN-210]
+    properties:
+      name: sub-interface-210
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 210}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-210, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-210 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-210, Sub_VN-210 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-210 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-210 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.35
+
+  BGP_TAGGED-210:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.35
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-210
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-210}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-211:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.48,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-211:
+    depends_on: [Sub_VN-211]
+    properties:
+      name: sub-interface-211
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 211}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-211, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-211 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-211, Sub_VN-211 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-211 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-211 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.51
+
+  BGP_TAGGED-211:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.51
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-211
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-211}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-212:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.64,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-212:
+    depends_on: [Sub_VN-212]
+    properties:
+      name: sub-interface-212
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 212}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-212, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-212 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-212, Sub_VN-212 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-212 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-212 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.67
+
+  BGP_TAGGED-212:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.67
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-212
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-212}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-213:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.80,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-213:
+    depends_on: [Sub_VN-213]
+    properties:
+      name: sub-interface-213
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 213}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-213, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-213 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-213, Sub_VN-213 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-213 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-213 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.83
+
+  BGP_TAGGED-213:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.83
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-213
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-213}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-214:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.96,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-214:
+    depends_on: [Sub_VN-214]
+    properties:
+      name: sub-interface-214
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 214}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-214, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-214 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-214, Sub_VN-214 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-214 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-214 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.99
+
+  BGP_TAGGED-214:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.99
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-214
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-214}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-215:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.112,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-215:
+    depends_on: [Sub_VN-215]
+    properties:
+      name: sub-interface-215
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 215}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-215, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-215 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-215, Sub_VN-215 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-215 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-215 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.115
+
+  BGP_TAGGED-215:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.115
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-215
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-215}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-216:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.128,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-216:
+    depends_on: [Sub_VN-216]
+    properties:
+      name: sub-interface-216
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 216}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-216, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-216 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-216, Sub_VN-216 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-216 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-216 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.131
+
+  BGP_TAGGED-216:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.131
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-216
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-216}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-217:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.144,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-217:
+    depends_on: [Sub_VN-217]
+    properties:
+      name: sub-interface-217
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 217}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-217, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-217 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-217, Sub_VN-217 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-217 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-217 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.147
+
+  BGP_TAGGED-217:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.147
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-217
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-217}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-218:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.160,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-218:
+    depends_on: [Sub_VN-218]
+    properties:
+      name: sub-interface-218
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 218}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-218, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-218 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-218, Sub_VN-218 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-218 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-218 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.163
+
+  BGP_TAGGED-218:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.163
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-218
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-218}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-219:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.176,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-219:
+    depends_on: [Sub_VN-219]
+    properties:
+      name: sub-interface-219
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 219}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-219, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-219 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-219, Sub_VN-219 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-219 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-219 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.179
+
+  BGP_TAGGED-219:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.179
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-219
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-219}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-220:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.192,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-220:
+    depends_on: [Sub_VN-220]
+    properties:
+      name: sub-interface-220
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 220}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-220, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-220 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-220, Sub_VN-220 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-220 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-220 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.195
+
+  BGP_TAGGED-220:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.195
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-220
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-220}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-221:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.208,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-221:
+    depends_on: [Sub_VN-221]
+    properties:
+      name: sub-interface-221
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 221}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-221, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-221 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-221, Sub_VN-221 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-221 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-221 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.211
+
+  BGP_TAGGED-221:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.211
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-221
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-221}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-222:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.224,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-222:
+    depends_on: [Sub_VN-222]
+    properties:
+      name: sub-interface-222
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 222}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-222, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-222 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-222, Sub_VN-222 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-222 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-222 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.227
+
+  BGP_TAGGED-222:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.227
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-222
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-222}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-223:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.13.240,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-223:
+    depends_on: [Sub_VN-223]
+    properties:
+      name: sub-interface-223
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 223}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-223, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-223 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-223, Sub_VN-223 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-223 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-223 , fq_name ] } ] }]
+      instance_ip_address: 67.27.13.243
+
+  BGP_TAGGED-223:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.13.243
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-223
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-223}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-224:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-224:
+    depends_on: [Sub_VN-224]
+    properties:
+      name: sub-interface-224
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 224}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-224, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-224 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-224, Sub_VN-224 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-224 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-224 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.3
+
+  BGP_TAGGED-224:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.3
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-224
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-224}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-225:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.16,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-225:
+    depends_on: [Sub_VN-225]
+    properties:
+      name: sub-interface-225
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 225}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-225, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-225 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-225, Sub_VN-225 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-225 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-225 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.19
+
+  BGP_TAGGED-225:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.19
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-225
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-225}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-226:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.32,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-226:
+    depends_on: [Sub_VN-226]
+    properties:
+      name: sub-interface-226
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 226}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-226, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-226 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-226, Sub_VN-226 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-226 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-226 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.35
+
+  BGP_TAGGED-226:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.35
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-226
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-226}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-227:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.48,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-227:
+    depends_on: [Sub_VN-227]
+    properties:
+      name: sub-interface-227
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 227}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-227, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-227 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-227, Sub_VN-227 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-227 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-227 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.51
+
+  BGP_TAGGED-227:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.51
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-227
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-227}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-228:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.64,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-228:
+    depends_on: [Sub_VN-228]
+    properties:
+      name: sub-interface-228
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 228}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-228, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-228 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-228, Sub_VN-228 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-228 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-228 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.67
+
+  BGP_TAGGED-228:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.67
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-228
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-228}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-229:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.80,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-229:
+    depends_on: [Sub_VN-229]
+    properties:
+      name: sub-interface-229
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 229}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-229, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-229 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-229, Sub_VN-229 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-229 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-229 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.83
+
+  BGP_TAGGED-229:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.83
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-229
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-229}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-230:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.96,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-230:
+    depends_on: [Sub_VN-230]
+    properties:
+      name: sub-interface-230
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 230}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-230, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-230 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-230, Sub_VN-230 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-230 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-230 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.99
+
+  BGP_TAGGED-230:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.99
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-230
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-230}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-231:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.112,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-231:
+    depends_on: [Sub_VN-231]
+    properties:
+      name: sub-interface-231
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 231}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-231, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-231 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-231, Sub_VN-231 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-231 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-231 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.115
+
+  BGP_TAGGED-231:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.115
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-231
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-231}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-232:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.128,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-232:
+    depends_on: [Sub_VN-232]
+    properties:
+      name: sub-interface-232
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 232}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-232, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-232 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-232, Sub_VN-232 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-232 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-232 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.131
+
+  BGP_TAGGED-232:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.131
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-232
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-232}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-233:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.144,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-233:
+    depends_on: [Sub_VN-233]
+    properties:
+      name: sub-interface-233
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 233}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-233, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-233 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-233, Sub_VN-233 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-233 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-233 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.147
+
+  BGP_TAGGED-233:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.147
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-233
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-233}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-234:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.160,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-234:
+    depends_on: [Sub_VN-234]
+    properties:
+      name: sub-interface-234
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 234}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-234, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-234 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-234, Sub_VN-234 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-234 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-234 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.163
+
+  BGP_TAGGED-234:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.163
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-234
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-234}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-235:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.176,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-235:
+    depends_on: [Sub_VN-235]
+    properties:
+      name: sub-interface-235
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 235}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-235, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-235 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-235, Sub_VN-235 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-235 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-235 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.179
+
+  BGP_TAGGED-235:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.179
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-235
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-235}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-236:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.192,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-236:
+    depends_on: [Sub_VN-236]
+    properties:
+      name: sub-interface-236
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 236}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-236, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-236 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-236, Sub_VN-236 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-236 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-236 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.195
+
+  BGP_TAGGED-236:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.195
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-236
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-236}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-237:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.208,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-237:
+    depends_on: [Sub_VN-237]
+    properties:
+      name: sub-interface-237
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 237}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-237, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-237 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-237, Sub_VN-237 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-237 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-237 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.211
+
+  BGP_TAGGED-237:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.211
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-237
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-237}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-238:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.224,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-238:
+    depends_on: [Sub_VN-238]
+    properties:
+      name: sub-interface-238
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 238}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-238, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-238 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-238, Sub_VN-238 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-238 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-238 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.227
+
+  BGP_TAGGED-238:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.227
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-238
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-238}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-239:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.14.240,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-239:
+    depends_on: [Sub_VN-239]
+    properties:
+      name: sub-interface-239
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 239}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-239, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-239 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-239, Sub_VN-239 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-239 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-239 , fq_name ] } ] }]
+      instance_ip_address: 67.27.14.243
+
+  BGP_TAGGED-239:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.14.243
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-239
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-239}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-240:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.0,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-240:
+    depends_on: [Sub_VN-240]
+    properties:
+      name: sub-interface-240
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 240}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-240, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-240 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-240, Sub_VN-240 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-240 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-240 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.3
+
+  BGP_TAGGED-240:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.3
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-240
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-240}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-241:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.16,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-241:
+    depends_on: [Sub_VN-241]
+    properties:
+      name: sub-interface-241
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 241}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-241, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-241 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-241, Sub_VN-241 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-241 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-241 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.19
+
+  BGP_TAGGED-241:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.19
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-241
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-241}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-242:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.32,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-242:
+    depends_on: [Sub_VN-242]
+    properties:
+      name: sub-interface-242
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 242}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-242, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-242 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-242, Sub_VN-242 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-242 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-242 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.35
+
+  BGP_TAGGED-242:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.35
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-242
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-242}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-243:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.48,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-243:
+    depends_on: [Sub_VN-243]
+    properties:
+      name: sub-interface-243
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 243}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-243, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-243 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-243, Sub_VN-243 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-243 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-243 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.51
+
+  BGP_TAGGED-243:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.51
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-243
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-243}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-244:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.64,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-244:
+    depends_on: [Sub_VN-244]
+    properties:
+      name: sub-interface-244
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 244}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-244, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-244 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-244, Sub_VN-244 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-244 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-244 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.67
+
+  BGP_TAGGED-244:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.67
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-244
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-244}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-245:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.80,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-245:
+    depends_on: [Sub_VN-245]
+    properties:
+      name: sub-interface-245
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 245}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-245, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-245 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-245, Sub_VN-245 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-245 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-245 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.83
+
+  BGP_TAGGED-245:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.83
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-245
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-245}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-246:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.96,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-246:
+    depends_on: [Sub_VN-246]
+    properties:
+      name: sub-interface-246
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 246}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-246, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-246 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-246, Sub_VN-246 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-246 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-246 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.99
+
+  BGP_TAGGED-246:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.99
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-246
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-246}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-247:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.112,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-247:
+    depends_on: [Sub_VN-247]
+    properties:
+      name: sub-interface-247
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 247}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-247, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-247 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-247, Sub_VN-247 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-247 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-247 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.115
+
+  BGP_TAGGED-247:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.115
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-247
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-247}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-248:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.128,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-248:
+    depends_on: [Sub_VN-248]
+    properties:
+      name: sub-interface-248
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 248}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-248, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-248 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-248, Sub_VN-248 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-248 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-248 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.131
+
+  BGP_TAGGED-248:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.131
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-248
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-248}
+    type: OS::ContrailV2::BgpAsAService
+
+  Sub_VN-249:
+    depends_on: [My_IPAM]
+    properties:
+      name: sub-scale-vn
+      network_ipam_refs: [{ get_resource: My_IPAM }]
+      network_ipam_refs_data:
+        [{
+          network_ipam_refs_data_ipam_subnets:
+            [{
+              network_ipam_refs_data_ipam_subnets_subnet:
+                {
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix: 67.27.15.144,
+                  network_ipam_refs_data_ipam_subnets_subnet_ip_prefix_len: 28,
+                },
+                network_ipam_refs_data_ipam_subnets_addr_from_start: 'true',
+         }]
+         },
+        ]
+    type: OS::ContrailV2::VirtualNetwork
+
+  SubInterface-249:
+    depends_on: [Sub_VN-249]
+    properties:
+      name: sub-interface-249
+      virtual_machine_interface_properties: {virtual_machine_interface_properties_sub_interface_vlan_tag: 249}
+      virtual_machine_interface_refs: [7bf9c440-c7f7-4e76-b0e1-d2ca7aa0c986]
+      virtual_network_refs: [{ list_join: [':', { get_attr: [ Sub_VN-249, fq_name ] } ] }]
+    type: OS::ContrailV2::VirtualMachineInterface
+
+  VMI_sub_IP-249 :
+    type: OS::ContrailV2::InstanceIp
+    depends_on : [ SubInterface-249, Sub_VN-249 ]
+    properties :
+      virtual_machine_interface_refs : [{ get_resource : SubInterface-249 }]
+      virtual_network_refs : [{ list_join : [':', { get_attr : [ Sub_VN-249 , fq_name ] } ] }]
+      instance_ip_address: 67.27.15.147
+
+  BGP_TAGGED-249:
+    depends_on: [SubInterface-200, SubInterface-201, SubInterface-202, SubInterface-203, SubInterface-204, SubInterface-205, SubInterface-206, SubInterface-207, SubInterface-208, SubInterface-209, SubInterface-210, SubInterface-211, SubInterface-212, SubInterface-213, SubInterface-214, SubInterface-215, SubInterface-216, SubInterface-217, SubInterface-218, SubInterface-219, SubInterface-220, SubInterface-221, SubInterface-222, SubInterface-223, SubInterface-224, SubInterface-225, SubInterface-226, SubInterface-227, SubInterface-228, SubInterface-229, SubInterface-230, SubInterface-231, SubInterface-232, SubInterface-233, SubInterface-234, SubInterface-235, SubInterface-236, SubInterface-237, SubInterface-238, SubInterface-239, SubInterface-240, SubInterface-241, SubInterface-242, SubInterface-243, SubInterface-244, SubInterface-245, SubInterface-246, SubInterface-247, SubInterface-248, SubInterface-249, ]
+    properties:
+      autonomous_system: 64500
+      bgpaas_ip_address: 67.27.15.147
+      bgpaas_session_attributes:
+        bgpaas_session_attributes_address_families:
+          bgpaas_session_attributes_address_families_family: [inet]
+        bgpaas_session_attributes_as_override: true
+      name: BGPAAS-249
+      virtual_machine_interface_refs:
+      - {get_resource: SubInterface-249}
+    type: OS::ContrailV2::BgpAsAService
+

@@ -12,7 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 import yaml
 from port_fixture import PortFixture
 from ipaddress import IPv4Network
-
+from multiprocessing import Queue, Process
 
 class SubIntfScaleTest(BaseScaleTest):
     _interface = 'json'
@@ -24,9 +24,10 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.template_path = os.getenv('DEPLOYMENT_PATH',
                                     'serial_scripts/scale/template')
         cls.env = Environment(loader=FileSystemLoader(cls.template_path))
-        cls.num = 10
-        cls.num_per_file = 5
-        cls.cidr = "27.27.0.0/16"
+        cls.num = 4094
+        cls.num_per_file = 50
+        cls.cidr = "67.27.0.0/16"
+        cls.sub_intf_stacks = []
         try:
             cls.generate_network_objects()
             cls.setup_port()
@@ -46,8 +47,23 @@ class SubIntfScaleTest(BaseScaleTest):
     @classmethod
     def tearDownClass(cls):
         cls.port_stack.cleanUp()
-        for stack in cls.sub_intf_stacks:
+
+        # for stack in cls.sub_intf_stacks:
+        #     stack.cleanUp()
+
+        def cleanupMultipleStacks(stack):
             stack.cleanUp()
+        
+
+        procs = []
+        for stack in cls.sub_intf_stacks:
+            proc = Process(target=cleanupMultipleStacks, args=(stack))
+            procs.append(proc)
+            proc.start()
+        for proc in procs:
+            proc.join()
+
+
         cls.vsrx_stack.cleanUp()
         super(SubIntfScaleTest, cls).tearDownClass()
 
@@ -129,19 +145,30 @@ class SubIntfScaleTest(BaseScaleTest):
 
     @classmethod
     def setup_sub_intfs(cls):
-        cls.sub_intf_stacks = []
+        
         sub_intf_temp = cls.env.get_template("sub_bgp.yaml.j2")
 
         # Logic for number of files
         perfect_num = cls.num // cls.num_per_file
         partial_num = cls.num % cls.num_per_file
-        for i in range(perfect_num):
+
+        def multiple_stacks(i,queue):
             start_index = i * cls.num_per_file
             end_index = (i+1) * cls.num_per_file
             sub_intf_file = f'{cls.template_path}/sub_bgp_stack{i}.yaml'
             sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
-            cls.sub_intf_stacks.append(sub_intf_stack)
+            queue.put_nowait(sub_intf_stack)
 
+        # Doing multiprocessing here
+        procs = []
+        queue = Queue()
+        for i in range(perfect_num):
+            proc = Process(target=multiple_stacks, args=(i, queue))
+            procs.append(proc)
+            proc.start()
+        for proc in procs:
+            proc.join()
+        
         # For the last partial file
         if partial_num != 0:
             start_index = perfect_num * cls.num_per_file
