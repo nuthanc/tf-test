@@ -37,13 +37,12 @@ class SubIntfScaleTest(BaseScaleTest):
             print("Nuthan, there is an exception-------------------------->")
             print(e)
             import pdb;pdb.set_trace()
-        finally:
             cls.port_stack.cleanUp()
             for stack in cls.sub_intf_stacks:
                 stack.cleanUp()
             cls.vsrx_stack.cleanUp()
             super(SubIntfScaleTest, cls).tearDownClass()
-
+            
     @classmethod
     def tearDownClass(cls):
         cls.port_stack.cleanUp()
