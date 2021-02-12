@@ -3,8 +3,8 @@ from base import BaseScaleTest
 from common.heat.base import BaseHeatTest
 from tcutils.wrappers import preposttest_wrapper
 import test
-from vnc_api import vnc_api
-from vnc_api.gen.resource_test import *
+from vnc_api.vnc_api import VncApi
+# from vnc_api.gen.resource_test import *
 from heat_test import HeatStackFixture
 from nova_test import *
 from vm_test import *
@@ -12,7 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 import yaml
 from port_fixture import PortFixture
 from ipaddress import IPv4Network
-from multiprocessing import Queue, Process
+from multiprocessing import Queue, Process, Manager
 
 class SubIntfScaleTest(BaseScaleTest):
     _interface = 'json'
@@ -27,17 +27,19 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.num = 4094
         cls.num_per_file = 50
         cls.cidr = "67.27.0.0/16"
-        cls.sub_intf_stacks = []
+        cls.sub_intf_stacks = Manager().Queue()
         try:
             cls.generate_network_objects()
             cls.setup_port()
             cls.setup_sub_intfs()
             cls.setup_vsrx()
+            cls.vnc_fetch()
             import pdb;pdb.set_trace()
         except Exception as e:
             print("Nuthan, there is an exception-------------------------->")
             print(e)
             import pdb;pdb.set_trace()
+            cls.vnc_fetch()
             cls.port_stack.cleanUp()
             for stack in cls.sub_intf_stacks:
                 stack.cleanUp()
@@ -56,7 +58,8 @@ class SubIntfScaleTest(BaseScaleTest):
         
 
         procs = []
-        for stack in cls.sub_intf_stacks:
+        import pdb;pdb.set_trace()
+        for stack in cls.sub_intf_stacks.get():
             proc = Process(target=cleanupMultipleStacks, args=(stack))
             procs.append(proc)
             proc.start()
@@ -66,6 +69,17 @@ class SubIntfScaleTest(BaseScaleTest):
 
         cls.vsrx_stack.cleanUp()
         super(SubIntfScaleTest, cls).tearDownClass()
+
+    @classmethod
+    def vnc_check(cls):
+        cls.vnc = VncApi(api_server_host=cls.inputs.cfgm_ip,api_server_port='8082',username='admin',password='c0ntrail123',tenant_name=cls.inputs.project_name,domain_name='default-domain',auth_host=cls.inputs.auth_ip,auth_token=cls.connections.auth.get_token())
+        # cls.vnc.virtual_machine_interface_read(id=cls.port_uuid)
+        # '9f15c311-08a6-4227-964c-0d5646eb59a1'
+        cls.vnc.virtual_machine_interface_read(id=cls.port_uuid).virtual_machine_interface_refs
+        if len(cls.vnc.virtual_machine_interface_read(id=cls.port_uuid).virtual_machine_interface_refs) == cls.num:
+            print("Hurray, desired number is equal to actual number Created")
+        else:
+            print("Ahhhh, not equal")
 
     @classmethod
     def setup_port(cls):
@@ -139,7 +153,9 @@ class SubIntfScaleTest(BaseScaleTest):
             f.write(sub_intf_temp.render(start_index=start_index, end_index=end_index, sub_intf_nets=cls.sub_intf_nets, sub_intf_masks=cls.sub_intf_masks, ips=cls.ips, uuid=cls.port_uuid))
         with open(sub_intf_file, 'r') as fd:
             sub_template = yaml.load(fd, Loader=yaml.FullLoader)
-        sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+f'_sub_scale{start_index}',template=sub_template,timeout_mins=15)
+        sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+f'_sub_scale{start_index}',template=sub_template,timeout_mins=120)
+        
+        cls.sub_intf_stacks.put(sub_stack)
         sub_stack.setUp()
         return sub_stack
 
@@ -152,18 +168,16 @@ class SubIntfScaleTest(BaseScaleTest):
         perfect_num = cls.num // cls.num_per_file
         partial_num = cls.num % cls.num_per_file
 
-        def multiple_stacks(i,queue):
+        def multiple_stacks(i):
             start_index = i * cls.num_per_file
             end_index = (i+1) * cls.num_per_file
             sub_intf_file = f'{cls.template_path}/sub_bgp_stack{i}.yaml'
             sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
-            queue.put_nowait(sub_intf_stack)
 
         # Doing multiprocessing here
         procs = []
-        queue = Queue()
         for i in range(perfect_num):
-            proc = Process(target=multiple_stacks, args=(i, queue))
+            proc = Process(target=multiple_stacks, args=(i,))
             procs.append(proc)
             proc.start()
         for proc in procs:
@@ -175,7 +189,6 @@ class SubIntfScaleTest(BaseScaleTest):
             end_index = start_index + partial_num
             sub_intf_file = f'{cls.template_path}/sub_bgp_stack{perfect_num}.yaml'
             sub_intf_stack = cls.call_heat_stack_with_template(sub_intf_file, sub_intf_temp, start_index, end_index)
-            cls.sub_intf_stacks.append(sub_intf_stack)
         
     @classmethod
     def generate_network_objects(cls):
