@@ -12,7 +12,7 @@ from jinja2 import Environment, FileSystemLoader
 import yaml
 from port_fixture import PortFixture
 from ipaddress import IPv4Network
-from multiprocessing import Queue, Process, Manager
+from multiprocessing import Process
 
 class SubIntfScaleTest(BaseScaleTest):
     _interface = 'json'
@@ -24,22 +24,21 @@ class SubIntfScaleTest(BaseScaleTest):
         cls.template_path = os.getenv('DEPLOYMENT_PATH',
                                     'serial_scripts/scale/template')
         cls.env = Environment(loader=FileSystemLoader(cls.template_path))
-        cls.num = 4094
-        cls.num_per_file = 50
-        cls.cidr = "67.27.0.0/16"
-        cls.sub_intf_stacks = Manager().Queue()
+        cls.num = 10
+        cls.num_per_file = 5
+        cls.cidr = "97.27.0.0/16"
         try:
             cls.generate_network_objects()
             cls.setup_port()
             cls.setup_sub_intfs()
             cls.setup_vsrx()
-            cls.vnc_fetch()
+            cls.vnc_check()
             import pdb;pdb.set_trace()
         except Exception as e:
             print("Nuthan, there is an exception-------------------------->")
             print(e)
             import pdb;pdb.set_trace()
-            cls.vnc_fetch()
+            cls.vnc_check()
             cls.port_stack.cleanUp()
             for stack in cls.sub_intf_stacks:
                 stack.cleanUp()
@@ -155,7 +154,6 @@ class SubIntfScaleTest(BaseScaleTest):
             sub_template = yaml.load(fd, Loader=yaml.FullLoader)
         sub_stack = HeatStackFixture(connections=cls.connections,stack_name=cls.connections.project_name+f'_sub_scale{start_index}',template=sub_template,timeout_mins=120)
         
-        cls.sub_intf_stacks.put(sub_stack)
         sub_stack.setUp()
         return sub_stack
 
