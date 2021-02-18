@@ -1,0 +1,1 @@
+python3 -m testtools.run serial_scripts/k8s_auth/test_policy_combo.py
