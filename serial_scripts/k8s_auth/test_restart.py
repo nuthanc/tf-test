@@ -120,6 +120,17 @@ class TestRestart(BaseK8sAuth):
             resource_expectation=TestRestart.resource_expectation,
             stackrc_dict=stackrc_dict, inputs=self.inputs)
 
+    @test.attr(type=['auth'])
+    @preposttest_wrapper
+    def test_k8s_auth_pod_delete(self):
+        from k8s.deployment import DeploymentFixture
+        dep = DeploymentFixture(self.connections, name='k8s-keystone-auth', namespace='kube-system')
+        dep_obj = dep.read()
+        pods = dep.get_pods_list()
+        for pod in pods:
+            print(pod.metadata.name)
+            print(pod.metadata.namespace)
+
 
 class TestRestartWithPodResource(BaseK8sAuth):
     resource = {'resources': ['pods']}

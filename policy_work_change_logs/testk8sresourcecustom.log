@@ -1,0 +1,356 @@
+2021-02-19 05:22:38,341 - INFO - Using existing project ['admin_domain', 'admin'](6d52ffce-adf6-4a1b-b907-bb9dd95efc70)
+2021-02-19 05:22:38,393 - DEBUG - Container None not in host 192.168.7.18, copying to  host itself
+2021-02-19 05:22:41,827 - INFO - ================================================================================
+2021-02-19 05:22:41,827 - INFO - STARTING TEST    : test_deployment_in_custom_project
+2021-02-19 05:22:41,827 - INFO - TEST DESCRIPTION : 
+        Description: Test to validate custom user can perform all operations only on deployment resource
+         Test steps:
+                1. Set resource to only deployments
+                2. Set the resource expectation list to only deployment
+                3. Perform create and delete operations on all resources
+         Pass criteria: custom user must be able to perform all operations only on deployment resource successfully
+         Maintainer : nuthanc@juniper.net
+        
+2021-02-19 05:22:43,132 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:22:43,133 - INFO - Initial checks done. Running the testcase now
+2021-02-19 05:22:43,133 - INFO - 
+2021-02-19 05:22:44,436 - ERROR - TypeError
+Python 3.6.8: /usr/bin/python3
+Fri Feb 19 05:22:43 2021
+
+A problem occurred in a Python script.  Here is the sequence of
+function calls leading up to the error, in the order they occurred.
+
+ /contrail-test/tcutils/wrappers.py in wrapper(self=<serial_scripts.k8s_auth.test_resource.TestK8sRe...oyment_in_custom_project[auth] id=0x7f8cb0db94e0>, *args=(), **kwargs={})
+   80             log.info('Initial checks done. Running the testcase now')
+   81             log.info('')
+   82             result = function(self, *args, **kwargs)
+   83             if self.inputs.upgrade:
+   84                 pid = os.getpid()
+result = None
+function = <function TestK8sResourceCustom.test_deployment_in_custom_project>
+self = <serial_scripts.k8s_auth.test_resource.TestK8sRe...oyment_in_custom_project[auth] id=0x7f8cb0db94e0>
+args = ()
+kwargs = {}
+
+ /contrail-test/serial_scripts/k8s_auth/test_resource.py in test_deployment_in_custom_project(self=<serial_scripts.k8s_auth.test_resource.TestK8sRe...oyment_in_custom_project[auth] id=0x7f8cb0db94e0>)
+  126         ResourceUtil.create_policy_and_perform_operations(
+  127             resource=resource,
+  128             match=self.match,
+  129             stackrc_dict=self.stackrc_dict,
+  130             resource_expectation=resource_expectation, inputs=self.inputs)
+resource_expectation = {'deployment': True}
+inputs undefined
+self = <serial_scripts.k8s_auth.test_resource.TestK8sRe...oyment_in_custom_project[auth] id=0x7f8cb0db94e0>
+self.inputs = <common.contrail_test_init.ContrailTestInit object>
+
+ /contrail-test/tcutils/kubernetes/auth/resource_util.py in create_policy_and_perform_operations(resource={'namespace': '*', 'resources': ['deployments'], 'verbs': ['*'], 'version': '*'}, match=[{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14946042']}], resource_expectation={'deployment': True}, stackrc_dict={'auth_url': 'http://192.168.7.14:5000/v3', 'domain_name': 'test_domain', 'password': 'c0ntrail123', 'project_name': 'test_project', 'user_name': '14946042'}, inputs=<common.contrail_test_init.ContrailTestInit object>)
+   83             inputs=None):
+   84         create_policy.create_and_apply_policies(
+   85             resource=resource, match=match, inputs=inputs)
+   86         ResourceUtil.perform_operations(
+   87             stackrc_dict, resource_expectation, inputs=inputs)
+resource = {'namespace': '*', 'resources': ['deployments'], 'verbs': ['*'], 'version': '*'}
+match = [{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14946042']}]
+inputs = <common.contrail_test_init.ContrailTestInit object>
+
+ /contrail-test/tcutils/kubernetes/auth/create_policy.py in create_and_apply_policies(resource={'namespace': '*', 'resources': ['deployments'], 'verbs': ['*'], 'version': '*'}, match=[{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14946042']}], inputs=<common.contrail_test_init.ContrailTestInit object>, filename=None)
+  192     policies = create_policies(resource=resource, match=match)
+  193     filename = insert_policies_in_template_file(
+  194         policies, filename=filename, inputs=inputs)
+  195     apply_policies_and_check_in_config_map(
+  196         policies, filename, inputs.juju_server)
+policies = [{'match': [{'type': 'role', 'values': ['*']}, {'type': 'project', 'values': ['admin']}], 'resource': {'namespace': '*', 'resources': ['*'], 'verbs': ['*'], 'version': '*'}}, {'match': [{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14946042']}], 'resource': {'namespace': '*', 'resources': ['deployments'], 'verbs': ['*'], 'version': '*'}}]
+filename = None
+inputs = <common.contrail_test_init.ContrailTestInit object>
+
+ /contrail-test/tcutils/kubernetes/auth/create_policy.py in insert_policies_in_template_file(policies=[{'match': [{'type': 'role', 'values': ['*']}, {'type': 'project', 'values': ['admin']}], 'resource': {'namespace': '*', 'resources': ['*'], 'verbs': ['*'], 'version': '*'}}, {'match': [{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14946042']}], 'resource': {'namespace': '*', 'resources': ['deployments'], 'verbs': ['*'], 'version': '*'}}], filename=None, inputs=<common.contrail_test_init.ContrailTestInit object>)
+   17     TEMPLATE_DIR = os.path.join(THIS_DIR, 'templates')
+   18 
+   19     filename_with_path = os.path.join(TEMPLATE_DIR, filename)
+   20 
+   21     policies_json = json.dumps(policies)
+filename_with_path undefined
+global os = <module 'os' from '/usr/lib64/python3.6/os.py'>
+os.path = <module 'posixpath' from '/usr/lib64/python3.6/posixpath.py'>
+os.path.join = <function join>
+TEMPLATE_DIR = '/contrail-test/tcutils/kubernetes/auth/templates'
+filename = None
+
+ /usr/lib64/python3.6/posixpath.py in join(a='/contrail-test/tcutils/kubernetes/auth/templates', *p=(None,))
+   92                 path += sep + b
+   93     except (TypeError, AttributeError, BytesWarning):
+   94         genericpath._check_arg_types('join', a, *p)
+   95         raise
+   96     return path
+global genericpath = <module 'genericpath' from '/usr/lib64/python3.6/genericpath.py'>
+genericpath._check_arg_types = <function _check_arg_types>
+a = '/contrail-test/tcutils/kubernetes/auth/templates'
+p = (None,)
+
+ /usr/lib64/python3.6/genericpath.py in _check_arg_types(funcname='join', *args=('/contrail-test/tcutils/kubernetes/auth/templates', None))
+  147         else:
+  148             raise TypeError('%s() argument must be str or bytes, not %r' %
+  149                             (funcname, s.__class__.__name__)) from None
+  150     if hasstr and hasbytes:
+  151         raise TypeError("Can't mix strings and bytes in path components") from None
+funcname = 'join'
+s = None
+s.__class__ = <class 'NoneType'>
+s.__class__.__name__ = 'NoneType'
+TypeError: join() argument must be str or bytes, not 'NoneType'
+    __cause__ = None
+    __class__ = <class 'TypeError'>
+    __context__ = TypeError('expected str, bytes or os.PathLike object, not NoneType',)
+    __delattr__ = <method-wrapper '__delattr__' of TypeError object>
+    __dict__ = {}
+    __dir__ = <built-in method __dir__ of TypeError object>
+    __doc__ = 'Inappropriate argument type.'
+    __eq__ = <method-wrapper '__eq__' of TypeError object>
+    __format__ = <built-in method __format__ of TypeError object>
+    __ge__ = <method-wrapper '__ge__' of TypeError object>
+    __getattribute__ = <method-wrapper '__getattribute__' of TypeError object>
+    __gt__ = <method-wrapper '__gt__' of TypeError object>
+    __hash__ = <method-wrapper '__hash__' of TypeError object>
+    __init__ = <method-wrapper '__init__' of TypeError object>
+    __init_subclass__ = <built-in method __init_subclass__ of type object>
+    __le__ = <method-wrapper '__le__' of TypeError object>
+    __lt__ = <method-wrapper '__lt__' of TypeError object>
+    __ne__ = <method-wrapper '__ne__' of TypeError object>
+    __new__ = <built-in method __new__ of type object>
+    __reduce__ = <built-in method __reduce__ of TypeError object>
+    __reduce_ex__ = <built-in method __reduce_ex__ of TypeError object>
+    __repr__ = <method-wrapper '__repr__' of TypeError object>
+    __setattr__ = <method-wrapper '__setattr__' of TypeError object>
+    __setstate__ = <built-in method __setstate__ of TypeError object>
+    __sizeof__ = <built-in method __sizeof__ of TypeError object>
+    __str__ = <method-wrapper '__str__' of TypeError object>
+    __subclasshook__ = <built-in method __subclasshook__ of type object>
+    __suppress_context__ = True
+    __traceback__ = <traceback object>
+    args = ("join() argument must be str or bytes, not 'NoneType'",)
+    with_traceback = <built-in method with_traceback of TypeError object>
+
+The above is a description of an error in a Python program.  Here is
+the original traceback:
+
+Traceback (most recent call last):
+  File "/contrail-test/tcutils/wrappers.py", line 82, in wrapper
+    result = function(self, *args, **kwargs)
+  File "/contrail-test/serial_scripts/k8s_auth/test_resource.py", line 130, in test_deployment_in_custom_project
+    resource_expectation=resource_expectation, inputs=self.inputs)
+  File "/contrail-test/tcutils/kubernetes/auth/resource_util.py", line 85, in create_policy_and_perform_operations
+    resource=resource, match=match, inputs=inputs)
+  File "/contrail-test/tcutils/kubernetes/auth/create_policy.py", line 194, in create_and_apply_policies
+    policies, filename=filename, inputs=inputs)
+  File "/contrail-test/tcutils/kubernetes/auth/create_policy.py", line 19, in insert_policies_in_template_file
+    filename_with_path = os.path.join(TEMPLATE_DIR, filename)
+  File "/usr/lib64/python3.6/posixpath.py", line 94, in join
+    genericpath._check_arg_types('join', a, *p)
+  File "/usr/lib64/python3.6/genericpath.py", line 149, in _check_arg_types
+    (funcname, s.__class__.__name__)) from None
+TypeError: join() argument must be str or bytes, not 'NoneType'
+
+
+
+2021-02-19 05:22:44,437 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:22:44,437 - INFO - 
+2021-02-19 05:22:44,437 - INFO - END TEST : test_deployment_in_custom_project : FAILED[0:00:03]
+2021-02-19 05:22:44,437 - INFO - --------------------------------------------------------------------------------
+2021-02-19 05:22:49,202 - INFO - ================================================================================
+2021-02-19 05:22:49,203 - INFO - STARTING TEST    : test_pod_in_custom_project
+2021-02-19 05:22:49,203 - INFO - TEST DESCRIPTION : 
+        Description: Test to validate custom user can perform all operations only on pod resource
+         Test steps:
+                1. Set resource to only pods
+                2. Set the resource expectation list to only pod
+                3. Perform create and delete operations on all resources
+         Pass criteria: custom user must be able to perform all operations only on pod resource successfully
+         Maintainer : nuthanc@juniper.net
+        
+2021-02-19 05:22:50,504 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:22:50,504 - INFO - Initial checks done. Running the testcase now
+2021-02-19 05:22:50,505 - INFO - 
+2021-02-19 05:22:51,836 - ERROR - TypeError
+Python 3.6.8: /usr/bin/python3
+Fri Feb 19 05:22:50 2021
+
+A problem occurred in a Python script.  Here is the sequence of
+function calls leading up to the error, in the order they occurred.
+
+ /contrail-test/tcutils/wrappers.py in wrapper(self=<serial_scripts.k8s_auth.test_resource.TestK8sRe...st_pod_in_custom_project[auth] id=0x7f8cb0db9550>, *args=(), **kwargs={})
+   80             log.info('Initial checks done. Running the testcase now')
+   81             log.info('')
+   82             result = function(self, *args, **kwargs)
+   83             if self.inputs.upgrade:
+   84                 pid = os.getpid()
+result = None
+function = <function TestK8sResourceCustom.test_pod_in_custom_project>
+self = <serial_scripts.k8s_auth.test_resource.TestK8sRe...st_pod_in_custom_project[auth] id=0x7f8cb0db9550>
+args = ()
+kwargs = {}
+
+ /contrail-test/serial_scripts/k8s_auth/test_resource.py in test_pod_in_custom_project(self=<serial_scripts.k8s_auth.test_resource.TestK8sRe...st_pod_in_custom_project[auth] id=0x7f8cb0db9550>)
+  106             match=self.match,
+  107             stackrc_dict=self.stackrc_dict,
+  108             resource_expectation=resource_expectation, inputs=self.inputs)
+  109 
+  110     @test.attr(type=['auth'])
+resource_expectation = {'pod': True}
+inputs undefined
+self = <serial_scripts.k8s_auth.test_resource.TestK8sRe...st_pod_in_custom_project[auth] id=0x7f8cb0db9550>
+self.inputs = <common.contrail_test_init.ContrailTestInit object>
+
+ /contrail-test/tcutils/kubernetes/auth/resource_util.py in create_policy_and_perform_operations(resource={'namespace': '*', 'resources': ['pods'], 'verbs': ['*'], 'version': '*'}, match=[{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14450109']}], resource_expectation={'pod': True}, stackrc_dict={'auth_url': 'http://192.168.7.14:5000/v3', 'domain_name': 'test_domain', 'password': 'c0ntrail123', 'project_name': 'test_project', 'user_name': '14450109'}, inputs=<common.contrail_test_init.ContrailTestInit object>)
+   83             inputs=None):
+   84         create_policy.create_and_apply_policies(
+   85             resource=resource, match=match, inputs=inputs)
+   86         ResourceUtil.perform_operations(
+   87             stackrc_dict, resource_expectation, inputs=inputs)
+resource = {'namespace': '*', 'resources': ['pods'], 'verbs': ['*'], 'version': '*'}
+match = [{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14450109']}]
+inputs = <common.contrail_test_init.ContrailTestInit object>
+
+ /contrail-test/tcutils/kubernetes/auth/create_policy.py in create_and_apply_policies(resource={'namespace': '*', 'resources': ['pods'], 'verbs': ['*'], 'version': '*'}, match=[{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14450109']}], inputs=<common.contrail_test_init.ContrailTestInit object>, filename=None)
+  192     policies = create_policies(resource=resource, match=match)
+  193     filename = insert_policies_in_template_file(
+  194         policies, filename=filename, inputs=inputs)
+  195     apply_policies_and_check_in_config_map(
+  196         policies, filename, inputs.juju_server)
+policies = [{'match': [{'type': 'role', 'values': ['*']}, {'type': 'project', 'values': ['admin']}], 'resource': {'namespace': '*', 'resources': ['*'], 'verbs': ['*'], 'version': '*'}}, {'match': [{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14450109']}], 'resource': {'namespace': '*', 'resources': ['pods'], 'verbs': ['*'], 'version': '*'}}]
+filename = None
+inputs = <common.contrail_test_init.ContrailTestInit object>
+
+ /contrail-test/tcutils/kubernetes/auth/create_policy.py in insert_policies_in_template_file(policies=[{'match': [{'type': 'role', 'values': ['*']}, {'type': 'project', 'values': ['admin']}], 'resource': {'namespace': '*', 'resources': ['*'], 'verbs': ['*'], 'version': '*'}}, {'match': [{'type': 'role', 'values': ['Member']}, {'type': 'project', 'values': ['test_project']}, {'type': 'user', 'values': ['14450109']}], 'resource': {'namespace': '*', 'resources': ['pods'], 'verbs': ['*'], 'version': '*'}}], filename=None, inputs=<common.contrail_test_init.ContrailTestInit object>)
+   17     TEMPLATE_DIR = os.path.join(THIS_DIR, 'templates')
+   18 
+   19     filename_with_path = os.path.join(TEMPLATE_DIR, filename)
+   20 
+   21     policies_json = json.dumps(policies)
+filename_with_path undefined
+global os = <module 'os' from '/usr/lib64/python3.6/os.py'>
+os.path = <module 'posixpath' from '/usr/lib64/python3.6/posixpath.py'>
+os.path.join = <function join>
+TEMPLATE_DIR = '/contrail-test/tcutils/kubernetes/auth/templates'
+filename = None
+
+ /usr/lib64/python3.6/posixpath.py in join(a='/contrail-test/tcutils/kubernetes/auth/templates', *p=(None,))
+   92                 path += sep + b
+   93     except (TypeError, AttributeError, BytesWarning):
+   94         genericpath._check_arg_types('join', a, *p)
+   95         raise
+   96     return path
+global genericpath = <module 'genericpath' from '/usr/lib64/python3.6/genericpath.py'>
+genericpath._check_arg_types = <function _check_arg_types>
+a = '/contrail-test/tcutils/kubernetes/auth/templates'
+p = (None,)
+
+ /usr/lib64/python3.6/genericpath.py in _check_arg_types(funcname='join', *args=('/contrail-test/tcutils/kubernetes/auth/templates', None))
+  147         else:
+  148             raise TypeError('%s() argument must be str or bytes, not %r' %
+  149                             (funcname, s.__class__.__name__)) from None
+  150     if hasstr and hasbytes:
+  151         raise TypeError("Can't mix strings and bytes in path components") from None
+funcname = 'join'
+s = None
+s.__class__ = <class 'NoneType'>
+s.__class__.__name__ = 'NoneType'
+TypeError: join() argument must be str or bytes, not 'NoneType'
+    __cause__ = None
+    __class__ = <class 'TypeError'>
+    __context__ = TypeError('expected str, bytes or os.PathLike object, not NoneType',)
+    __delattr__ = <method-wrapper '__delattr__' of TypeError object>
+    __dict__ = {}
+    __dir__ = <built-in method __dir__ of TypeError object>
+    __doc__ = 'Inappropriate argument type.'
+    __eq__ = <method-wrapper '__eq__' of TypeError object>
+    __format__ = <built-in method __format__ of TypeError object>
+    __ge__ = <method-wrapper '__ge__' of TypeError object>
+    __getattribute__ = <method-wrapper '__getattribute__' of TypeError object>
+    __gt__ = <method-wrapper '__gt__' of TypeError object>
+    __hash__ = <method-wrapper '__hash__' of TypeError object>
+    __init__ = <method-wrapper '__init__' of TypeError object>
+    __init_subclass__ = <built-in method __init_subclass__ of type object>
+    __le__ = <method-wrapper '__le__' of TypeError object>
+    __lt__ = <method-wrapper '__lt__' of TypeError object>
+    __ne__ = <method-wrapper '__ne__' of TypeError object>
+    __new__ = <built-in method __new__ of type object>
+    __reduce__ = <built-in method __reduce__ of TypeError object>
+    __reduce_ex__ = <built-in method __reduce_ex__ of TypeError object>
+    __repr__ = <method-wrapper '__repr__' of TypeError object>
+    __setattr__ = <method-wrapper '__setattr__' of TypeError object>
+    __setstate__ = <built-in method __setstate__ of TypeError object>
+    __sizeof__ = <built-in method __sizeof__ of TypeError object>
+    __str__ = <method-wrapper '__str__' of TypeError object>
+    __subclasshook__ = <built-in method __subclasshook__ of type object>
+    __suppress_context__ = True
+    __traceback__ = <traceback object>
+    args = ("join() argument must be str or bytes, not 'NoneType'",)
+    with_traceback = <built-in method with_traceback of TypeError object>
+
+The above is a description of an error in a Python program.  Here is
+the original traceback:
+
+Traceback (most recent call last):
+  File "/contrail-test/tcutils/wrappers.py", line 82, in wrapper
+    result = function(self, *args, **kwargs)
+  File "/contrail-test/serial_scripts/k8s_auth/test_resource.py", line 108, in test_pod_in_custom_project
+    resource_expectation=resource_expectation, inputs=self.inputs)
+  File "/contrail-test/tcutils/kubernetes/auth/resource_util.py", line 85, in create_policy_and_perform_operations
+    resource=resource, match=match, inputs=inputs)
+  File "/contrail-test/tcutils/kubernetes/auth/create_policy.py", line 194, in create_and_apply_policies
+    policies, filename=filename, inputs=inputs)
+  File "/contrail-test/tcutils/kubernetes/auth/create_policy.py", line 19, in insert_policies_in_template_file
+    filename_with_path = os.path.join(TEMPLATE_DIR, filename)
+  File "/usr/lib64/python3.6/posixpath.py", line 94, in join
+    genericpath._check_arg_types('join', a, *p)
+  File "/usr/lib64/python3.6/genericpath.py", line 149, in _check_arg_types
+    (funcname, s.__class__.__name__)) from None
+TypeError: join() argument must be str or bytes, not 'NoneType'
+
+
+
+2021-02-19 05:22:51,837 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:22:51,837 - INFO - 
+2021-02-19 05:22:51,837 - INFO - END TEST : test_pod_in_custom_project : FAILED[0:00:02]
+2021-02-19 05:22:51,837 - INFO - --------------------------------------------------------------------------------
+2021-02-19 05:35:09,997 - INFO - Using existing project ['admin_domain', 'admin'](6d52ffce-adf6-4a1b-b907-bb9dd95efc70)
+2021-02-19 05:35:10,047 - DEBUG - Container None not in host 192.168.7.18, copying to  host itself
+2021-02-19 05:35:13,091 - INFO - ================================================================================
+2021-02-19 05:35:13,091 - INFO - STARTING TEST    : test_deployment_in_custom_project
+2021-02-19 05:35:13,092 - INFO - TEST DESCRIPTION : 
+        Description: Test to validate custom user can perform all operations only on deployment resource
+         Test steps:
+                1. Set resource to only deployments
+                2. Set the resource expectation list to only deployment
+                3. Perform create and delete operations on all resources
+         Pass criteria: custom user must be able to perform all operations only on deployment resource successfully
+         Maintainer : nuthanc@juniper.net
+        
+2021-02-19 05:35:14,400 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:35:14,400 - INFO - Initial checks done. Running the testcase now
+2021-02-19 05:35:14,400 - INFO - 
+2021-02-19 05:35:14,404 - DEBUG - Container None not in host 192.168.7.18, copying to  host itself
+2021-02-19 05:35:43,693 - DEBUG - Container None not in host 192.168.7.18, copying to  host itself
+2021-02-19 05:36:09,828 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:36:09,829 - INFO - END TEST : test_deployment_in_custom_project : PASSED[0:00:56]
+2021-02-19 05:36:09,829 - INFO - --------------------------------------------------------------------------------
+2021-02-19 05:36:15,731 - INFO - ================================================================================
+2021-02-19 05:36:15,731 - INFO - STARTING TEST    : test_pod_in_custom_project
+2021-02-19 05:36:15,731 - INFO - TEST DESCRIPTION : 
+        Description: Test to validate custom user can perform all operations only on pod resource
+         Test steps:
+                1. Set resource to only pods
+                2. Set the resource expectation list to only pod
+                3. Perform create and delete operations on all resources
+         Pass criteria: custom user must be able to perform all operations only on pod resource successfully
+         Maintainer : nuthanc@juniper.net
+        
+2021-02-19 05:36:17,036 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:36:17,036 - INFO - Initial checks done. Running the testcase now
+2021-02-19 05:36:17,037 - INFO - 
+2021-02-19 05:36:17,040 - DEBUG - Container None not in host 192.168.7.18, copying to  host itself
+2021-02-19 05:36:48,499 - DEBUG - Container None not in host 192.168.7.18, copying to  host itself
+2021-02-19 05:37:27,785 - DEBUG - Skipping xmpp flap check
+2021-02-19 05:37:27,785 - INFO - END TEST : test_pod_in_custom_project : PASSED[0:01:12]
+2021-02-19 05:37:27,785 - INFO - --------------------------------------------------------------------------------
