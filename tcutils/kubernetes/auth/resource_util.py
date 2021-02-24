@@ -42,23 +42,28 @@ class ResourceUtil(Util):
             if verb in output:
                 if expectation:
                     logger.info(
-                        f'{verb} {resource} successful in {namespace} namespace')
+                        '%s %s successful in %s namespace' %
+                        (verb, resource, namespace))
                 else:
-                    assert False, f'{verb} {resource} successful even when expectation is False'
+                    assert False, '%s %s successful even when expectation is False' % (
+                        verb, resource)
             elif 'forbidden' in error:
-                logger.warning(f'{verb} {resource} forbidden')
+                logger.warning('%s %s forbidden' %
+                               (verb, resource))
             else:
                 if 'already' in error:
                     Util.exec_kubectl_cmd_on_file(
                         verb='delete',
                         resource=resource,
                         namespace=namespace,
-                        stackrc_file=stackrc_file)
+                        stackrc_file=stackrc_file,
+                        inputs=inputs)
                     Util.exec_kubectl_cmd_on_file(
                         verb='create',
                         resource=resource,
                         namespace=namespace,
-                        stackrc_file=stackrc_file)
+                        stackrc_file=stackrc_file,
+                        inputs=inputs)
                 else:
                     if '[' in error:
                         errorObject = error.split("[")[1].split("]")[0]
@@ -66,7 +71,7 @@ class ResourceUtil(Util):
                         logger.error(errorMessage)
                     else:
                         logger.error(error)
-                    logger.error(f'Error while {resource} {verb}')
+                    logger.error('Error while %s %s' % (resource, verb))
                     raise Exception(error)
 
     @staticmethod
