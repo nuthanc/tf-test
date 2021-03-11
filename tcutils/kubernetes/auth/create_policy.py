@@ -4,7 +4,6 @@ import time
 import json
 from jinja2 import Environment, FileSystemLoader
 from common.contrail_test_init import ContrailTestInit
-
 from tcutils.kubernetes.auth.example_user import ExampleUser
 from tcutils.kubernetes.auth.util import Util
 from common import log_orig as contrail_logging
