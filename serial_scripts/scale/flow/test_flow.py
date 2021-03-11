@@ -27,9 +27,9 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def set_flow_entries(cls):
         for compute_fixture in cls.compute_fixtures:
-            compute_fixture.setup_vrouter_module_params(
-                {'vr_flow_entries': str(1024 * 1024)})
-            print(compute_fixture.read_vrouter_module_params)
+            compute_fixture.add_vrouter_module_params(
+                {'vr_flow_entries': str(1024 * 1024)}, reload_vrouter=True)
+            print(compute_fixture.read_vrouter_module_params())
 
     @classmethod
     def add_flow_cache_timeout(cls):
@@ -41,9 +41,25 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def preconfig1(cls):
         cls.set_flow_entries()
+        import pdb;pdb.set_trace()
         cls.add_flow_cache_timeout()
 
         
     @classmethod
     def preconfig2(cls):
         pass
+
+    @test.attr(type=['flow_scale'])
+    @preposttest_wrapper
+    def test_flow_scale(self):
+        '''
+        Description: Test to scale 1 million flows
+         Test steps:
+                1. 
+         Pass criteria: 
+         Maintainer : nuthanc@juniper.net 
+        '''
+        print('hola')
+
+if __name__ == '__main__':
+    TestFlowScale.setUpClass()
