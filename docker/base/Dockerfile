@@ -1,5 +1,7 @@
 FROM centos:7.4.1708
 
+ARG SITE_MIRROR
+
 # Setup Chrome Repo
 COPY google-chrome.repo /etc/yum.repos.d/google-chrome.repo
 
@@ -17,8 +19,7 @@ COPY pip.conf /etc/
 # 2. google-chrome-stable is located is in very unstable repo and yum may fail on it
 #    do manual download with retries and install it locally
 RUN \
-    yum repolist | grep epel || yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    curl --retry 3 --retry-delay 10 https://bootstrap.pypa.io/2.7/get-pip.py | python2 - 'pip==20.1' && \
+    curl --retry 3 --retry-delay 10 ${SITE_MIRROR:-"https://bootstrap.pypa.io"}/pip/2.7/get-pip.py | python2 - 'pip==20.1' && \
     yum install -y unzip vim tcpdump ant git ipmitool gcc python-devel \
       patch sshpass bzip2 wget sudo pexpect ant-junit libXpm libXrender \
       gtk2 nss GConf2 firefox openssl \
