@@ -23,12 +23,13 @@ class TestFlowScale(GenericTestBase):
         for name, ip in cls.connections.inputs.compute_info.items():
             cls.compute_fixtures.append(
                 ComputeNodeFixture(cls.connections, ip))
+            # Add physical interface to computes here
 
     @classmethod
     def set_flow_entries(cls):
         for compute_fixture in cls.compute_fixtures:
             compute_fixture.add_vrouter_module_params(
-                {'vr_flow_entries': str(1024 * 1024)}, reload_vrouter=True)
+                {'vr_flow_entries': str(2 * 1024 * 1024)}, reload_vrouter=True)
             print(compute_fixture.read_vrouter_module_params())
 
     @classmethod

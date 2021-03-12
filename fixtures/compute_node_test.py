@@ -563,18 +563,14 @@ class ComputeNodeFixture(fixtures.Fixture):
         '''Reload vrouter module without restarting the compute node
         '''
         self.logger.info('Reloading vrouter module on %s' % (self.ip))
-        import pdb;pdb.set_trace()
         #ToDo msenthil - Need to check how to reload kernel module
         agent = self.inputs.host_data[self.ip].get('containers', {}).get('agent')
-        if agent:
-            stop_cmd = 'docker exec -it %s service supervisor-vrouter stop' %agent
-            start_cmd = 'docker exec -it %s service supervisor-vrouter start' %agent
-        else:
-            stop_cmd = 'service supervisor-vrouter stop'
-            start_cmd = 'service supervisor-vrouter start'
-        self.execute_cmd('%s; '
-            'modprobe -r vrouter || rmmod vrouter; '
-            '%s ' % (stop_cmd, start_cmd), container=None)
+        stop_cmd = 'docker stop %s' %agent
+        start_cmd = 'modprobe vrouter; docker start %s' %agent
+        output = self.execute_cmd('%s; '
+            'rmmod vrouter; free && sync && echo 3 > /proc/sys/vm/drop_caches && free;'
+            '%s; contrail-tools vrouter --info |grep "Flow Table limit" ' % (stop_cmd, start_cmd), container=None)
+        import pdb;pdb.set_trace()
         if wait:
             status = ContrailStatusChecker(self.inputs)
             status.wait_till_contrail_cluster_stable([self.ip])
