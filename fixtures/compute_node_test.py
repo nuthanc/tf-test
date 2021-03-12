@@ -563,10 +563,12 @@ class ComputeNodeFixture(fixtures.Fixture):
         '''Reload vrouter module without restarting the compute node
         '''
         self.logger.info('Reloading vrouter module on %s' % (self.ip))
+        import pdb;pdb.set_trace()
         #ToDo msenthil - Need to check how to reload kernel module
-        if self.inputs.host_data[self.ip].get('containers', {}).get('agent'):
-            stop_cmd = 'docker exec -it agent service supervisor-vrouter stop'
-            start_cmd = 'docker exec -it agent service supervisor-vrouter start'
+        agent = self.inputs.host_data[self.ip].get('containers', {}).get('agent')
+        if agent:
+            stop_cmd = 'docker exec -it %s service supervisor-vrouter stop' %agent
+            start_cmd = 'docker exec -it %s service supervisor-vrouter start' %agent
         else:
             stop_cmd = 'service supervisor-vrouter stop'
             start_cmd = 'service supervisor-vrouter start'

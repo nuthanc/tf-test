@@ -41,7 +41,6 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def preconfig1(cls):
         cls.set_flow_entries()
-        import pdb;pdb.set_trace()
         cls.add_flow_cache_timeout()
 
         
