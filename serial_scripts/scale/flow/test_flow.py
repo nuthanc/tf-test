@@ -32,14 +32,15 @@ class TestFlowScale(GenericTestBase):
             intf = cls.inputs.inputs.host_data[compute_fixture.ip]['roles']['vrouter']['PHYSICAL_INTERFACE']
             line = "'PHYSICAL_INTERFACE=%s'" % intf
             file = '/etc/contrail/common_vrouter.env'
-            cmd = "grep -q -F %s %s || echo %s >> %s" % (line, file, line, file)
-            compute_fixture.execute_cmd(cmd, container=None)
+            cmd = "grep -F %s %s" % (line, file)
+            output = compute_fixture.execute_cmd(cmd, container=None)
 
-            cd_vrouter = 'cd /etc/contrail/vrouter'
-            down_up = 'docker-compose down && docker-compose up -d'
-            cmd = '%s;%s' %(cd_vrouter, down_up)
-            compute_fixture.execute_cmd(cmd, container=None)
-            import pdb;pdb.set_trace()
+            if not output:
+                echo_line = "echo %s >> %s" % (line, file)
+                cd_vrouter = 'cd /etc/contrail/vrouter'
+                down_up = 'docker-compose down && docker-compose up -d'
+                cmd = '%s;%s;%s' %(echo_line, cd_vrouter, down_up)
+                compute_fixture.execute_cmd(cmd, container=None)
 
     @classmethod
     def set_flow_entries(cls):
