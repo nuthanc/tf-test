@@ -10,6 +10,7 @@ class TestFlowScale(GenericTestBase):
     def setUpClass(cls):
         super(TestFlowScale, cls).setUpClass()
         cls.get_compute_fixtures()
+        cls.add_phy_intf_in_vrouter_env()
         cls.preconfig1()
         # cls.method2()
 
@@ -26,10 +27,25 @@ class TestFlowScale(GenericTestBase):
             # Add physical interface to computes here
 
     @classmethod
+    def add_phy_intf_in_vrouter_env(cls):
+        for compute_fixture in cls.compute_fixtures:
+            intf = cls.inputs.inputs.host_data[compute_fixture.ip]['roles']['vrouter']['PHYSICAL_INTERFACE']
+            line = "'PHYSICAL_INTERFACE=%s'" % intf
+            file = '/etc/contrail/common_vrouter.env'
+            cmd = "grep -q -F %s %s || echo %s >> %s" % (line, file, line, file)
+            compute_fixture.execute_cmd(cmd, container=None)
+
+            cd_vrouter = 'cd /etc/contrail/vrouter'
+            down_up = 'docker-compose down && docker-compose up -d'
+            cmd = '%s;%s' %(cd_vrouter, down_up)
+            compute_fixture.execute_cmd(cmd, container=None)
+            import pdb;pdb.set_trace()
+
+    @classmethod
     def set_flow_entries(cls):
         for compute_fixture in cls.compute_fixtures:
             compute_fixture.add_vrouter_module_params(
-                {'vr_flow_entries': str(2 * 1024 * 1024)}, reload_vrouter=True)
+                {'vr_flow_entries': str(1024 * 1024)}, reload_vrouter=True)
             print(compute_fixture.read_vrouter_module_params())
 
     @classmethod

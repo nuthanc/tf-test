@@ -585,7 +585,6 @@ class ComputeNodeFixture(fixtures.Fixture):
         info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
         output = self.execute_cmd('%s; %s; %s' % (
             stop_cmd, start_cmd, info_cmd), container=None)
-        import pdb;pdb.set_trace()
         if wait:
             status = ContrailStatusChecker(self.inputs)
             status.wait_till_contrail_cluster_stable([self.ip])
