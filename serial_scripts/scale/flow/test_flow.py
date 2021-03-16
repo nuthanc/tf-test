@@ -11,8 +11,7 @@ class TestFlowScale(GenericTestBase):
         super(TestFlowScale, cls).setUpClass()
         cls.get_compute_fixtures()
         cls.add_phy_intf_in_vrouter_env()
-        cls.preconfig1()
-        # cls.method2()
+        cls.preconfig()
 
     @classmethod
     def tearDownClass(cls):
@@ -43,24 +42,24 @@ class TestFlowScale(GenericTestBase):
                 compute_fixture.execute_cmd(cmd, container=None)
 
     @classmethod
-    def set_flow_entries(cls):
+    def set_flow_entries(cls, flow_entries):
         for compute_fixture in cls.compute_fixtures:
             compute_fixture.add_vrouter_module_params(
-                {'vr_flow_entries': str(1024 * 1024)}, reload_vrouter=True)
+                {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
             print(compute_fixture.read_vrouter_module_params())
 
     @classmethod
-    def add_flow_cache_timeout(cls):
+    def add_flow_cache_timeout(cls, flow_timeout):
         # Add flow_cache_timeout in all the computes
-        flow_timeout = 9999
         for cmp_fix in cls.compute_fixtures:
-            import pdb;pdb.set_trace()
             cmp_fix.set_flow_aging_time(flow_timeout)
 
     @classmethod
-    def preconfig1(cls):
-        # cls.set_flow_entries()
-        cls.add_flow_cache_timeout()
+    def preconfig(cls):
+        flow_entries = 1024 * 1024
+        flow_timeout = 9999
+        cls.set_flow_entries(flow_entries)
+        cls.add_flow_cache_timeout(flow_timeout)
 
         
     @classmethod
