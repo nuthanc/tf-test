@@ -354,13 +354,13 @@ class TCPFlowEvictionTests(ExtendedFlowTestsBase):
     def setUp(self):
         super(TCPFlowEvictionTests, self).setUp()
         self.vn1_fixture = self.create_vn()
-        self.vn2_fixture = self.create_vn()
+        # self.vn2_fixture = self.create_vn()
         self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture)
         self.vn1_vm2_fixture = self.create_vm(self.vn1_fixture)
-        self.vn2_vm1_fixture = self.create_vm(self.vn2_fixture)
+        # self.vn2_vm1_fixture = self.create_vm(self.vn2_fixture)
         self.vn1_vm1_fixture.wait_till_vm_is_up()
         self.vn1_vm2_fixture.wait_till_vm_is_up()
-        self.vn2_vm1_fixture.wait_till_vm_is_up()
+        # self.vn2_vm1_fixture.wait_till_vm_is_up()
 
         self.vn1_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
             self.connections,
@@ -368,9 +368,9 @@ class TCPFlowEvictionTests(ExtendedFlowTestsBase):
         self.vn1_vm2_vrouter_fixture = self.useFixture(ComputeNodeFixture(
             self.connections,
             self.vn1_vm2_fixture.vm_node_ip))
-        self.vn2_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
-            self.connections,
-            self.vn2_vm1_fixture.vm_node_ip))
+        # self.vn2_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
+        #     self.connections,
+        #     self.vn2_vm1_fixture.vm_node_ip))
     # end setUp
 
     @preposttest_wrapper
