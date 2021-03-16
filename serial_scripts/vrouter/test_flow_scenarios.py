@@ -481,7 +481,6 @@ class TCPFlowEvictionTests(ExtendedFlowTestsBase):
         '''
         count = 1000
         # Set flow table size to 2M
-        import pdb;pdb.set_trace()
         self.vn1_vm1_vrouter_fixture.setup_vrouter_module_params(
             {'vr_flow_entries': str(2 * 1024 * 1024)})
         self.vn1_vm1_fixture.wait_till_vm_is_up()
