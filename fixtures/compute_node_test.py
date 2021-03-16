@@ -162,7 +162,8 @@ class ComputeNodeFixture(fixtures.Fixture):
         cache_timeout = 'flow_cache_timeout=' + str(flow_cache_timeout)
         self.inputs.add_knob_to_container(self.ip, self.container, 'DEFAULT',
                                           cache_timeout, restart_container=True,
-                                          file_name='entrypoint.sh')
+                                          file_name='actions.sh')
+        time.sleep(5)
         cmd = 'docker cp %s:/%s %s' % (self.container, self.agent_conf_file,
                                        self.agent_conf_file)
         self.inputs.run_cmd_on_server(
@@ -585,6 +586,7 @@ class ComputeNodeFixture(fixtures.Fixture):
         info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
         output = self.execute_cmd('%s; %s; %s' % (
             stop_cmd, start_cmd, info_cmd), container=None)
+        self.logger.info('Cmd output info: %s' %output)
         if wait:
             status = ContrailStatusChecker(self.inputs)
             status.wait_till_contrail_cluster_stable([self.ip])

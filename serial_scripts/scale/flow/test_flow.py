@@ -54,11 +54,12 @@ class TestFlowScale(GenericTestBase):
         # Add flow_cache_timeout in all the computes
         flow_timeout = 9999
         for cmp_fix in cls.compute_fixtures:
+            import pdb;pdb.set_trace()
             cmp_fix.set_flow_aging_time(flow_timeout)
 
     @classmethod
     def preconfig1(cls):
-        cls.set_flow_entries()
+        # cls.set_flow_entries()
         cls.add_flow_cache_timeout()
 
         
