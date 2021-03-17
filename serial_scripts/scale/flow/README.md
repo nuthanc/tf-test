@@ -128,3 +128,5 @@ round-trip min/avg/max = 0.0/0.0/0.0 ms
 * Upon sending tcp traffic, there is more flows created in destination vm's node
 * There is no flow created at all in the source vm's node when tcp traffic is sent
 * With udp traffic, flows are seen on source vm's node
+* ssh, telnet and icmp tcp will work
+* Cause **session needs to be established** for the flow to stay, **otherwise** it will get **evicted**
