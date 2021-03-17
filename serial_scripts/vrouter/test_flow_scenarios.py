@@ -489,6 +489,7 @@ class TCPFlowEvictionTests(ExtendedFlowTestsBase):
         destport = '22'
         baseport = '1000'
         interval = 'u10000'
+        import pdb;pdb.set_trace()
         # Create flows using hping
         hping_h = Hping3(self.vn1_vm1_fixture,
                          self.vn1_vm2_fixture.vm_ip,
