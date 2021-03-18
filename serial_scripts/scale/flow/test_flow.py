@@ -10,7 +10,7 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def setUpClass(cls):
         super(TestFlowScale, cls).setUpClass()
-        # cls.get_compute_fixtures()
+        cls.get_compute_fixtures()
         # cls.add_phy_intf_in_vrouter_env()
         # cls.preconfig()
 
@@ -91,43 +91,37 @@ class TestFlowScale(GenericTestBase):
         # Create flows using hping
         destport = '++1000'
         baseport = '1000'
-        count = 10
+        count = 1024 * 1024
+        interval = 'u100'
         hping_h = Hping3(self.vn1_vm1_fixture,
                          self.vn1_vm2_fixture.vm_ip,
-                         syn=True,
+                         udp=True,
                          destport=destport,
                          baseport=baseport,
                          count=count,
-                         flood=True)
-        # hping_h.start(wait=True)
-        hping_h.start(wait=False)
-        time.sleep(5)
+                         interval=interval)
+        hping_h.start(wait=True)
+        # time.sleep(5)
         (stats, hping_log) = hping_h.stop()
-        import pdb;pdb.set_trace()
-        time.sleep(5)
+        # time.sleep(5)
         self.logger.debug('Hping3 log : %s' % (hping_log))
-        assert stats['loss'] == '0', ('Some loss seen in hping3 session'
-                                      'Stats : %s, Check logs..' % (stats))
-        self.logger.info('No packet loss seen with hping traffic')
-        time.sleep(5)
+        self.logger.info('Stats: %s'%(stats))
 
         flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
-        (ff_count, rf_count) = self.vn1_vm1_vrouter_fixture.get_flow_count(
-            flow_table=flow_table,
-            show_evicted=False,
-            source_ip=self.vn1_vm1_fixture.vm_ip,
-            dest_ip=self.vn1_vm2_fixture.vm_ip,
-            proto='tcp',
-            dest_port='1000',
-            vrf_id=self.vn1_vm1_vrouter_fixture.get_vrf_id(
-                        self.vn1_fixture.vn_fq_name)
-            )
-        if ff_count or rf_count:
-            self.logger.debug('Flow table : %s' %
-                                (flow_table.get_as_table))
-        assert ff_count == 0, 'One or more flows not evicted yet. Check logs'
-        assert rf_count == 0, 'One or more flows not evicted yet. Check logs'
-        self.logger.info('Validated that all hping flows got evicted')
+        flow_count = flow_table.flow_count
+        self.logger.info('Flow count: %s' % flow_count)
+        import pdb
+        pdb.set_trace()
+        for baseport in range(5000, 5011): 
+            hping_h = Hping3(self.vn1_vm1_fixture, self.vn1_vm2_fixture.vm_ip, udp=True, keep=True, destport=destport, baseport=baseport, count=count, interval=interval)
+            hping_h.start(wait=True)
+            (stats, hping_log) = hping_h.stop()
+        
+        flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
+        flow_count = flow_table.flow_count
+        self.logger.info('Flow count: %s' % flow_count)
+        assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
 
 if __name__ == '__main__':
     TestFlowScale.setUpClass()
+
