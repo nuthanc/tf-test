@@ -84,15 +84,17 @@ class TestFlowScale(GenericTestBase):
         '''
         Description: Test to scale 1 million flows
          Test steps:
-                1. 
-         Pass criteria: 
+                1. Add PHYSICAL_INTERFACE in vrouter env if absent
+                2. Set flow entries to 1 million in vrouter module
+                3. Increase flow timeout to high value like 9999
+                4. Send traffic through hping3 changing the source port with each iteration
+                5. Check for flow count in flow table
+         Pass criteria: Flow count greater than 1 million
          Maintainer : nuthanc@juniper.net 
         '''
-        # Create flows using hping
         destport = '++1000'
-        # baseport = '1000'
         count = 1024 * 1024
-        interval = 'u100'
+        interval = 'u100' # Try increasing this value to avoid port unreachable
         for baseport in range(5001, 5050):
             hping_h = Hping3(self.vn1_vm1_fixture,
                              self.vn1_vm2_fixture.vm_ip,
@@ -102,19 +104,21 @@ class TestFlowScale(GenericTestBase):
                              baseport=baseport,
                              count=count,
                              interval=interval)
-            hping_h.start(wait=True)
-            hping_h2 = Hping3(self.vn1_vm2_fixture,
-                              self.vn1_vm1_fixture.vm_ip,
-                              udp=True,
-                              keep=True,
-                              destport=destport,
-                              baseport=baseport,
-                              count=count,
-                              interval=interval)
-            hping_h2.start(wait=True)
+            hping_h.start(wait=False)
+            self.logger.info('Running command for 5s')
+            time.sleep(5)
+            # hping_h2 = Hping3(self.vn1_vm2_fixture,
+            #                   self.vn1_vm1_fixture.vm_ip,
+            #                   udp=True,
+            #                   keep=True,
+            #                   destport=destport,
+            #                   baseport=baseport,
+            #                   count=count,
+            #                   interval=interval)
+            # hping_h2.start(wait=True)
             # time.sleep(5)
             (stats, hping_log) = hping_h.stop()
-            (stats2, hping_log2) = hping_h2.stop()
+            # (stats2, hping_log2) = hping_h2.stop()
             # time.sleep(5)
             flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
             flow_count = flow_table.flow_count
