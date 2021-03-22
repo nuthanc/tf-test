@@ -94,7 +94,11 @@ class TestFlowScale(GenericTestBase):
         '''
         destport = '++1000'
         count = 1024 * 1024
-        interval = 'u100' # Try increasing this value to avoid port unreachable
+        interval = 'u1'
+        cmd = 'top -b -n 1 -p $(pidof contrail-vrouter-agent); free -h'
+        for compute_fixture in self.compute_fixtures:
+            out = compute_fixture.execute_cmd(cmd, container=None)
+            self.logger.info('vrouter agent memory usage: %s' % out)
         for baseport in range(5001, 5050):
             hping_h = Hping3(self.vn1_vm1_fixture,
                              self.vn1_vm2_fixture.vm_ip,
@@ -107,31 +111,28 @@ class TestFlowScale(GenericTestBase):
             hping_h.start(wait=False)
             self.logger.info('Running command for 5s')
             time.sleep(5)
-            # hping_h2 = Hping3(self.vn1_vm2_fixture,
-            #                   self.vn1_vm1_fixture.vm_ip,
-            #                   udp=True,
-            #                   keep=True,
-            #                   destport=destport,
-            #                   baseport=baseport,
-            #                   count=count,
-            #                   interval=interval)
-            # hping_h2.start(wait=True)
-            # time.sleep(5)
             (stats, hping_log) = hping_h.stop()
-            # (stats2, hping_log2) = hping_h2.stop()
-            # time.sleep(5)
             flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
             flow_count = flow_table.flow_count
             self.logger.info('Flow count: %s' % flow_count)
-            if flow_count > 1000 * 1000:
+            if flow_count > 1100 * 1100:
                 break
 
         flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
         flow_count = flow_table.flow_count
         self.logger.info('Flow count: %s' % flow_count)
-        import pdb
-        pdb.set_trace()
         assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
+        cmd = 'top -b -n 1 -p $(pidof contrail-vrouter-agent); free -h'
+        for compute_fixture in self.compute_fixtures:
+            out = compute_fixture.execute_cmd(cmd, container=None)
+            self.logger.info('vrouter agent memory usage: %s' % out)
+        self.logger.info('Flows greater than 1 Million')
+    
+
+    # @test.attr(type=['flow_scale'])
+    # @preposttest_wrapper
+    # def test_flow_scale(self):
+    #     gateway = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
 
 
 if __name__ == '__main__':

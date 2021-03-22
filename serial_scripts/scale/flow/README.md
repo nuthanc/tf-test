@@ -130,3 +130,9 @@ round-trip min/avg/max = 0.0/0.0/0.0 ms
 * With udp traffic, flows are seen on source vm's node
 * ssh, telnet and icmp tcp will work
 * Cause **session needs to be established** for the flow to stay, **otherwise** it will get **evicted**
+
+### Sudhee's suggestion
+
+* Flows delete -> Memory usage
+* Flows add -> memory usage
+* send traffic or leave for 20 minutes -> check changes in memory
