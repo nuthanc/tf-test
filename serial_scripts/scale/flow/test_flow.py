@@ -5,6 +5,7 @@ from compute_node_test import ComputeNodeFixture
 from tcutils.traffic_utils.hping_traffic import Hping3
 import time
 
+
 class TestFlowScale(GenericTestBase):
 
     @classmethod
@@ -50,7 +51,7 @@ class TestFlowScale(GenericTestBase):
                 echo_line = "echo %s >> %s" % (line, file)
                 cd_vrouter = 'cd /etc/contrail/vrouter'
                 down_up = 'docker-compose down && docker-compose up -d'
-                cmd = '%s;%s;%s' %(echo_line, cd_vrouter, down_up)
+                cmd = '%s;%s;%s' % (echo_line, cd_vrouter, down_up)
                 compute_fixture.execute_cmd(cmd, container=None)
 
     @classmethod
@@ -73,7 +74,6 @@ class TestFlowScale(GenericTestBase):
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
-        
     @classmethod
     def preconfig2(cls):
         pass
@@ -90,38 +90,45 @@ class TestFlowScale(GenericTestBase):
         '''
         # Create flows using hping
         destport = '++1000'
-        baseport = '1000'
+        # baseport = '1000'
         count = 1024 * 1024
         interval = 'u100'
-        hping_h = Hping3(self.vn1_vm1_fixture,
-                         self.vn1_vm2_fixture.vm_ip,
-                         udp=True,
-                         destport=destport,
-                         baseport=baseport,
-                         count=count,
-                         interval=interval)
-        hping_h.start(wait=True)
-        # time.sleep(5)
-        (stats, hping_log) = hping_h.stop()
-        # time.sleep(5)
-        self.logger.debug('Hping3 log : %s' % (hping_log))
-        self.logger.info('Stats: %s'%(stats))
+        for baseport in range(5001, 5050):
+            hping_h = Hping3(self.vn1_vm1_fixture,
+                             self.vn1_vm2_fixture.vm_ip,
+                             udp=True,
+                             keep=True,
+                             destport=destport,
+                             baseport=baseport,
+                             count=count,
+                             interval=interval)
+            hping_h.start(wait=True)
+            hping_h2 = Hping3(self.vn1_vm2_fixture,
+                              self.vn1_vm1_fixture.vm_ip,
+                              udp=True,
+                              keep=True,
+                              destport=destport,
+                              baseport=baseport,
+                              count=count,
+                              interval=interval)
+            hping_h2.start(wait=True)
+            # time.sleep(5)
+            (stats, hping_log) = hping_h.stop()
+            (stats2, hping_log2) = hping_h2.stop()
+            # time.sleep(5)
+            flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
+            flow_count = flow_table.flow_count
+            self.logger.info('Flow count: %s' % flow_count)
+            if flow_count > 1000 * 1000:
+                break
 
         flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
         flow_count = flow_table.flow_count
         self.logger.info('Flow count: %s' % flow_count)
         import pdb
         pdb.set_trace()
-        for baseport in range(5000, 5011): 
-            hping_h = Hping3(self.vn1_vm1_fixture, self.vn1_vm2_fixture.vm_ip, udp=True, keep=True, destport=destport, baseport=baseport, count=count, interval=interval)
-            hping_h.start(wait=True)
-            (stats, hping_log) = hping_h.stop()
-        
-        flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
-        flow_count = flow_table.flow_count
-        self.logger.info('Flow count: %s' % flow_count)
         assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
+
 
 if __name__ == '__main__':
     TestFlowScale.setUpClass()
-
