@@ -136,3 +136,32 @@ round-trip min/avg/max = 0.0/0.0/0.0 ms
 * Flows delete -> Memory usage
 * Flows add -> memory usage
 * send traffic or leave for 20 minutes -> check changes in memory
+* Start
+```sh
+top -b -n 1 -p $(pidof contrail-vrouter-agent); free -h
+2021-03-22 13:16:14,262 - DEBUG - Output : top - 18:46:14 up 32 min,  1 user,  load average: 0.23, 0.19, 0.15^M
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie^M
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st^M
+KiB Mem : 26385580+total, 25413961+free,  8899740 used,   816448 buff/cache^M
+KiB Swap:        0 total,        0 free,        0 used. 25412299+avail Mem ^M
+^M
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND^M
+ 6598 root      20   0  720048 511824 352456 S   0.0  0.2   1:30.59 contrail-vroute^M
+              total        used        free      shared  buff/cache   available^M
+Mem:           251G        8.5G        242G         10M        797M        242G^M
+```
+
+* End
+```sh
+2021-03-22 17:24:57,960 - DEBUG - [10.204.216.99]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent); free -h
+2021-03-22 17:24:58,345 - DEBUG - Output : top - 22:54:58 up  4:41,  1 user,  load average: 0.53, 0.65, 0.70^M
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie^M
+%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st^M
+KiB Mem : 26385580+total, 24859401+free, 14399368 used,   862428 buff/cache^M
+KiB Swap:        0 total,        0 free,        0 used. 24862192+avail Mem ^M
+^M
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND^M
+ 6595 root      20   0 6170824   5.7g 353192 S  20.0  2.3 249:26.69 contrail-vroute^M
+              total        used        free      shared  buff/cache   available^M
+Mem:           251G         13G        237G         10M        842M        237G^M
+```
