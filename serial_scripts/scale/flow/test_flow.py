@@ -95,7 +95,7 @@ class TestFlowScale(GenericTestBase):
         destport = '++1000'
         count = 1024 * 1024
         interval = 'u1'
-        cmd = 'top -b -n 1 -p $(pidof contrail-vrouter-agent); free -h'
+        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
         for compute_fixture in self.compute_fixtures:
             out = compute_fixture.execute_cmd(cmd, container=None)
             self.logger.info('vrouter agent memory usage: %s' % out)
@@ -115,19 +115,61 @@ class TestFlowScale(GenericTestBase):
             flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
             flow_count = flow_table.flow_count
             self.logger.info('Flow count: %s' % flow_count)
-            if flow_count > 1100 * 1100:
+            if flow_count >= 1024 * 1000:
                 break
 
         flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
         flow_count = flow_table.flow_count
         self.logger.info('Flow count: %s' % flow_count)
         assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
-        cmd = 'top -b -n 1 -p $(pidof contrail-vrouter-agent); free -h'
-        for compute_fixture in self.compute_fixtures:
-            out = compute_fixture.execute_cmd(cmd, container=None)
-            self.logger.info('vrouter agent memory usage: %s' % out)
+        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
+        compute_fixture = self.compute_fixtures[0]
+        out = compute_fixture.execute_cmd(cmd, container=None)
+        self.logger.info('vrouter agent memory usage: %s' % out)
+        self.memory_leak_checks()
+        import pdb;pdb.set_trace()
+        # Delete around 1000 flows
+        # Check resident memory, it should decrease
+        # Add 1000 flows
+        # Resident memory should increase
+        # Do delete and add around 3 times with required expectations
+        # Leave the setup for 20 minutes, check the resident memory again
         self.logger.info('Flows greater than 1 Million')
     
+    def memory_leak_checks(self):
+        try: 
+            compute_fixture = self.compute_fixtures[0]
+            cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
+            res_mem_list = []
+            for i in range(3):
+                out = compute_fixture.execute_cmd(cmd, container=None)
+                res_mem = out
+                res_mem_list.append(res_mem)
+                self.logger.info('Resident memory after %ss: %s' % (i*30, res_mem))
+                time.sleep(30)
+            l = len(res_mem_list)
+            diff = res_mem_list[l-1] - res_mem_list[l-2]
+            self.logger.info('Diff in last 2 resident memory: %s', diff)
+
+            # Delete 10000 flows
+            cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 10000); do contrail-tools flow -i $i; done"
+            out = compute_fixture.execute_cmd(cmd, container=None)
+            self.logger.info('Output of delete: %s' %out)
+            import pdb;pdb.set_trace()
+            cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
+            res_mem_list = []
+            for i in range(3):
+                out = compute_fixture.execute_cmd(cmd, container=None)
+                res_mem = out
+                res_mem_list.append(res_mem)
+                self.logger.info('Resident memory after %ss: %s' % (i*30, res_mem))
+                time.sleep(30)
+            l = len(res_mem_list)
+            diff = res_mem_list[l-1] - res_mem_list[l-2]
+            self.logger.info('Diff in last 2 resident memory: %s', diff)
+        except Exception as e:
+            print('Exception:',e)
+            import pdb;pdb.set_trace()
 
     # @test.attr(type=['flow_scale'])
     # @preposttest_wrapper

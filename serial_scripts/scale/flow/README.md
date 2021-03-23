@@ -165,3 +165,165 @@ KiB Swap:        0 total,        0 free,        0 used. 24862192+avail Mem ^M
               total        used        free      shared  buff/cache   available^M
 Mem:           251G         13G        237G         10M        842M        237G^M
 ```
+
+### New recording
+
+* UDP flow count timings with 1us interval
+  * 100,000 : 30s
+  * 200,000 : 1m
+  * 300,000 : 3m
+  * 500,000 : 5m
+  * 600,000 : 8m
+  * 700,000 : 10m
+  * 900,000 : 15m
+  * 1,000,000: 20m
+```sh
+# Start
+### Test flows up to 1 Million
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 07:01:30,882 - DEBUG - Output : top - 12:31:30 up 18:18,  1 user,  load average: 0.34, 0.30, 0.25
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24964195+free, 13919112 used,   294732 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912532+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353232 S  13.3  2.1 179:01.98 contrail-vroute
+5471116
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        287M        237G
+Swap:            0B          0B          0B
+
+DEBUG - [10.204.216.99]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 07:01:31,249 - DEBUG - Output : top - 12:31:31 up 18:17,  2 users,  load average: 0.30, 0.40, 0.53
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24833764+free, 15236712 used,   281448 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24781398+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6595 root      20   0 6170824   5.7g 353288 S  13.3  2.3 371:09.07 contrail-vroute
+5938604
+              total        used        free      shared  buff/cache   available
+Mem:           251G         14G        236G         10M        274M        236G
+Swap:            0B          0B          0B
+```
+
+```sh
+# End
+Flow count: 1048668
+2021-03-23 07:31:08,358 - DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 07:31:08,734 - DEBUG - Output : top - 13:01:08 up 18:47,  1 user,  load average: 0.58, 0.70, 0.64
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24961878+free, 13911856 used,   325164 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24913270+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353236 S  26.7  2.1 192:05.05 contrail-vroute
+5474496
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        317M        237G
+Swap:            0B          0B          0B
+
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 07:31:09,120 - DEBUG - Output : top - 13:01:09 up 18:47,  1 user,  load average: 0.58, 0.70, 0.64
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24961561+free, 13915016 used,   325164 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912953+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353236 S  20.0  2.1 192:05.14 contrail-vroute
+5474496
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        317M        237G
+Swap:            0B          0B          0B
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 07:31:39,461 - DEBUG - Output : top - 13:01:39 up 18:48,  1 user,  load average: 0.70, 0.72, 0.64
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.5 us,  0.3 sy,  0.0 ni, 98.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24961574+free, 13914836 used,   325228 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912969+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353236 S  66.7  2.1 192:15.73 contrail-vroute
+5474496
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        317M        237G
+Swap:            0B          0B          0B
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 07:32:09,803 - DEBUG - Output : top - 13:02:09 up 18:48,  1 user,  load average: 0.90, 0.76, 0.66
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24961756+free, 13912936 used,   325304 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24913160+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353236 S  20.0  2.1 192:26.24 contrail-vroute
+5474496
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        317M        237G
+Swap:            0B          0B          0B
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 09:24:47,726 - DEBUG - Output : top - 14:54:47 up 20:41,  1 user,  load average: 0.22, 0.22, 0.22
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.6 us,  1.8 sy,  0.0 ni, 96.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24960019+free, 13920904 used,   334708 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912353+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353700 S  26.7  2.1 230:22.19 contrail-vroute
+5474960
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        326M        237G
+Swap:            0B          0B          0B
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 09:24:47,726 - DEBUG - Output : top - 14:54:47 up 20:41,  1 user,  load average: 0.22, 0.22, 0.22
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.6 us,  1.8 sy,  0.0 ni, 96.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24960019+free, 13920904 used,   334708 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912353+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353700 S  26.7  2.1 230:22.19 contrail-vroute
+5474960
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        326M        237G
+Swap:            0B          0B          0B
+
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 09:25:18,066 - DEBUG - Output : top - 14:55:18 up 20:41,  1 user,  load average: 0.14, 0.20, 0.21
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.3 us,  2.0 sy,  0.0 ni, 96.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24959990+free, 13921140 used,   334752 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912329+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353700 S  33.3  2.1 230:32.29 contrail-vroute
+5474960
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        326M        237G
+Swap:            0B          0B          0B
+
+
+DEBUG - [10.204.216.98]: Running cmd : top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h
+2021-03-23 09:25:48,416 - DEBUG - Output : top - 14:55:48 up 20:42,  1 user,  load average: 0.08, 0.18, 0.21
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 24960072+free, 13920284 used,   334800 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24912412+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+ 6598 root      20   0 5676208   5.2g 353700 S  33.3  2.1 230:42.50 contrail-vroute
+5474960
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        326M        237G
+Swap:            0B          0B          0B
+```
