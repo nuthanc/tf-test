@@ -12,8 +12,8 @@ class TestFlowScale(GenericTestBase):
     def setUpClass(cls):
         super(TestFlowScale, cls).setUpClass()
         cls.get_compute_fixtures()
-        # cls.add_phy_intf_in_vrouter_env()
-        # cls.preconfig()
+        cls.add_phy_intf_in_vrouter_env()
+        cls.preconfig()
 
     @classmethod
     def tearDownClass(cls):
@@ -23,12 +23,14 @@ class TestFlowScale(GenericTestBase):
         super(TestFlowScale, self).setUp()
         self.vn1_fixture = self.create_only_vn()
         self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture)
-        self.vn1_vm2_fixture = self.create_vm(self.vn1_fixture)
+        # self.vn1_vm2_fixture = self.create_vm(self.vn1_fixture)
         self.vn1_vm1_fixture.wait_till_vm_is_up()
-        self.vn1_vm2_fixture.wait_till_vm_is_up()
+        # self.vn1_vm2_fixture.wait_till_vm_is_up()
         self.vn1_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
             self.connections,
             self.vn1_vm1_fixture.vm_node_ip))
+        self.compute_fixture = ComputeNodeFixture(
+            self.connections, self.vn1_vm1_fixture.vm_node_ip)
 
     @classmethod
     def get_compute_fixtures(cls):
@@ -69,14 +71,16 @@ class TestFlowScale(GenericTestBase):
 
     @classmethod
     def preconfig(cls):
-        flow_entries = 1024 * 1024
-        flow_timeout = 9999
+        flow_entries = 1024 * 1024 * 6
+        flow_timeout = 12 * 60 * 60 # 24 hours is an invalid option
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
-    @classmethod
-    def preconfig2(cls):
-        pass
+    
+    def calc_vrouter_mem_usage(self):
+        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
+        out = self.compute_fixture.execute_cmd(cmd, container=None)
+        self.logger.info('vrouter agent memory usage: %s' % out)
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
@@ -95,13 +99,12 @@ class TestFlowScale(GenericTestBase):
         destport = '++1000'
         count = 1024 * 1024
         interval = 'u1'
-        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
-        for compute_fixture in self.compute_fixtures:
-            out = compute_fixture.execute_cmd(cmd, container=None)
-            self.logger.info('vrouter agent memory usage: %s' % out)
-        for baseport in range(5001, 5050):
+        
+        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+
+        for baseport in range(5001, 7050):
             hping_h = Hping3(self.vn1_vm1_fixture,
-                             self.vn1_vm2_fixture.vm_ip,
+                             gateway_ip,
                              udp=True,
                              keep=True,
                              destport=destport,
@@ -115,19 +118,17 @@ class TestFlowScale(GenericTestBase):
             flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
             flow_count = flow_table.flow_count
             self.logger.info('Flow count: %s' % flow_count)
-            if flow_count >= 1024 * 1000:
+            self.calc_vrouter_mem_usage()
+            if flow_count >= 1024 * 1024 * 6:
                 break
 
         flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
         flow_count = flow_table.flow_count
         self.logger.info('Flow count: %s' % flow_count)
         assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
-        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
-        compute_fixture = self.compute_fixtures[0]
-        out = compute_fixture.execute_cmd(cmd, container=None)
-        self.logger.info('vrouter agent memory usage: %s' % out)
         self.memory_leak_checks()
         import pdb;pdb.set_trace()
+        #import pdb;pdb.set_trace()
         # Delete around 1000 flows
         # Check resident memory, it should decrease
         # Add 1000 flows
@@ -138,35 +139,25 @@ class TestFlowScale(GenericTestBase):
     
     def memory_leak_checks(self):
         try: 
-            compute_fixture = self.compute_fixtures[0]
-            cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
-            res_mem_list = []
             for i in range(3):
-                out = compute_fixture.execute_cmd(cmd, container=None)
-                res_mem = out
-                res_mem_list.append(res_mem)
-                self.logger.info('Resident memory after %ss: %s' % (i*30, res_mem))
+                self.calc_vrouter_mem_usage()
+                self.logger.info('Sleeping for 30s')
                 time.sleep(30)
             l = len(res_mem_list)
-            diff = res_mem_list[l-1] - res_mem_list[l-2]
-            self.logger.info('Diff in last 2 resident memory: %s', diff)
 
-            # Delete 10000 flows
-            cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 10000); do contrail-tools flow -i $i; done"
-            out = compute_fixture.execute_cmd(cmd, container=None)
+            # Delete 100000 flows
+            self.logger.info('Deleting 100000 flows')
+            cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 100000); do contrail-tools flow -i $i; done"
+            out = self.compute_fixture.execute_cmd(cmd, container=None)
             self.logger.info('Output of delete: %s' %out)
             import pdb;pdb.set_trace()
-            cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
-            res_mem_list = []
+            
             for i in range(3):
-                out = compute_fixture.execute_cmd(cmd, container=None)
-                res_mem = out
-                res_mem_list.append(res_mem)
-                self.logger.info('Resident memory after %ss: %s' % (i*30, res_mem))
+                self.calc_vrouter_mem_usage()
+                self.logger.info('Sleeping for 30s')
                 time.sleep(30)
-            l = len(res_mem_list)
-            diff = res_mem_list[l-1] - res_mem_list[l-2]
-            self.logger.info('Diff in last 2 resident memory: %s', diff)
+
+
         except Exception as e:
             print('Exception:',e)
             import pdb;pdb.set_trace()

@@ -4,6 +4,10 @@
 python3 serial_scripts/scale/flow/test_flow.py
 python3 -m testtools.run serial_scripts.scale.flow.test_flow.TestFlowScale.test_flow_scale
 ```
+* flow_cache_timeout now kept to **12 hours**
+  * For 24 hours, it's failing
+* flow_entries kept to 6 million
+  * Agent is initializing for 7 million
 
 ### Hping3 
 
