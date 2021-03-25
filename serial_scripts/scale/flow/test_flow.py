@@ -4,7 +4,7 @@ import test
 from compute_node_test import ComputeNodeFixture
 from tcutils.traffic_utils.hping_traffic import Hping3
 import time
-
+import logging
 
 class TestFlowScale(GenericTestBase):
 
@@ -21,6 +21,7 @@ class TestFlowScale(GenericTestBase):
 
     def setUp(self):
         super(TestFlowScale, self).setUp()
+        self.logger.setLevel(logging.INFO)
         self.vn1_fixture = self.create_only_vn()
         self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture)
         # self.vn1_vm2_fixture = self.create_vm(self.vn1_fixture)
@@ -76,10 +77,59 @@ class TestFlowScale(GenericTestBase):
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
+
     def calc_vrouter_mem_usage(self):
         cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
         out = self.compute_fixture.execute_cmd(cmd, container=None)
         self.logger.info('vrouter agent memory usage: %s' % out)
+
+    def del_and_add_flows(self):
+        self.logger.info('Deleting 100000 flows')
+        cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 100000); do contrail-tools flow -i $i; done"
+        out = self.compute_fixture.execute_cmd(cmd, container=None)
+        self.logger.info('Output of delete: %s' % out)
+        self.logger.info(
+            'Checking memory usage of vrouter after deleting 100000 flows')
+        for i in range(3):
+            self.calc_vrouter_mem_usage()
+            self.logger.info('Sleeping for 5s')
+            time.sleep(5)
+        
+        # Add 100000 flows
+        self.logger.info('Adding 100000 flows')
+        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+        hping_h = Hping3(self.vn1_vm1_fixture,
+                         gateway_ip,
+                         udp=True,
+                         destport='++1000',
+                         baseport='1000',
+                         count=100000,
+                         interval='u100')
+        hping_h.start(wait=False)
+        self.logger.info('Running hping command for 5s')
+        time.sleep(5)
+        (stats, hping_log) = hping_h.stop()
+        self.logger.info('Checking memory usage of vrouter after adding 100000 flows')
+        for i in range(3):
+            self.calc_vrouter_mem_usage()
+            self.logger.info('Sleeping for 5s')
+            time.sleep(5)
+
+    def memory_leak_checks(self):
+        try:
+            for i in range(5):
+                self.del_and_add_flows()
+
+            self.logger.info('Longevity test')
+            for i in range(3):
+                self.logger.info('Sleep for 10 minutes')
+                time.sleep(10 * 60)
+                self.calc_vrouter_mem_usage()
+
+        except Exception as e:
+            print('Exception:', e)
+            import pdb
+            pdb.set_trace()
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
@@ -128,54 +178,9 @@ class TestFlowScale(GenericTestBase):
         self.memory_leak_checks()
         import pdb
         pdb.set_trace()
-        #import pdb;pdb.set_trace()
-        # Delete around 1000 flows
-        # Check resident memory, it should decrease
-        # Add 1000 flows
-        # Resident memory should increase
-        # Do delete and add around 3 times with required expectations
-        # Leave the setup for 20 minutes, check the resident memory again
+
         self.logger.info('Flows greater than 1 Million')
 
-    def memory_leak_checks(self):
-        try:
-            for i in range(3):
-                self.calc_vrouter_mem_usage()
-                self.logger.info('Sleeping for 30s')
-                time.sleep(30)
-
-            # Delete 100000 flows
-            self.logger.info('Deleting 100000 flows')
-            cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 100000); do contrail-tools flow -i $i; done"
-            out = self.compute_fixture.execute_cmd(cmd, container=None)
-            self.logger.info('Output of delete: %s' % out)
-            import pdb
-            pdb.set_trace()
-
-            for i in range(3):
-                self.calc_vrouter_mem_usage()
-                self.logger.info('Sleeping for 30s')
-                time.sleep(30)
-
-            # Add more flows
-            gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
-            hping_h = Hping3(self.vn1_vm1_fixture,
-                             gateway_ip,
-                             udp=True,
-                             destport='++1000',
-                             baseport='4000',
-                             count=100000,
-                             interval='u1')
-            hping_h.start(wait=False)
-            self.logger.info('Running command for 5s')
-            time.sleep(5)
-            (stats, hping_log) = hping_h.stop()
-
-
-        except Exception as e:
-            print('Exception:', e)
-            import pdb
-            pdb.set_trace()
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
