@@ -72,11 +72,10 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def preconfig(cls):
         flow_entries = 1024 * 1024 * 6
-        flow_timeout = 12 * 60 * 60 # 24 hours is an invalid option
+        flow_timeout = 12 * 60 * 60  # 24 hours is an invalid option
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
-    
     def calc_vrouter_mem_usage(self):
         cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
         out = self.compute_fixture.execute_cmd(cmd, container=None)
@@ -99,7 +98,7 @@ class TestFlowScale(GenericTestBase):
         destport = '++1000'
         count = 1024 * 1024
         interval = 'u1'
-        
+
         gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
 
         for baseport in range(5001, 7050):
@@ -127,7 +126,8 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('Flow count: %s' % flow_count)
         assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
         self.memory_leak_checks()
-        import pdb;pdb.set_trace()
+        import pdb
+        pdb.set_trace()
         #import pdb;pdb.set_trace()
         # Delete around 1000 flows
         # Check resident memory, it should decrease
@@ -136,36 +136,76 @@ class TestFlowScale(GenericTestBase):
         # Do delete and add around 3 times with required expectations
         # Leave the setup for 20 minutes, check the resident memory again
         self.logger.info('Flows greater than 1 Million')
-    
+
     def memory_leak_checks(self):
-        try: 
+        try:
             for i in range(3):
                 self.calc_vrouter_mem_usage()
                 self.logger.info('Sleeping for 30s')
                 time.sleep(30)
-            l = len(res_mem_list)
 
             # Delete 100000 flows
             self.logger.info('Deleting 100000 flows')
             cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 100000); do contrail-tools flow -i $i; done"
             out = self.compute_fixture.execute_cmd(cmd, container=None)
-            self.logger.info('Output of delete: %s' %out)
-            import pdb;pdb.set_trace()
-            
+            self.logger.info('Output of delete: %s' % out)
+            import pdb
+            pdb.set_trace()
+
             for i in range(3):
                 self.calc_vrouter_mem_usage()
                 self.logger.info('Sleeping for 30s')
                 time.sleep(30)
 
+            # Add more flows
+            gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+            hping_h = Hping3(self.vn1_vm1_fixture,
+                             gateway_ip,
+                             udp=True,
+                             destport='++1000',
+                             baseport='4000',
+                             count=100000,
+                             interval='u1')
+            hping_h.start(wait=False)
+            self.logger.info('Running command for 5s')
+            time.sleep(5)
+            (stats, hping_log) = hping_h.stop()
+
 
         except Exception as e:
-            print('Exception:',e)
-            import pdb;pdb.set_trace()
+            print('Exception:', e)
+            import pdb
+            pdb.set_trace()
 
-    # @test.attr(type=['flow_scale'])
-    # @preposttest_wrapper
-    # def test_flow_scale(self):
-    #     gateway = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+    @test.attr(type=['flow_scale'])
+    @preposttest_wrapper
+    def test_flow_scale_tcp(self):
+        destport = '++1000'
+        count = 1024 * 1024
+        interval = 'u1'
+
+        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+
+        for baseport in range(1001, 7050):
+            hping_h = Hping3(self.vn1_vm1_fixture,
+                             gateway_ip,
+                             syn=True,
+                             keep=True,
+                             flood=True,
+                             destport=destport,
+                             baseport=baseport,
+                             count=count,
+                             interval=interval)
+            hping_h.start(wait=False)
+            self.logger.info('Running command for 5s')
+            time.sleep(5)
+            (stats, hping_log) = hping_h.stop()
+            flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
+            flow_count = flow_table.flow_count
+            self.logger.info('Flow count: %s' % flow_count)
+            self.calc_vrouter_mem_usage()
+            if flow_count >= 1024 * 1024 * 6:
+                break
 
 
 if __name__ == '__main__':
