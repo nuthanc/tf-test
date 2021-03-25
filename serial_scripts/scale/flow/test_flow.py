@@ -62,7 +62,9 @@ class TestFlowScale(GenericTestBase):
         for compute_fixture in cls.compute_fixtures:
             compute_fixture.add_vrouter_module_params(
                 {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
-            print(compute_fixture.read_vrouter_module_params())
+            info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
+            output = compute_fixture.execute_cmd(info_cmd, container=None)
+            self.logger.info(output)
 
     @classmethod
     def add_flow_cache_timeout(cls, flow_timeout):
@@ -153,6 +155,7 @@ class TestFlowScale(GenericTestBase):
 
         for baseport in range(5001, 7050):
             hping_h = Hping3(self.vn1_vm1_fixture,
+                            #  self.vn1_vm2_fixture.vm_ip,
                              gateway_ip,
                              udp=True,
                              keep=True,

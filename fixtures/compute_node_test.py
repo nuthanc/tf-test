@@ -582,11 +582,10 @@ class ComputeNodeFixture(fixtures.Fixture):
         agent = self.inputs.host_data[self.ip].get(
             'containers', {}).get('agent')
         stop_cmd = 'docker stop %s; rmmod vrouter' % agent
-        start_cmd = 'modprobe vrouter; docker start %s' % agent
-        info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
-        output = self.execute_cmd('%s; %s; %s' % (
-            stop_cmd, start_cmd, info_cmd), container=None)
-        self.logger.info('Cmd output info: %s' %output)
+        start_cmd = 'free && sync && echo 3 > /proc/sys/vm/drop_caches && free;modprobe vrouter; docker start %s' % agent
+        output = self.execute_cmd('%s; %s' % (
+            stop_cmd, start_cmd), container=None)
+        self.logger.info('Cmd output info: %s' % output)
         if wait:
             status = ContrailStatusChecker(self.inputs)
             status.wait_till_contrail_cluster_stable([self.ip])
