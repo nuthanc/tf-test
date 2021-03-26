@@ -11,6 +11,7 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def setUpClass(cls):
         super(TestFlowScale, cls).setUpClass()
+        cls.logger.setLevel(logging.INFO)
         cls.get_compute_fixtures()
         cls.add_phy_intf_in_vrouter_env()
         cls.preconfig()
@@ -21,7 +22,6 @@ class TestFlowScale(GenericTestBase):
 
     def setUp(self):
         super(TestFlowScale, self).setUp()
-        self.logger.setLevel(logging.INFO)
         self.vn1_fixture = self.create_only_vn()
         self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture)
         # self.vn1_vm2_fixture = self.create_vm(self.vn1_fixture)
@@ -64,7 +64,7 @@ class TestFlowScale(GenericTestBase):
                 {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
             info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
             output = compute_fixture.execute_cmd(info_cmd, container=None)
-            self.logger.info(output)
+            cls.logger.info(output)
 
     @classmethod
     def add_flow_cache_timeout(cls, flow_timeout):
