@@ -8,7 +8,7 @@ python3 -m testtools.run serial_scripts.scale.flow.test_flow.TestFlowScale.test_
   * For 24 hours, it's failing
 * flow_entries kept to 6 million
   * Agent is initializing for 7 million
-
+* 5.27 million highest after 12 hours
 ### Hping3 
 
 * https://linux.die.net/man/8/hping3
