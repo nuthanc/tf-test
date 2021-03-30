@@ -176,7 +176,7 @@ class TestFlowScale(GenericTestBase):
             flow_count = flow_table.flow_count
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
-            if flow_count >= 1024 * 1024 * 6:
+            if flow_count >= 1024 * 1024 * 1.3:
                 break
 
         flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
