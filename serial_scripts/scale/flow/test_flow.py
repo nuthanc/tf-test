@@ -88,13 +88,16 @@ class TestFlowScale(GenericTestBase):
 
     def del_and_add_flows(self):
         self.logger.info('Deleting 100000 flows')
-        cmd = "for i in $(contrail-tools flow -l|grep ' <= >'|awk -F '<' '{print $1}'|head -n 100000); do contrail-tools flow -i $i; done"
+        cmd = "for i in $(contrail-tools flow -l|grep '<=>'|awk -F '<' '{print $1}'|head -n 100000); do contrail-tools flow -i $i; done"
         out = self.compute_fixture.execute_cmd(cmd, container=None)
         self.logger.info('Output of delete: %s' % out)
+        flow_count = self.vn1_vm1_vrouter_fixture.get_flow_table().flow_count
+        self.logger.info('Flow count: %s' % flow_count)
         self.logger.info(
-            'Checking memory usage of vrouter after deleting 100000 flows')
+            'Checking memory usage of vrouter after deleting 100000 flows: Taking 3 readings')
         for i in range(3):
             self.calc_vrouter_mem_usage()
+            import pdb;pdb.set_trace()
             self.logger.info('Sleeping for 5s')
             time.sleep(5)
         
@@ -112,7 +115,7 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('Running hping command for 5s')
         time.sleep(5)
         (stats, hping_log) = hping_h.stop()
-        self.logger.info('Checking memory usage of vrouter after adding 100000 flows')
+        self.logger.info('Checking memory usage of vrouter after adding 100000 flows: Taking 3 readings')
         for i in range(3):
             self.calc_vrouter_mem_usage()
             self.logger.info('Sleeping for 5s')
