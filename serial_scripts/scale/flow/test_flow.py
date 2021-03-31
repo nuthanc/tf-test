@@ -80,7 +80,7 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def preconfig(cls):
         flow_entries = 1024 * 1024 * 6
-        flow_timeout = 120
+        flow_timeout = 12 * 60 * 60
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
@@ -189,7 +189,7 @@ class TestFlowScale(GenericTestBase):
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
-            if flow_count >= 1024 * 1024 * 1.3:
+            if flow_count >= 1024 * 1024 * 6:
                 break
 
         # flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
