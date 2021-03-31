@@ -88,7 +88,7 @@ class TestFlowScale(GenericTestBase):
 
     def del_and_add_flows(self):
         self.logger.info('Deleting 100000 flows')
-        cmd = "for i in $(contrail-tools flow -l|grep '<=>'|awk -F '<' '{print $1}'|head -n 10); do contrail-tools flow -i $i; done"
+        cmd = "for i in $(contrail-tools flow -l|grep '<=>'|awk -F '<' '{print $1}'|head -n 50); do contrail-tools flow -i $i; done"
         out = self.compute_fixture.execute_cmd(cmd, container=None)
         # self.logger.info('Output of delete: %s' % out)
         # flow_count = self.vn1_vm1_vrouter_fixture.get_flow_table().flow_count
@@ -111,7 +111,7 @@ class TestFlowScale(GenericTestBase):
                          destport='++1000',
                          baseport='1000',
                          count=100000,
-                         interval='u100')
+                         interval='u1')
         hping_h.start(wait=False)
         self.logger.info('Running hping command for 5s')
         time.sleep(5)
@@ -128,8 +128,11 @@ class TestFlowScale(GenericTestBase):
         cmd = "docker ps|grep tools|awk '{print $NF}'|tail -1"
         tools_container = self.compute_fixture.execute_cmd(cmd, container=None)
         cmd = "docker exec -it %s timeout 1 flow -r|awk '{print $5}'" % tools_container
-        flow_count = int(self.compute_fixture.execute_cmd(cmd, container=None))
-        return flow_count
+        flow_count = self.compute_fixture.execute_cmd(cmd, container=None)
+        if flow_count:
+            return flow_count
+        else:
+            return 0
 
     def memory_leak_checks(self):
         try:
