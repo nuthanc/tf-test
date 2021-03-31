@@ -80,7 +80,7 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def preconfig(cls):
         flow_entries = 1024 * 1024 * 6
-        flow_timeout = 12 * 60 * 60
+        flow_timeout = 120
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
@@ -92,6 +92,10 @@ class TestFlowScale(GenericTestBase):
 
 
     def wait_and_add_flows(self, baseport):
+        self.logger.info('Generate gcore of agent process')
+        out = self.compute_fixture.execute_cmd('gcore $(pidof contrail-vrouter-agent)')
+        self.logger.info('Output of gcore cmd: %s' %out)
+        
         self.logger.info('Wait 120s for flows to get cleared')
         time.sleep(120)
         self.logger.info(
@@ -102,6 +106,10 @@ class TestFlowScale(GenericTestBase):
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
             time.sleep(2)
+
+        self.logger.info('Generate gcore of agent process')
+        out = self.compute_fixture.execute_cmd('gcore $(pidof contrail-vrouter-agent)')
+        self.logger.info('Output of gcore cmd: %s' %out)
         
         # Add 100000 flows
         self.logger.info('Adding 100000 flows')
@@ -164,10 +172,10 @@ class TestFlowScale(GenericTestBase):
          Pass criteria: Flow count greater than 1 million
          Maintainer : nuthanc@juniper.net 
         '''
+        self.calc_vrouter_mem_usage()
         destport = '++1000'
         count = 1024 * 1024
         interval = 'u1'
-
         gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
 
         for baseport in range(5001, 7050):
@@ -189,7 +197,7 @@ class TestFlowScale(GenericTestBase):
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
-            if flow_count >= 1024 * 1024 * 6:
+            if flow_count >= 1024 * 1024 * 2:
                 break
 
         # flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
