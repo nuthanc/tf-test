@@ -16,23 +16,24 @@ class TestFlowScale(GenericTestBase):
         # cls.add_phy_intf_in_vrouter_env()
         # cls.preconfig()
 
+
     @classmethod
     def tearDownClass(cls):
         super(TestFlowScale, cls).tearDownClass()
+
 
     def setUp(self):
         super(TestFlowScale, self).setUp()
         self.vn1_fixture = self.create_only_vn()
         vm1_node_name = self.inputs.host_data[self.inputs.compute_ips[0]]['name']
         self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture, node_name=vm1_node_name)
-        # self.vn1_vm2_fixture = self.create_vm(self.vn1_fixture)
         self.vn1_vm1_fixture.wait_till_vm_is_up()
-        # self.vn1_vm2_fixture.wait_till_vm_is_up()
         self.vn1_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
             self.connections,
             self.vn1_vm1_fixture.vm_node_ip))
         self.compute_fixture = ComputeNodeFixture(
             self.connections, self.vn1_vm1_fixture.vm_node_ip)
+
 
     @classmethod
     def get_compute_fixtures(cls):
@@ -40,7 +41,7 @@ class TestFlowScale(GenericTestBase):
         for name, ip in cls.connections.inputs.compute_info.items():
             cls.compute_fixtures.append(
                 ComputeNodeFixture(cls.connections, ip))
-            # Add physical interface to computes here
+
 
     @classmethod
     def add_phy_intf_in_vrouter_env(cls):
@@ -58,6 +59,7 @@ class TestFlowScale(GenericTestBase):
                 cmd = '%s;%s;%s' % (echo_line, cd_vrouter, down_up)
                 compute_fixture.execute_cmd(cmd, container=None)
 
+
     @classmethod
     def set_flow_entries(cls, flow_entries):
         for compute_fixture in cls.compute_fixtures:
@@ -67,16 +69,18 @@ class TestFlowScale(GenericTestBase):
             output = compute_fixture.execute_cmd(info_cmd, container=None)
             cls.logger.info(output)
 
+
     @classmethod
     def add_flow_cache_timeout(cls, flow_timeout):
         # Add flow_cache_timeout in all the computes
         for cmp_fix in cls.compute_fixtures:
             cmp_fix.set_flow_aging_time(flow_timeout)
 
+
     @classmethod
     def preconfig(cls):
         flow_entries = 1024 * 1024 * 6
-        flow_timeout = 12 * 60 * 60  # 24 hours is an invalid option
+        flow_timeout = 120
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
@@ -86,21 +90,16 @@ class TestFlowScale(GenericTestBase):
         out = self.compute_fixture.execute_cmd(cmd, container=None)
         self.logger.info('vrouter agent memory usage: %s' % out)
 
-    def del_and_add_flows(self):
-        self.logger.info('Deleting 100000 flows')
-        cmd = "for i in $(contrail-tools flow -l|grep '<=>'|awk -F '<' '{print $1}'|head -n 50); do contrail-tools flow -i $i; done"
-        out = self.compute_fixture.execute_cmd(cmd, container=None)
-        # self.logger.info('Output of delete: %s' % out)
-        # flow_count = self.vn1_vm1_vrouter_fixture.get_flow_table().flow_count
-        flow_count = self.get_flow_count()
-        self.logger.info('Flow count: %s' % flow_count)
+
+    def wait_and_add_flows(self):
+        self.logger.info('Wait 60s for flows to get cleared')
+        time.sleep(60)
         self.logger.info(
-            'Checking memory usage of vrouter after deleting 100000 flows: Taking 3 readings')
+            'Checking flow_count and memory usage of vrouter: Taking 3 readings')
         for i in range(3):
+            flow_count = self.get_flow_count()
+            self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
-            import pdb;pdb.set_trace()
-            self.logger.info('Sleeping for 5s')
-            time.sleep(5)
         
         # Add 100000 flows
         self.logger.info('Adding 100000 flows')
@@ -117,12 +116,13 @@ class TestFlowScale(GenericTestBase):
         time.sleep(5)
         (stats, hping_log) = hping_h.stop()
         flow_count = self.get_flow_count()
-        self.logger.info('Flow count: %s' % flow_count)
-        self.logger.info('Checking memory usage of vrouter after adding 100000 flows: Taking 3 readings')
+        self.logger.info(
+            'Checking flow_count and memory usage of vrouter: Taking 3 readings')
         for i in range(3):
+            flow_count = self.get_flow_count()
+            self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
-            self.logger.info('Sleeping for 5s')
-            time.sleep(5)
+
 
     def get_flow_count(self):
         cmd = "docker ps|grep tools|awk '{print $NF}'|tail -1"
@@ -130,26 +130,19 @@ class TestFlowScale(GenericTestBase):
         cmd = "docker exec -it %s timeout 1 flow -r|awk '{print $5}'" % tools_container
         flow_count = self.compute_fixture.execute_cmd(cmd, container=None)
         if flow_count:
-            return flow_count
+            return int(flow_count)
         else:
             return 0
 
     def memory_leak_checks(self):
-        try:
-            for i in range(5):
-                self.del_and_add_flows()
-
-            self.logger.info('Longevity test')
-            for i in range(3):
-                self.logger.info('Sleep for 10 minutes')
-                time.sleep(10 * 60)
-                self.calc_vrouter_mem_usage()
-
-        except Exception as e:
-            print('Exception:', e)
-            self.logger.error('Exception: %s' % e)
-            import pdb
-            pdb.set_trace()
+        for i in range(5):
+            self.wait_and_add_flows()
+        import pdb;pdb.set_trace()
+        # self.logger.info('Longevity test')
+        # for i in range(3):
+        #     self.logger.info('Sleep for 10 minutes')
+        #     time.sleep(10 * 60)
+        #     self.calc_vrouter_mem_usage()        
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
