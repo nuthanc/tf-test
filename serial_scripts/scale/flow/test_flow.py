@@ -14,7 +14,7 @@ class TestFlowScale(GenericTestBase):
         cls.logger.setLevel(logging.INFO)
         cls.get_compute_fixtures()
         # cls.add_phy_intf_in_vrouter_env()
-        # cls.preconfig()
+        cls.preconfig()
 
 
     @classmethod
@@ -91,15 +91,17 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('vrouter agent memory usage: %s' % out)
 
 
-    def wait_and_add_flows(self):
-        self.logger.info('Wait 60s for flows to get cleared')
-        time.sleep(60)
+    def wait_and_add_flows(self, baseport):
+        self.logger.info('Wait 120s for flows to get cleared')
+        time.sleep(120)
         self.logger.info(
             'Checking flow_count and memory usage of vrouter: Taking 3 readings')
         for i in range(3):
+            self.logger.info('Reading %s after waiting is done' %(i+1))
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
+            time.sleep(2)
         
         # Add 100000 flows
         self.logger.info('Adding 100000 flows')
@@ -107,9 +109,10 @@ class TestFlowScale(GenericTestBase):
         hping_h = Hping3(self.vn1_vm1_fixture,
                          gateway_ip,
                          udp=True,
+                         keep=True,
                          destport='++1000',
-                         baseport='1000',
-                         count=100000,
+                         baseport=baseport,
+                         count=1024*1024,
                          interval='u1')
         hping_h.start(wait=False)
         self.logger.info('Running hping command for 5s')
@@ -119,9 +122,11 @@ class TestFlowScale(GenericTestBase):
         self.logger.info(
             'Checking flow_count and memory usage of vrouter: Taking 3 readings')
         for i in range(3):
+            self.logger.info('Reading %s after add' %(i+1))
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
+            time.sleep(2)
 
 
     def get_flow_count(self):
@@ -135,8 +140,9 @@ class TestFlowScale(GenericTestBase):
             return 0
 
     def memory_leak_checks(self):
-        for i in range(5):
-            self.wait_and_add_flows()
+        for i in range(3):
+            baseport = 6000 + i
+            self.wait_and_add_flows(baseport)
         import pdb;pdb.set_trace()
         # self.logger.info('Longevity test')
         # for i in range(3):

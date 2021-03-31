@@ -1,9 +1,713 @@
-2021-03-31 07:26:39,776 - DEBUG - [10.204.216.103]: Running cmd : hostname
-2021-03-31 07:26:40,245 - DEBUG - Output : nodem14
-2021-03-31 07:26:40,245 - DEBUG - [10.204.216.103]: Running cmd : hostname -f
-2021-03-31 07:26:40,361 - DEBUG - Output : nodem14.englab.juniper.net
-2021-03-31 07:26:40,362 - DEBUG - [10.204.216.103]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
-2021-03-31 07:26:40,673 - DEBUG - Output : NAMES
+2021-03-31 07:41:23,037 - DEBUG - Not creating keypair since it exists
+2021-03-31 07:41:23,137 - INFO - Domain Default found not creating
+2021-03-31 07:41:24,074 - INFO - Project ctest-TestFlowScale-02872984 not found, creating it
+2021-03-31 07:41:24,976 - INFO - Created Project:ctest-TestFlowScale-02872984, ID : 9d29df50-c017-48aa-8929-d46279e2a0ca 
+2021-03-31 07:41:28,428 - INFO - Reloading vrouter module on 10.204.216.98
+2021-03-31 07:41:32,477 - INFO - Cmd output info: vrouter_vrouter-agent_1
+rmmod: ERROR: Module vrouter is in use
+              total        used        free      shared  buff/cache   available
+Mem:      263855792    10169028   253277356       11044      409408   252865376
+Swap:             0           0           0
+              total        used        free      shared  buff/cache   available
+Mem:      263855792    10168352   253471800       11044      215640   252916140
+Swap:             0           0           0
+vrouter_vrouter-agent_1
+2021-03-31 07:41:32,774 - INFO - 10.204.216.98
+2021-03-31 07:41:32,774 - INFO -   vrouter
+2021-03-31 07:41:32,789 - INFO -     vrouter-nodemgr:active
+2021-03-31 07:41:32,798 - INFO -     agent:initializing
+2021-03-31 07:41:43,037 - INFO - 10.204.216.98
+2021-03-31 07:41:43,037 - INFO -   vrouter
+2021-03-31 07:41:43,047 - INFO -     vrouter-nodemgr:active
+2021-03-31 07:41:43,057 - INFO -     agent:active
+2021-03-31 07:41:43,057 - INFO - All the contrail services are up on nodes ['10.204.216.98']
+2021-03-31 07:41:43,775 - INFO - Flow Table limit                     6291456
+2021-03-31 07:41:43,776 - INFO - Running docker cp vrouter_vrouter-agent_1:/actions.sh . on 10.204.216.98
+2021-03-31 07:41:44,106 - INFO - Running awk 'BEGIN { section=0; doprint=1 } /\[DEFAULT\]/ { section=1 } /flow_cache_timeout/ { if (section) {doprint=0; section=0} } { if (doprint) {print} else {doprint=1} }'  actions.sh > actions.sh.modified on 10.204.216.98
+2021-03-31 07:41:44,243 - INFO - Running mv actions.sh.modified actions.sh; chmod +x actions.sh on 10.204.216.98
+2021-03-31 07:41:44,372 - INFO - Running grep -q -F 'flow_cache_timeout=120' actions.sh ||sed -i  '/\[DEFAULT\]/a flow_cache_timeout=120' actions.sh on 10.204.216.98
+2021-03-31 07:41:44,502 - INFO - Running docker cp actions.sh vrouter_vrouter-agent_1:/actions.sh on 10.204.216.98
+2021-03-31 07:41:45,335 - INFO - Running docker restart vrouter_vrouter-agent_1 -t 60 on 10.204.216.98
+2021-03-31 07:41:54,430 - INFO - Flow_cache_timeout set to 120 on 10.204.216.98
+2021-03-31 07:41:56,068 - INFO - Created VN ctest-vn-44369398
+2021-03-31 07:41:59,688 - INFO - VM ([<Server: ctest-TestFlowScale-02872984-19822257>]) created on node: (nodem9), Zone: (nova:nodem9)
+2021-03-31 07:41:59,689 - INFO - Waiting for VM ctest-TestFlowScale-02872984-19822257 to be up..
+2021-03-31 07:42:05,126 - INFO - VM name : ctest-TestFlowScale-02872984-19822257
+2021-03-31 07:42:11,437 - INFO - Ping to Metadata IP 169.254.0.3 of VM ctest-TestFlowScale-02872984-19822257 passed
+2021-03-31 07:42:38,130 - INFO - ================================================================================
+2021-03-31 07:42:38,130 - INFO - STARTING TEST    : test_flow_scale
+2021-03-31 07:42:38,132 - INFO - TEST DESCRIPTION : 
+        Description: Test to scale 1 million flows
+         Test steps:
+                1. Add PHYSICAL_INTERFACE in vrouter env if absent
+                2. Set flow entries to 1 million in vrouter module
+                3. Increase flow timeout to high value like 9999
+                4. Send traffic through hping3 changing the source port with each iteration
+                5. Check for flow count in flow table
+         Pass criteria: Flow count greater than 1 million
+         Maintainer : nuthanc@juniper.net 
+        
+2021-03-31 07:42:39,359 - WARNING - Test is running with cores: {'10.204.216.96': ['core.contrail-collec.1.nodem7.1617040979']}
+2021-03-31 07:42:39,360 - INFO - Initial checks done. Running the testcase now
+2021-03-31 07:42:39,360 - INFO - 
+2021-03-31 07:42:39,361 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5001  --count 1048576  --interval u1 
+2021-03-31 07:42:50,186 - INFO - Running command for 5s
+2021-03-31 07:42:57,175 - INFO - Flow count: 131102
+2021-03-31 07:42:57,602 - INFO - vrouter agent memory usage: top - 13:12:57 up 1 day, 23:14,  2 users,  load average: 0.67, 0.54, 0.60
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 25195843+free, 11511604 used,   385752 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 25152251+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 3197100   1.6g 595452 S  31.2  0.6   0:38.59 contrail-vroute
+1670052
+              total        used        free      shared  buff/cache   available
+Mem:           251G         10G        240G         10M        377M        239G
+Swap:            0B          0B          0B
+2021-03-31 07:42:57,603 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5002  --count 1048576  --interval u1 
+2021-03-31 07:42:57,697 - INFO - Running command for 5s
+2021-03-31 07:43:04,522 - INFO - Flow count: 262178
+2021-03-31 07:43:04,907 - INFO - vrouter agent memory usage: top - 13:13:04 up 1 day, 23:14,  2 users,  load average: 1.08, 0.63, 0.63
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 25136321+free, 12107564 used,   385008 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 25092656+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 3792044   2.4g 890608 S  20.0  1.0   1:09.92 contrail-vroute
+2552736
+              total        used        free      shared  buff/cache   available
+Mem:           251G         11G        239G         10M        375M        239G
+Swap:            0B          0B          0B
+2021-03-31 07:43:04,908 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5003  --count 1048576  --interval u1 
+2021-03-31 07:43:05,009 - INFO - Running command for 5s
+2021-03-31 07:43:11,885 - INFO - Flow count: 389142
+2021-03-31 07:43:12,253 - INFO - vrouter agent memory usage: top - 13:13:12 up 1 day, 23:14,  2 users,  load average: 1.72, 0.77, 0.68
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.5 sy,  0.0 ni, 99.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 25079094+free, 12679072 used,   385776 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 25035507+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 4355244   3.0g 926428 S  40.0  1.2   1:40.56 contrail-vroute
+3158284
+              total        used        free      shared  buff/cache   available
+Mem:           251G         12G        239G         10M        376M        238G
+Swap:            0B          0B          0B
+2021-03-31 07:43:12,254 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5004  --count 1048576  --interval u1 
+2021-03-31 07:43:12,357 - INFO - Running command for 5s
+2021-03-31 07:43:19,256 - INFO - Flow count: 513254
+2021-03-31 07:43:19,627 - INFO - vrouter agent memory usage: top - 13:13:19 up 1 day, 23:14,  2 users,  load average: 1.74, 0.79, 0.69
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 25023404+free, 13234720 used,   387020 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24979942+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 4915380   3.8g   1.1g S  26.7  1.5   2:10.97 contrail-vroute
+3966304
+              total        used        free      shared  buff/cache   available
+Mem:           251G         12G        238G         10M        377M        238G
+Swap:            0B          0B          0B
+2021-03-31 07:43:19,628 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5005  --count 1048576  --interval u1 
+2021-03-31 07:43:19,743 - INFO - Running command for 5s
+2021-03-31 07:43:26,619 - INFO - Flow count: 634270
+2021-03-31 07:43:26,996 - INFO - vrouter agent memory usage: top - 13:13:26 up 1 day, 23:14,  2 users,  load average: 2.40, 0.96, 0.74
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.2 id,  0.2 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24969049+free, 13778544 used,   386748 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24925556+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 5464244   4.5g   1.3g S  33.3  1.8   2:41.55 contrail-vroute
+4667044
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        238G         10M        377M        237G
+Swap:            0B          0B          0B
+2021-03-31 07:43:26,997 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5006  --count 1048576  --interval u1 
+2021-03-31 07:43:27,099 - INFO - Running command for 5s
+2021-03-31 07:43:33,952 - INFO - Flow count: 765344
+2021-03-31 07:43:34,326 - INFO - vrouter agent memory usage: top - 13:13:34 up 1 day, 23:14,  2 users,  load average: 2.93, 1.10, 0.79
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24910052+free, 14367812 used,   387452 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24866630+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 6048948   5.0g   1.3g S  26.7  2.0   3:13.02 contrail-vroute
+5272524
+              total        used        free      shared  buff/cache   available
+Mem:           251G         13G        237G         10M        378M        237G
+Swap:            0B          0B          0B
+2021-03-31 07:43:34,327 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5007  --count 1048576  --interval u1 
+2021-03-31 07:43:34,430 - INFO - Running command for 5s
+2021-03-31 07:43:41,307 - INFO - Flow count: 896422
+2021-03-31 07:43:41,680 - INFO - vrouter agent memory usage: top - 13:13:41 up 1 day, 23:15,  2 users,  load average: 3.15, 1.21, 0.83
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.0 us,  0.3 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24851366+free, 14955740 used,   386392 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24807838+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 6640820   5.6g   1.3g S  40.0  2.2   3:43.64 contrail-vroute
+5893344
+              total        used        free      shared  buff/cache   available
+Mem:           251G         14G        237G         10M        377M        236G
+Swap:            0B          0B          0B
+2021-03-31 07:43:41,681 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5008  --count 1048576  --interval u1 
+2021-03-31 07:43:41,783 - INFO - Running command for 5s
+2021-03-31 07:43:48,627 - INFO - Flow count: 1025406
+2021-03-31 07:43:49,000 - INFO - vrouter agent memory usage: top - 13:13:48 up 1 day, 23:15,  2 users,  load average: 3.22, 1.26, 0.84
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.0 us,  0.7 sy,  0.0 ni, 98.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24793176+free, 15537472 used,   386556 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24749651+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 7217332   6.2g   1.4g S  53.3  2.5   4:14.95 contrail-vroute
+6532324
+              total        used        free      shared  buff/cache   available
+Mem:           251G         14G        236G         10M        377M        236G
+Swap:            0B          0B          0B
+2021-03-31 07:43:49,001 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5009  --count 1048576  --interval u1 
+2021-03-31 07:43:49,096 - INFO - Running command for 5s
+2021-03-31 07:43:55,931 - INFO - Flow count: 1155412
+2021-03-31 07:43:56,312 - INFO - vrouter agent memory usage: top - 13:13:56 up 1 day, 23:15,  2 users,  load average: 3.97, 1.48, 0.92
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.0 us,  0.3 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24734652+free, 16121832 used,   387432 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24691230+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 7802036   6.8g   1.4g S  56.2  2.7   4:46.85 contrail-vroute
+7180708
+              total        used        free      shared  buff/cache   available
+Mem:           251G         15G        235G         10M        378M        235G
+Swap:            0B          0B          0B
+2021-03-31 07:43:56,313 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5010  --count 1048576  --interval u1 
+2021-03-31 07:43:56,415 - INFO - Running command for 5s
+2021-03-31 07:44:03,222 - INFO - Flow count: 1283466
+2021-03-31 07:44:03,596 - INFO - vrouter agent memory usage: top - 13:14:03 up 1 day, 23:15,  2 users,  load average: 4.13, 1.55, 0.95
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.7 us,  0.7 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24677108+free, 16697372 used,   387328 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24633670+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8374452   7.4g   1.5g S  46.7  3.0   5:19.41 contrail-vroute
+7800600
+              total        used        free      shared  buff/cache   available
+Mem:           251G         15G        235G         10M        378M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:44:03,596 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --keep   --destport ++1000  --baseport 5011  --count 1048576  --interval u1 
+2021-03-31 07:44:03,695 - INFO - Running command for 5s
+2021-03-31 07:44:10,512 - INFO - Flow count: 1412396
+2021-03-31 07:44:10,884 - INFO - vrouter agent memory usage: top - 13:14:10 up 1 day, 23:15,  2 users,  load average: 4.02, 1.62, 0.97
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.3 us,  0.8 sy,  0.0 ni, 97.9 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618544+free, 17283004 used,   387348 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575108+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8958132   8.0g   1.5g S  66.7  3.2   5:51.56 contrail-vroute
+8386692
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        378M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:44:12,522 - INFO - Flow count: 1412396
+2021-03-31 07:44:12,522 - INFO - Wait 120s for flows to get cleared
+2021-03-31 07:46:12,523 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:46:12,524 - INFO - Reading 1 after waiting is done
+2021-03-31 07:46:14,127 - INFO - Flow count: 191368
+2021-03-31 07:46:14,512 - INFO - vrouter agent memory usage: top - 13:16:14 up 1 day, 23:17,  2 users,  load average: 1.59, 1.37, 0.96
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618409+free, 17283796 used,   387908 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575032+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  20.0  3.2   9:30.76 contrail-vroute
+8410136
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        378M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:46:16,514 - INFO - Reading 2 after waiting is done
+2021-03-31 07:46:18,104 - INFO - Flow count: 191368
+2021-03-31 07:46:18,480 - INFO - vrouter agent memory usage: top - 13:16:18 up 1 day, 23:17,  2 users,  load average: 1.63, 1.38, 0.96
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.8 us,  0.5 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618564+free, 17282204 used,   387940 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575190+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  33.3  3.2   9:32.26 contrail-vroute
+8410052
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        378M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:46:20,481 - INFO - Reading 3 after waiting is done
+2021-03-31 07:46:22,072 - INFO - Flow count: 191366
+2021-03-31 07:46:22,439 - INFO - vrouter agent memory usage: top - 13:16:22 up 1 day, 23:17,  2 users,  load average: 1.50, 1.36, 0.96
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.5 sy,  0.0 ni, 99.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618331+free, 17284512 used,   387964 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24574961+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  37.5  3.2   9:33.80 contrail-vroute
+8410424
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        378M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:46:24,440 - INFO - Adding 100000 flows
+2021-03-31 07:46:24,441 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
+2021-03-31 07:46:24,508 - INFO - Running hping command for 5s
+2021-03-31 07:46:31,349 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:46:31,349 - INFO - Reading 1 after add
+2021-03-31 07:46:32,929 - INFO - Flow count: 93232
+2021-03-31 07:46:33,282 - INFO - vrouter agent memory usage: top - 13:16:33 up 1 day, 23:17,  2 users,  load average: 1.34, 1.33, 0.95
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  7.7 us,  3.5 sy,  0.0 ni, 88.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618723+free, 17279252 used,   389312 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575323+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S 453.3  3.2  10:09.14 contrail-vroute
+8412788
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:46:35,284 - INFO - Reading 2 after add
+2021-03-31 07:46:36,841 - INFO - Flow count: 44592
+2021-03-31 07:46:37,212 - INFO - vrouter agent memory usage: top - 13:16:37 up 1 day, 23:18,  2 users,  load average: 1.31, 1.33, 0.95
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.3 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618286+free, 17283756 used,   389168 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575020+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  20.0  3.2  10:13.15 contrail-vroute
+8412988
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:46:39,213 - INFO - Reading 3 after add
+2021-03-31 07:46:40,800 - INFO - Flow count: 44592
+2021-03-31 07:46:41,180 - INFO - vrouter agent memory usage: top - 13:16:41 up 1 day, 23:18,  2 users,  load average: 1.21, 1.31, 0.95
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618329+free, 17283308 used,   389192 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575078+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  33.3  3.2  10:14.25 contrail-vroute
+8413168
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:46:43,181 - INFO - Wait 120s for flows to get cleared
+2021-03-31 07:48:43,181 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:48:43,182 - INFO - Reading 1 after waiting is done
+2021-03-31 07:48:44,789 - INFO - Flow count: 0
+2021-03-31 07:48:45,159 - INFO - vrouter agent memory usage: top - 13:18:45 up 1 day, 23:20,  2 users,  load average: 0.37, 0.97, 0.87
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.7 us,  0.3 sy,  0.0 ni, 99.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619476+free, 17272036 used,   388984 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576206+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  13.3  3.2  10:50.65 contrail-vroute
+8420052
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:48:47,160 - INFO - Reading 2 after waiting is done
+2021-03-31 07:48:48,765 - INFO - Flow count: 0
+2021-03-31 07:48:49,141 - INFO - vrouter agent memory usage: top - 13:18:49 up 1 day, 23:20,  2 users,  load average: 0.37, 0.97, 0.87
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619340+free, 17273368 used,   389016 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576073+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S   6.2  3.2  10:50.94 contrail-vroute
+8420392
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:48:51,143 - INFO - Reading 3 after waiting is done
+2021-03-31 07:48:52,738 - INFO - Flow count: 0
+2021-03-31 07:48:53,112 - INFO - vrouter agent memory usage: top - 13:18:53 up 1 day, 23:20,  2 users,  load average: 0.34, 0.96, 0.87
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.0 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619129+free, 17275436 used,   389052 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575865+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  13.3  3.2  10:51.28 contrail-vroute
+8421012
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:48:55,113 - INFO - Adding 100000 flows
+2021-03-31 07:48:55,113 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
+2021-03-31 07:48:55,180 - INFO - Running hping command for 5s
+2021-03-31 07:49:02,092 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:49:02,092 - INFO - Reading 1 after add
+2021-03-31 07:49:03,731 - INFO - Flow count: 44854
+2021-03-31 07:49:04,114 - INFO - vrouter agent memory usage: top - 13:19:04 up 1 day, 23:20,  2 users,  load average: 0.29, 0.93, 0.86
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619137+free, 17275684 used,   388732 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575832+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  13.3  3.2  11:02.42 contrail-vroute
+8422588
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:49:06,115 - INFO - Reading 2 after add
+2021-03-31 07:49:07,688 - INFO - Flow count: 44854
+2021-03-31 07:49:08,060 - INFO - vrouter agent memory usage: top - 13:19:08 up 1 day, 23:20,  2 users,  load average: 0.26, 0.91, 0.85
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  2.0 us,  1.3 sy,  0.0 ni, 96.5 id,  0.0 wa,  0.0 hi,  0.2 si,  0.0 st
+KiB Mem : 26385579+total, 24618899+free, 17278016 used,   388780 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575604+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  33.3  3.2  11:03.46 contrail-vroute
+8422908
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:49:10,062 - INFO - Reading 3 after add
+2021-03-31 07:49:11,674 - INFO - Flow count: 44854
+2021-03-31 07:49:12,052 - INFO - vrouter agent memory usage: top - 13:19:12 up 1 day, 23:20,  2 users,  load average: 0.24, 0.90, 0.85
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618744+free, 17279560 used,   388796 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575449+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  20.0  3.2  11:04.55 contrail-vroute
+8423200
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:49:14,053 - INFO - Wait 120s for flows to get cleared
+2021-03-31 07:51:14,055 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:51:14,055 - INFO - Reading 1 after waiting is done
+2021-03-31 07:51:15,671 - INFO - Flow count: 0
+2021-03-31 07:51:16,047 - INFO - vrouter agent memory usage: top - 13:21:15 up 1 day, 23:22,  2 users,  load average: 0.08, 0.62, 0.75
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619406+free, 17273144 used,   388588 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576096+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S   6.7  3.2  11:40.61 contrail-vroute
+8430304
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:51:18,049 - INFO - Reading 2 after waiting is done
+2021-03-31 07:51:19,648 - INFO - Flow count: 0
+2021-03-31 07:51:20,024 - INFO - vrouter agent memory usage: top - 13:21:19 up 1 day, 23:22,  2 users,  load average: 0.08, 0.60, 0.75
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619452+free, 17272644 used,   388616 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576147+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S   0.0  3.2  11:40.92 contrail-vroute
+8430448
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:51:22,025 - INFO - Reading 3 after waiting is done
+2021-03-31 07:51:23,630 - INFO - Flow count: 0
+2021-03-31 07:51:24,006 - INFO - vrouter agent memory usage: top - 13:21:23 up 1 day, 23:22,  2 users,  load average: 0.08, 0.60, 0.75
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.0 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619443+free, 17272700 used,   388664 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576142+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S   6.7  3.2  11:41.22 contrail-vroute
+8431004
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        379M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:51:26,008 - INFO - Adding 100000 flows
+2021-03-31 07:51:26,009 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
+2021-03-31 07:51:26,077 - INFO - Running hping command for 5s
+2021-03-31 07:51:32,961 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:51:32,962 - INFO - Reading 1 after add
+2021-03-31 07:51:34,595 - INFO - Flow count: 42998
+2021-03-31 07:51:34,964 - INFO - vrouter agent memory usage: top - 13:21:34 up 1 day, 23:22,  2 users,  load average: 0.14, 0.60, 0.75
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619227+free, 17274096 used,   389424 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576004+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  33.3  3.2  11:52.04 contrail-vroute
+8431728
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:51:36,965 - INFO - Reading 2 after add
+2021-03-31 07:51:38,591 - INFO - Flow count: 42998
+2021-03-31 07:51:38,966 - INFO - vrouter agent memory usage: top - 13:21:38 up 1 day, 23:23,  2 users,  load average: 0.21, 0.61, 0.75
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618811+free, 17278212 used,   389464 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575590+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  33.3  3.2  11:53.11 contrail-vroute
+8431976
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:51:40,968 - INFO - Reading 3 after add
+2021-03-31 07:51:42,551 - INFO - Flow count: 42998
+2021-03-31 07:51:42,926 - INFO - vrouter agent memory usage: top - 13:21:42 up 1 day, 23:23,  2 users,  load average: 0.20, 0.60, 0.74
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618988+free, 17276408 used,   389500 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575772+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.0g   1.5g S  13.3  3.2  11:54.11 contrail-vroute
+8432084
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:51:44,926 - INFO - Wait 120s for flows to get cleared
+2021-03-31 07:53:44,927 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:53:44,928 - INFO - Reading 1 after waiting is done
+2021-03-31 07:53:46,539 - INFO - Flow count: 0
+2021-03-31 07:53:46,916 - INFO - vrouter agent memory usage: top - 13:23:46 up 1 day, 23:25,  2 users,  load average: 0.42, 0.55, 0.71
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.2 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619312+free, 17271756 used,   390908 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576233+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S   6.7  3.3  12:31.27 contrail-vroute
+8689332
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:53:48,918 - INFO - Reading 2 after waiting is done
+2021-03-31 07:53:50,508 - INFO - Flow count: 0
+2021-03-31 07:53:50,882 - INFO - vrouter agent memory usage: top - 13:23:50 up 1 day, 23:25,  2 users,  load average: 0.47, 0.55, 0.71
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.2 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619134+free, 17273524 used,   390924 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576056+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  12.5  3.3  12:31.64 contrail-vroute
+8699396
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:53:52,883 - INFO - Reading 3 after waiting is done
+2021-03-31 07:53:54,476 - INFO - Flow count: 0
+2021-03-31 07:53:54,851 - INFO - vrouter agent memory usage: top - 13:23:54 up 1 day, 23:25,  2 users,  load average: 0.47, 0.55, 0.71
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619289+free, 17271916 used,   390980 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576220+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  13.3  3.3  12:31.95 contrail-vroute
+8709104
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:53:56,853 - INFO - Adding 100000 flows
+2021-03-31 07:53:56,853 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
+2021-03-31 07:53:56,921 - INFO - Running hping command for 5s
+2021-03-31 07:54:03,834 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:54:03,834 - INFO - Reading 1 after add
+2021-03-31 07:54:05,455 - INFO - Flow count: 42842
+2021-03-31 07:54:05,834 - INFO - vrouter agent memory usage: top - 13:24:05 up 1 day, 23:25,  2 users,  load average: 0.37, 0.53, 0.70
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618972+free, 17276576 used,   389488 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575753+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  26.7  3.3  12:43.11 contrail-vroute
+8736880
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:54:07,835 - INFO - Reading 2 after add
+2021-03-31 07:54:09,425 - INFO - Flow count: 42842
+2021-03-31 07:54:09,802 - INFO - vrouter agent memory usage: top - 13:24:09 up 1 day, 23:25,  2 users,  load average: 0.37, 0.53, 0.70
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.7 us,  0.7 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619084+free, 17275424 used,   389524 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575867+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  40.0  3.3  12:44.21 contrail-vroute
+8747432
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:54:11,803 - INFO - Reading 3 after add
+2021-03-31 07:54:13,392 - INFO - Flow count: 42842
+2021-03-31 07:54:13,763 - INFO - vrouter agent memory usage: top - 13:24:13 up 1 day, 23:25,  2 users,  load average: 0.34, 0.52, 0.69
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  2.2 us,  1.2 sy,  0.0 ni, 96.5 id,  0.0 wa,  0.0 hi,  0.2 si,  0.0 st
+KiB Mem : 26385579+total, 24618944+free, 17276780 used,   389580 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575734+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  20.0  3.3  12:45.22 contrail-vroute
+8748584
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        380M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:54:15,764 - INFO - Wait 120s for flows to get cleared
+2021-03-31 07:56:15,765 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:56:15,766 - INFO - Reading 1 after waiting is done
+2021-03-31 07:56:17,345 - INFO - Flow count: 0
+2021-03-31 07:56:17,722 - INFO - vrouter agent memory usage: top - 13:26:17 up 1 day, 23:27,  2 users,  load average: 0.40, 0.46, 0.65
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.0 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619270+free, 17272184 used,   390900 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576192+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S   0.0  3.3  13:20.52 contrail-vroute
+8748796
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:56:19,723 - INFO - Reading 2 after waiting is done
+2021-03-31 07:56:21,326 - INFO - Flow count: 0
+2021-03-31 07:56:21,711 - INFO - vrouter agent memory usage: top - 13:26:21 up 1 day, 23:27,  2 users,  load average: 0.44, 0.47, 0.65
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.2 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619046+free, 17274404 used,   390924 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575972+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S   0.0  3.3  13:20.77 contrail-vroute
+8748796
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:56:23,712 - INFO - Reading 3 after waiting is done
+2021-03-31 07:56:25,314 - INFO - Flow count: 0
+2021-03-31 07:56:25,703 - INFO - vrouter agent memory usage: top - 13:26:25 up 1 day, 23:27,  2 users,  load average: 0.41, 0.46, 0.65
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.2 us,  0.0 sy,  0.0 ni, 99.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24619148+free, 17273320 used,   390980 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24576080+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S   0.0  3.3  13:20.97 contrail-vroute
+8748796
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:56:27,704 - INFO - Adding 100000 flows
+2021-03-31 07:56:27,705 - INFO - Starting hping3  on ctest-TestFlowScale-02872984-19822257, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
+2021-03-31 07:56:27,772 - INFO - Running hping command for 5s
+2021-03-31 07:56:34,699 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
+2021-03-31 07:56:34,700 - INFO - Reading 1 after add
+2021-03-31 07:56:36,310 - INFO - Flow count: 45180
+2021-03-31 07:56:36,689 - INFO - vrouter agent memory usage: top - 13:26:36 up 1 day, 23:28,  2 users,  load average: 0.50, 0.48, 0.65
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618931+free, 17275672 used,   390816 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575838+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  33.3  3.3  13:32.12 contrail-vroute
+8748796
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:56:38,690 - INFO - Reading 2 after add
+2021-03-31 07:56:40,283 - INFO - Flow count: 45180
+2021-03-31 07:56:40,657 - INFO - vrouter agent memory usage: top - 13:26:40 up 1 day, 23:28,  2 users,  load average: 0.54, 0.48, 0.65
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618732+free, 17277604 used,   390860 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575646+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  26.7  3.3  13:33.19 contrail-vroute
+8748796
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 07:56:42,657 - INFO - Reading 3 after add
+2021-03-31 07:56:44,258 - INFO - Flow count: 45180
+2021-03-31 07:56:44,632 - INFO - vrouter agent memory usage: top - 13:26:44 up 1 day, 23:28,  2 users,  load average: 0.54, 0.48, 0.65
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385579+total, 24618736+free, 17277528 used,   390896 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 24575654+avail Mem 
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+36210 root      20   0 8961204   8.3g   1.8g S  20.0  3.3  13:34.30 contrail-vroute
+8748796
+              total        used        free      shared  buff/cache   available
+Mem:           251G         16G        234G         10M        381M        234G
+Swap:            0B          0B          0B
+2021-03-31 08:00:41,246 - INFO - Flows greater than 1 Million
+2021-03-31 08:00:41,247 - INFO - Deleting VM ctest-TestFlowScale-02872984-19822257
+2021-03-31 08:00:43,493 - INFO - END TEST : test_flow_scale : PASSED[0:18:05]
+2021-03-31 08:00:43,494 - INFO - --------------------------------------------------------------------------------
+2021-03-31 08:00:43,745 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:45,834 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:47,924 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:50,011 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:52,105 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:54,187 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:56,272 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:00:58,361 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:00,435 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:02,516 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:04,598 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:06,677 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:08,751 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:10,838 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:12,924 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:15,016 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:17,102 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:19,181 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:21,250 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:23,318 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:25,402 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:27,489 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:29,576 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:31,668 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:33,748 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:35,835 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:37,920 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:40,016 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:42,095 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:44,179 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:46,264 - WARNING - Project ctest-TestFlowScale-02872984 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-02872984', 'ctest-vn-44369398'], 'href': 'http://10.204.216.103:8082/virtual-network/ed2ffa33-329b-4673-b16f-90f53a8d8061', 'uuid': 'ed2ffa33-329b-4673-b16f-90f53a8d8061'}] before deletion
+2021-03-31 08:01:46,264 - WARNING - One or more references still present, will not delete the project ctest-TestFlowScale-02872984
+2021-03-31 08:02:36,232 - DEBUG - [10.204.216.103]: Running cmd : hostname
+2021-03-31 08:02:36,703 - DEBUG - Output : nodem14
+2021-03-31 08:02:36,703 - DEBUG - [10.204.216.103]: Running cmd : hostname -f
+2021-03-31 08:02:36,828 - DEBUG - Output : nodem14.englab.juniper.net
+2021-03-31 08:02:36,828 - DEBUG - [10.204.216.103]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
+2021-03-31 08:02:37,141 - DEBUG - Output : NAMES
 nuthan_test
 analytics_snmp_nodemgr_1
 analytics_snmp_snmp-collector_1
@@ -58,20 +762,20 @@ haproxy
 cron
 kolla_toolbox
 fluentd
-2021-03-31 07:26:40,674 - DEBUG - [10.204.216.103]: Running cmd : getent hosts 10.204.216.103 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:40,780 - DEBUG - Output : nodem14.englab.juniper.net
-2021-03-31 07:26:40,780 - DEBUG - [10.204.216.103]: Running cmd : ip addr show | grep 'inet .*/.* brd ' | awk '{print $2}'
-2021-03-31 07:26:40,889 - DEBUG - Output : 10.204.216.103/24
+2021-03-31 08:02:37,142 - DEBUG - [10.204.216.103]: Running cmd : getent hosts 10.204.216.103 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:37,255 - DEBUG - Output : nodem14.englab.juniper.net
+2021-03-31 08:02:37,256 - DEBUG - [10.204.216.103]: Running cmd : ip addr show | grep 'inet .*/.* brd ' | awk '{print $2}'
+2021-03-31 08:02:37,358 - DEBUG - Output : 10.204.216.103/24
 10.10.10.14/24
 172.17.0.1/16
-2021-03-31 07:26:40,890 - DEBUG - [10.204.216.103]: Running cmd : getent hosts 10.10.10.14 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:44,091 - DEBUG - Output : nodem14
-2021-03-31 07:26:44,092 - DEBUG - [10.204.216.95]: Running cmd : hostname
-2021-03-31 07:26:44,580 - DEBUG - Output : nodem6
-2021-03-31 07:26:44,580 - DEBUG - [10.204.216.95]: Running cmd : hostname -f
-2021-03-31 07:26:44,706 - DEBUG - Output : nodem6.englab.juniper.net
-2021-03-31 07:26:44,706 - DEBUG - [10.204.216.95]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
-2021-03-31 07:26:45,045 - DEBUG - Output : NAMES
+2021-03-31 08:02:37,359 - DEBUG - [10.204.216.103]: Running cmd : getent hosts 10.10.10.14 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:37,474 - DEBUG - Output : nodem14
+2021-03-31 08:02:37,475 - DEBUG - [10.204.216.95]: Running cmd : hostname
+2021-03-31 08:02:37,984 - DEBUG - Output : nodem6
+2021-03-31 08:02:37,984 - DEBUG - [10.204.216.95]: Running cmd : hostname -f
+2021-03-31 08:02:38,101 - DEBUG - Output : nodem6.englab.juniper.net
+2021-03-31 08:02:38,102 - DEBUG - [10.204.216.95]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
+2021-03-31 08:02:38,429 - DEBUG - Output : NAMES
 analytics_snmp_nodemgr_1
 analytics_snmp_snmp-collector_1
 analytics_snmp_topology_1
@@ -124,20 +828,20 @@ haproxy
 cron
 kolla_toolbox
 fluentd
-2021-03-31 07:26:45,046 - DEBUG - [10.204.216.95]: Running cmd : getent hosts 10.204.216.95 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:45,162 - DEBUG - Output : nodem6.englab.juniper.net
-2021-03-31 07:26:45,162 - DEBUG - [10.204.216.95]: Running cmd : ip addr show | grep 'inet .*/.* brd ' | awk '{print $2}'
-2021-03-31 07:26:45,272 - DEBUG - Output : 10.204.216.95/24
+2021-03-31 08:02:38,430 - DEBUG - [10.204.216.95]: Running cmd : getent hosts 10.204.216.95 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:38,556 - DEBUG - Output : nodem6.englab.juniper.net
+2021-03-31 08:02:38,557 - DEBUG - [10.204.216.95]: Running cmd : ip addr show | grep 'inet .*/.* brd ' | awk '{print $2}'
+2021-03-31 08:02:38,675 - DEBUG - Output : 10.204.216.95/24
 10.10.10.6/24
 172.17.0.1/16
-2021-03-31 07:26:45,273 - DEBUG - [10.204.216.95]: Running cmd : getent hosts 10.10.10.6 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:45,387 - DEBUG - Output : nodem6
-2021-03-31 07:26:45,388 - DEBUG - [10.204.216.96]: Running cmd : hostname
-2021-03-31 07:26:45,835 - DEBUG - Output : nodem7
-2021-03-31 07:26:45,836 - DEBUG - [10.204.216.96]: Running cmd : hostname -f
-2021-03-31 07:26:45,953 - DEBUG - Output : nodem7.englab.juniper.net
-2021-03-31 07:26:45,953 - DEBUG - [10.204.216.96]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
-2021-03-31 07:26:46,272 - DEBUG - Output : NAMES
+2021-03-31 08:02:38,675 - DEBUG - [10.204.216.95]: Running cmd : getent hosts 10.10.10.6 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:38,800 - DEBUG - Output : nodem6
+2021-03-31 08:02:38,801 - DEBUG - [10.204.216.96]: Running cmd : hostname
+2021-03-31 08:02:39,279 - DEBUG - Output : nodem7
+2021-03-31 08:02:39,280 - DEBUG - [10.204.216.96]: Running cmd : hostname -f
+2021-03-31 08:02:39,402 - DEBUG - Output : nodem7.englab.juniper.net
+2021-03-31 08:02:39,402 - DEBUG - [10.204.216.96]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
+2021-03-31 08:02:39,723 - DEBUG - Output : NAMES
 analytics_snmp_nodemgr_1
 analytics_snmp_snmp-collector_1
 analytics_snmp_topology_1
@@ -190,20 +894,20 @@ haproxy
 cron
 kolla_toolbox
 fluentd
-2021-03-31 07:26:46,272 - DEBUG - [10.204.216.96]: Running cmd : getent hosts 10.204.216.96 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:46,390 - DEBUG - Output : nodem7.englab.juniper.net
-2021-03-31 07:26:46,391 - DEBUG - [10.204.216.96]: Running cmd : ip addr show | grep 'inet .*/.* brd ' | awk '{print $2}'
-2021-03-31 07:26:46,515 - DEBUG - Output : 10.204.216.96/24
+2021-03-31 08:02:39,724 - DEBUG - [10.204.216.96]: Running cmd : getent hosts 10.204.216.96 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:39,845 - DEBUG - Output : nodem7.englab.juniper.net
+2021-03-31 08:02:39,846 - DEBUG - [10.204.216.96]: Running cmd : ip addr show | grep 'inet .*/.* brd ' | awk '{print $2}'
+2021-03-31 08:02:39,969 - DEBUG - Output : 10.204.216.96/24
 10.10.10.7/24
 172.17.0.1/16
-2021-03-31 07:26:46,515 - DEBUG - [10.204.216.96]: Running cmd : getent hosts 10.10.10.7 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:46,640 - DEBUG - Output : nodem7
-2021-03-31 07:26:46,640 - DEBUG - [10.204.216.98]: Running cmd : hostname
-2021-03-31 07:26:47,168 - DEBUG - Output : nodem9
-2021-03-31 07:26:47,169 - DEBUG - [10.204.216.98]: Running cmd : hostname -f
-2021-03-31 07:26:47,289 - DEBUG - Output : nodem9.englab.juniper.net
-2021-03-31 07:26:47,289 - DEBUG - [10.204.216.98]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
-2021-03-31 07:26:47,538 - DEBUG - Output : NAMES
+2021-03-31 08:02:39,970 - DEBUG - [10.204.216.96]: Running cmd : getent hosts 10.10.10.7 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:40,092 - DEBUG - Output : nodem7
+2021-03-31 08:02:40,092 - DEBUG - [10.204.216.99]: Running cmd : hostname
+2021-03-31 08:02:40,612 - DEBUG - Output : nodem10
+2021-03-31 08:02:40,612 - DEBUG - [10.204.216.99]: Running cmd : hostname -f
+2021-03-31 08:02:40,739 - DEBUG - Output : nodem10.englab.juniper.net
+2021-03-31 08:02:40,739 - DEBUG - [10.204.216.99]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
+2021-03-31 08:02:41,003 - DEBUG - Output : NAMES
 vrouter_vrouter-agent_1
 vrouter_nodemgr_1
 rsyslogd_rsyslogd_1
@@ -213,58 +917,58 @@ nova_ssh
 cron
 kolla_toolbox
 fluentd
-2021-03-31 07:26:47,539 - DEBUG - [10.204.216.98]: Running cmd : ip addr show dev vhost0 | grep 'inet .*/.* brd ' | awk '{print $2}'
-2021-03-31 07:26:47,667 - DEBUG - Output : 10.10.10.9/24
-2021-03-31 07:26:47,667 - DEBUG - [10.204.216.98]: Running cmd : getent hosts 10.10.10.9 | head -n 1 | awk '{print $2}'
-2021-03-31 07:26:47,787 - DEBUG - Output : nodem9
-2021-03-31 07:26:47,787 - DEBUG - [10.204.216.110]: Running cmd : hostname
-2021-03-31 07:26:48,187 - DEBUG - Output : server1-ae8275ae0eecf6c488b24302fe22dc9b
-2021-03-31 07:26:48,187 - DEBUG - [10.204.216.110]: Running cmd : hostname -f
-2021-03-31 07:26:48,283 - DEBUG - Output : server1-ae8275ae0eecf6c488b24302fe22dc9b.englab.juniper.net
-2021-03-31 07:26:48,283 - DEBUG - [10.204.216.110]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
-2021-03-31 07:26:48,461 - DEBUG - Output : NAMES
+2021-03-31 08:02:41,004 - DEBUG - [10.204.216.99]: Running cmd : ip addr show dev vhost0 | grep 'inet .*/.* brd ' | awk '{print $2}'
+2021-03-31 08:02:41,122 - DEBUG - Output : 10.10.10.10/24
+2021-03-31 08:02:41,123 - DEBUG - [10.204.216.99]: Running cmd : getent hosts 10.10.10.10 | head -n 1 | awk '{print $2}'
+2021-03-31 08:02:41,250 - DEBUG - Output : nodem10
+2021-03-31 08:02:41,250 - DEBUG - [10.204.216.110]: Running cmd : hostname
+2021-03-31 08:02:41,662 - DEBUG - Output : server1-ae8275ae0eecf6c488b24302fe22dc9b
+2021-03-31 08:02:41,662 - DEBUG - [10.204.216.110]: Running cmd : hostname -f
+2021-03-31 08:02:41,758 - DEBUG - Output : server1-ae8275ae0eecf6c488b24302fe22dc9b.englab.juniper.net
+2021-03-31 08:02:41,759 - DEBUG - [10.204.216.110]: Running cmd : docker ps -a 2>/dev/null | grep -v "/pause\|/usr/bin/pod\|nova_api_\|contrail.*init\|init.*contrail\|provisioner\|placement" | awk '{print $NF}'
+2021-03-31 08:02:41,947 - DEBUG - Output : NAMES
 ansible-player_20210329150718
 contrail_command
 contrail_psql
 contrail_command_deployer
-2021-03-31 07:26:52,520 - DEBUG - Not creating keypair since it exists
-2021-03-31 07:26:52,637 - INFO - Domain Default found not creating
-2021-03-31 07:26:53,655 - INFO - Project ctest-TestFlowScale-82193525 not found, creating it
-2021-03-31 07:26:54,734 - INFO - Created Project:ctest-TestFlowScale-82193525, ID : 62bb3a65-de55-455a-a8a0-9dfb71383e49 
-2021-03-31 07:26:58,097 - INFO - Reloading vrouter module on 10.204.216.98
-2021-03-31 07:27:02,678 - INFO - Cmd output info: vrouter_vrouter-agent_1
+2021-03-31 08:02:45,922 - DEBUG - Not creating keypair since it exists
+2021-03-31 08:02:46,040 - INFO - Domain Default found not creating
+2021-03-31 08:02:47,122 - INFO - Project ctest-TestFlowScale-12476991 not found, creating it
+2021-03-31 08:02:48,053 - INFO - Created Project:ctest-TestFlowScale-12476991, ID : 96e2f989-bb67-4ef8-9b0e-d006e5cd259a 
+2021-03-31 08:02:51,598 - INFO - Reloading vrouter module on 10.204.216.99
+2021-03-31 08:02:56,320 - INFO - Cmd output info: vrouter_vrouter-agent_1
               total        used        free      shared  buff/cache   available
-Mem:      263855792     8136496   255313780       10856      405516   254897812
+Mem:      263855804     8038700   254748704       10940     1068400   254987500
 Swap:             0           0           0
               total        used        free      shared  buff/cache   available
-Mem:      263855792     8135168   255514896       10856      205728   254953612
+Mem:      263855804     8038792   255612780       10940      204232   255050480
 Swap:             0           0           0
 vrouter_vrouter-agent_1
-2021-03-31 07:27:02,970 - INFO - 10.204.216.98
-2021-03-31 07:27:02,970 - INFO -   vrouter
-2021-03-31 07:27:02,983 - INFO -     vrouter-nodemgr:active
-2021-03-31 07:27:02,990 - INFO -     agent:initializing
-2021-03-31 07:27:13,233 - INFO - 10.204.216.98
-2021-03-31 07:27:13,233 - INFO -   vrouter
-2021-03-31 07:27:13,246 - INFO -     vrouter-nodemgr:active
-2021-03-31 07:27:13,259 - INFO -     agent:active
-2021-03-31 07:27:13,259 - INFO - All the contrail services are up on nodes ['10.204.216.98']
-2021-03-31 07:27:13,956 - INFO - Flow Table limit                     6291456
-2021-03-31 07:27:13,957 - INFO - Running docker cp vrouter_vrouter-agent_1:/actions.sh . on 10.204.216.98
-2021-03-31 07:27:14,293 - INFO - Running awk 'BEGIN { section=0; doprint=1 } /\[DEFAULT\]/ { section=1 } /flow_cache_timeout/ { if (section) {doprint=0; section=0} } { if (doprint) {print} else {doprint=1} }'  actions.sh > actions.sh.modified on 10.204.216.98
-2021-03-31 07:27:14,430 - INFO - Running mv actions.sh.modified actions.sh; chmod +x actions.sh on 10.204.216.98
-2021-03-31 07:27:14,551 - INFO - Running grep -q -F 'flow_cache_timeout=120' actions.sh ||sed -i  '/\[DEFAULT\]/a flow_cache_timeout=120' actions.sh on 10.204.216.98
-2021-03-31 07:27:14,688 - INFO - Running docker cp actions.sh vrouter_vrouter-agent_1:/actions.sh on 10.204.216.98
-2021-03-31 07:27:15,481 - INFO - Running docker restart vrouter_vrouter-agent_1 -t 60 on 10.204.216.98
-2021-03-31 07:27:24,585 - INFO - Flow_cache_timeout set to 120 on 10.204.216.98
-2021-03-31 07:27:26,190 - INFO - Created VN ctest-vn-18215418
-2021-03-31 07:27:29,734 - INFO - VM ([<Server: ctest-TestFlowScale-82193525-73961276>]) created on node: (nodem9), Zone: (nova:nodem9)
-2021-03-31 07:27:29,734 - INFO - Waiting for VM ctest-TestFlowScale-82193525-73961276 to be up..
-2021-03-31 07:27:40,197 - INFO - VM name : ctest-TestFlowScale-82193525-73961276
-2021-03-31 07:27:42,484 - INFO - Ping to Metadata IP 169.254.0.3 of VM ctest-TestFlowScale-82193525-73961276 passed
-2021-03-31 07:28:09,083 - INFO - ================================================================================
-2021-03-31 07:28:09,084 - INFO - STARTING TEST    : test_flow_scale
-2021-03-31 07:28:09,085 - INFO - TEST DESCRIPTION : 
+2021-03-31 08:02:56,615 - INFO - 10.204.216.99
+2021-03-31 08:02:56,615 - INFO -   vrouter
+2021-03-31 08:02:56,628 - INFO -     vrouter-nodemgr:active
+2021-03-31 08:02:56,635 - INFO -     agent:initializing
+2021-03-31 08:03:06,878 - INFO - 10.204.216.99
+2021-03-31 08:03:06,878 - INFO -   vrouter
+2021-03-31 08:03:06,891 - INFO -     vrouter-nodemgr:active
+2021-03-31 08:03:06,900 - INFO -     agent:active
+2021-03-31 08:03:06,901 - INFO - All the contrail services are up on nodes ['10.204.216.99']
+2021-03-31 08:03:07,625 - INFO - Flow Table limit                     6291456
+2021-03-31 08:03:07,625 - INFO - Running docker cp vrouter_vrouter-agent_1:/actions.sh . on 10.204.216.99
+2021-03-31 08:03:07,934 - INFO - Running awk 'BEGIN { section=0; doprint=1 } /\[DEFAULT\]/ { section=1 } /flow_cache_timeout/ { if (section) {doprint=0; section=0} } { if (doprint) {print} else {doprint=1} }'  actions.sh > actions.sh.modified on 10.204.216.99
+2021-03-31 08:03:08,058 - INFO - Running mv actions.sh.modified actions.sh; chmod +x actions.sh on 10.204.216.99
+2021-03-31 08:03:08,169 - INFO - Running grep -q -F 'flow_cache_timeout=120' actions.sh ||sed -i  '/\[DEFAULT\]/a flow_cache_timeout=120' actions.sh on 10.204.216.99
+2021-03-31 08:03:08,293 - INFO - Running docker cp actions.sh vrouter_vrouter-agent_1:/actions.sh on 10.204.216.99
+2021-03-31 08:03:09,120 - INFO - Running docker restart vrouter_vrouter-agent_1 -t 60 on 10.204.216.99
+2021-03-31 08:03:18,177 - INFO - Flow_cache_timeout set to 120 on 10.204.216.99
+2021-03-31 08:03:19,708 - INFO - Created VN ctest-vn-85810387
+2021-03-31 08:03:23,568 - INFO - VM ([<Server: ctest-TestFlowScale-12476991-00517704>]) created on node: (nodem10), Zone: (nova:nodem10)
+2021-03-31 08:03:23,568 - INFO - Waiting for VM ctest-TestFlowScale-12476991-00517704 to be up..
+2021-03-31 08:03:55,027 - INFO - VM name : ctest-TestFlowScale-12476991-00517704
+2021-03-31 08:04:01,385 - INFO - Ping to Metadata IP 169.254.0.3 of VM ctest-TestFlowScale-12476991-00517704 passed
+2021-03-31 08:04:22,820 - INFO - ================================================================================
+2021-03-31 08:04:22,820 - INFO - STARTING TEST    : test_flow_scale
+2021-03-31 08:04:22,823 - INFO - TEST DESCRIPTION : 
         Description: Test to scale 1 million flows
          Test steps:
                 1. Add PHYSICAL_INTERFACE in vrouter env if absent
@@ -275,604 +979,23 @@ vrouter_vrouter-agent_1
          Pass criteria: Flow count greater than 1 million
          Maintainer : nuthanc@juniper.net 
         
-2021-03-31 07:28:10,285 - WARNING - Test is running with cores: {'10.204.216.96': ['core.contrail-collec.1.nodem7.1617040979']}
-2021-03-31 07:28:10,285 - INFO - Initial checks done. Running the testcase now
-2021-03-31 07:28:10,286 - INFO - 
-2021-03-31 07:28:10,286 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5001  --count 1048576  --interval u1 
-2021-03-31 07:28:21,122 - INFO - Running command for 5s
-2021-03-31 07:28:28,146 - INFO - Flow count: 131100
-2021-03-31 07:28:28,584 - INFO - vrouter agent memory usage: top - 12:58:28 up 1 day, 22:59,  2 users,  load average: 0.93, 0.37, 0.35
+2021-03-31 08:04:23,950 - WARNING - Test is running with cores: {'10.204.216.96': ['core.contrail-collec.1.nodem7.1617040979']}
+2021-03-31 08:04:23,950 - INFO - Initial checks done. Running the testcase now
+2021-03-31 08:04:23,950 - INFO - 
+2021-03-31 08:04:23,951 - INFO - Starting hping3  on ctest-TestFlowScale-12476991-00517704, args:  --udp   --keep   --destport ++1000  --baseport 5001  --count 1048576  --interval u1 
+2021-03-31 08:04:34,767 - INFO - Running command for 5s
+2021-03-31 08:04:41,779 - INFO - Flow count: 124652
+2021-03-31 08:04:42,194 - INFO - vrouter agent memory usage: top - 13:34:42 up 1 day, 23:26,  2 users,  load average: 0.70, 0.35, 0.22
 Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.5 sy,  0.0 ni, 99.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 25194164+free, 11515252 used,   398888 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 25151875+avail Mem 
+%Cpu(s):  1.7 us,  1.7 sy,  0.0 ni, 96.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem : 26385580+total, 25196000+free, 11469180 used,   426616 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 25156328+avail Mem 
 
   PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 3206324   1.6g 596268 S  43.8  0.6   0:38.24 contrail-vroute
-1672412
+17300 root      20   0 3174576   1.6g 619976 S  46.7  0.6   0:38.74 contrail-vroute
+1664880
               total        used        free      shared  buff/cache   available
-Mem:           251G         10G        240G         10M        389M        239G
+Mem:           251G         10G        240G         10M        416M        239G
 Swap:            0B          0B          0B
-2021-03-31 07:28:28,585 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5002  --count 1048576  --interval u1 
-2021-03-31 07:28:28,683 - INFO - Running command for 5s
-2021-03-31 07:28:35,572 - INFO - Flow count: 253720
-2021-03-31 07:28:35,956 - INFO - vrouter agent memory usage: top - 12:58:35 up 1 day, 23:00,  2 users,  load average: 0.94, 0.39, 0.36
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  1.2 us,  0.5 sy,  0.0 ni, 98.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 25138980+free, 12066220 used,   399760 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 25096793+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 3763380   2.4g 868492 S  53.3  0.9   1:07.52 contrail-vroute
-2497924
-              total        used        free      shared  buff/cache   available
-Mem:           251G         11G        239G         10M        390M        239G
-Swap:            0B          0B          0B
-2021-03-31 07:28:35,956 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5003  --count 1048576  --interval u1 
-2021-03-31 07:28:36,052 - INFO - Running command for 5s
-2021-03-31 07:28:42,848 - INFO - Flow count: 384796
-2021-03-31 07:28:43,216 - INFO - vrouter agent memory usage: top - 12:58:43 up 1 day, 23:00,  2 users,  load average: 1.03, 0.42, 0.37
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 25079760+free, 12659568 used,   398620 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 25037452+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 4348084   3.0g 914992 S  26.7  1.2   1:38.33 contrail-vroute
-3130020
-              total        used        free      shared  buff/cache   available
-Mem:           251G         12G        239G         10M        389M        238G
-Swap:            0B          0B          0B
-2021-03-31 07:28:43,217 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5004  --count 1048576  --interval u1 
-2021-03-31 07:28:43,316 - INFO - Running command for 5s
-2021-03-31 07:28:50,150 - INFO - Flow count: 515872
-2021-03-31 07:28:50,535 - INFO - vrouter agent memory usage: top - 12:58:50 up 1 day, 23:00,  2 users,  load average: 1.24, 0.49, 0.39
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 25020963+free, 13246836 used,   399324 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24978728+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 4932788   3.8g   1.1g S  26.7  1.5   2:09.40 contrail-vroute
-3976920
-              total        used        free      shared  buff/cache   available
-Mem:           251G         12G        238G         10M        389M        238G
-Swap:            0B          0B          0B
-2021-03-31 07:28:50,535 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5005  --count 1048576  --interval u1 
-2021-03-31 07:28:50,633 - INFO - Running command for 5s
-2021-03-31 07:28:57,455 - INFO - Flow count: 646950
-2021-03-31 07:28:57,828 - INFO - vrouter agent memory usage: top - 12:58:57 up 1 day, 23:00,  2 users,  load average: 1.46, 0.55, 0.41
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24961755+free, 13838104 used,   400132 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24919603+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 5525684   4.5g   1.3g S  33.3  1.8   2:40.16 contrail-vroute
-4739756
-              total        used        free      shared  buff/cache   available
-Mem:           251G         13G        238G         10M        390M        237G
-Swap:            0B          0B          0B
-2021-03-31 07:28:57,829 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5006  --count 1048576  --interval u1 
-2021-03-31 07:28:57,925 - INFO - Running command for 5s
-2021-03-31 07:29:04,814 - INFO - Flow count: 773792
-2021-03-31 07:29:05,200 - INFO - vrouter agent memory usage: top - 12:59:05 up 1 day, 23:00,  2 users,  load average: 1.76, 0.64, 0.44
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.8 us,  0.5 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24905222+free, 14404924 used,   398648 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24862920+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 6086836   5.1g   1.3g S  40.0  2.0   3:12.06 contrail-vroute
-5319376
-              total        used        free      shared  buff/cache   available
-Mem:           251G         13G        237G         10M        389M        237G
-Swap:            0B          0B          0B
-2021-03-31 07:29:05,200 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5007  --count 1048576  --interval u1 
-2021-03-31 07:29:05,294 - INFO - Running command for 5s
-2021-03-31 07:29:12,106 - INFO - Flow count: 897778
-2021-03-31 07:29:12,485 - INFO - vrouter agent memory usage: top - 12:59:12 up 1 day, 23:00,  2 users,  load average: 1.86, 0.68, 0.45
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.8 us,  0.7 sy,  0.0 ni, 98.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24849369+free, 14962068 used,   400036 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24807206+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 6647988   5.6g   1.3g S  37.5  2.2   3:42.85 contrail-vroute
-5907216
-              total        used        free      shared  buff/cache   available
-Mem:           251G         14G        236G         10M        390M        236G
-Swap:            0B          0B          0B
-2021-03-31 07:29:12,485 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5008  --count 1048576  --interval u1 
-2021-03-31 07:29:12,582 - INFO - Running command for 5s
-2021-03-31 07:29:19,455 - INFO - Flow count: 1027216
-2021-03-31 07:29:19,825 - INFO - vrouter agent memory usage: top - 12:59:19 up 1 day, 23:00,  2 users,  load average: 2.09, 0.77, 0.49
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.8 us,  0.7 sy,  0.0 ni, 98.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24791080+free, 15544640 used,   400348 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24748953+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 7225524   6.2g   1.4g S  56.2  2.5   4:13.68 contrail-vroute
-6541028
-              total        used        free      shared  buff/cache   available
-Mem:           251G         14G        236G         10M        390M        236G
-Swap:            0B          0B          0B
-2021-03-31 07:29:19,826 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5009  --count 1048576  --interval u1 
-2021-03-31 07:29:19,925 - INFO - Running command for 5s
-2021-03-31 07:29:26,780 - INFO - Flow count: 1153120
-2021-03-31 07:29:27,159 - INFO - vrouter agent memory usage: top - 12:59:27 up 1 day, 23:00,  2 users,  load average: 2.32, 0.84, 0.51
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24734283+free, 16114312 used,   398648 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24691992+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 7796916   6.8g   1.4g S  26.7  2.7   4:44.76 contrail-vroute
-7175264
-              total        used        free      shared  buff/cache   available
-Mem:           251G         15G        235G         10M        389M        235G
-Swap:            0B          0B          0B
-2021-03-31 07:29:27,160 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5010  --count 1048576  --interval u1 
-2021-03-31 07:29:27,255 - INFO - Running command for 5s
-2021-03-31 07:29:34,115 - INFO - Flow count: 1284188
-2021-03-31 07:29:34,488 - INFO - vrouter agent memory usage: top - 12:59:34 up 1 day, 23:00,  2 users,  load average: 2.77, 0.96, 0.55
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.7 us,  0.2 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24675304+free, 16702780 used,   399976 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24633145+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8380596   7.4g   1.5g S  26.7  3.0   5:16.51 contrail-vroute
-7809228
-              total        used        free      shared  buff/cache   available
-Mem:           251G         15G        235G         10M        390M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:29:34,488 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --keep   --destport ++1000  --baseport 5011  --count 1048576  --interval u1 
-2021-03-31 07:29:34,592 - INFO - Running command for 5s
-2021-03-31 07:29:41,438 - INFO - Flow count: 1413204
-2021-03-31 07:29:41,811 - INFO - vrouter agent memory usage: top - 12:59:41 up 1 day, 23:01,  2 users,  load average: 2.82, 1.03, 0.58
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  1.6 us,  0.8 sy,  0.0 ni, 97.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616961+free, 17285932 used,   400244 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574822+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8965300   8.0g   1.5g S  60.0  3.2   5:47.82 contrail-vroute
-8395272
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        390M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:29:43,445 - INFO - Flow count: 1413204
-2021-03-31 07:29:43,446 - INFO - Wait 60s for flows to get cleared
-2021-03-31 07:30:43,447 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:30:45,040 - INFO - Flow count: 1199108
-2021-03-31 07:30:45,428 - INFO - vrouter agent memory usage: top - 13:00:45 up 1 day, 23:02,  2 users,  load average: 1.82, 1.11, 0.64
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616227+free, 17293180 used,   400340 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574099+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2   6:46.48 contrail-vroute
-8417660
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        390M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:30:47,039 - INFO - Flow count: 1199108
-2021-03-31 07:30:47,413 - INFO - vrouter agent memory usage: top - 13:00:47 up 1 day, 23:02,  2 users,  load average: 1.82, 1.11, 0.64
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.7 sy,  0.0 ni, 98.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616203+free, 17293320 used,   400444 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574092+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2   6:47.36 contrail-vroute
-8417744
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        391M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:30:49,030 - INFO - Flow count: 1199108
-2021-03-31 07:30:49,404 - INFO - vrouter agent memory usage: top - 13:00:49 up 1 day, 23:02,  2 users,  load average: 1.82, 1.11, 0.64
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  1.7 us,  1.8 sy,  0.0 ni, 96.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24614832+free, 17306980 used,   400484 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24572726+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2   6:48.28 contrail-vroute
-8417892
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        391M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:30:49,405 - INFO - Adding 100000 flows
-2021-03-31 07:30:49,405 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
-2021-03-31 07:30:49,501 - INFO - Running hping command for 5s
-2021-03-31 07:30:56,380 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:30:58,014 - INFO - Flow count: 1244362
-2021-03-31 07:30:58,395 - INFO - vrouter agent memory usage: top - 13:00:58 up 1 day, 23:02,  2 users,  load average: 1.76, 1.12, 0.65
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.5 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616116+free, 17292444 used,   402184 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574171+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2   7:01.56 contrail-vroute
-8418760
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        392M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:31:00,021 - INFO - Flow count: 1244362
-2021-03-31 07:31:00,404 - INFO - vrouter agent memory usage: top - 13:01:00 up 1 day, 23:02,  2 users,  load average: 1.62, 1.10, 0.64
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.2 us,  0.3 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24615913+free, 17294436 used,   402220 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24573971+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2   7:02.47 contrail-vroute
-8419020
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        392M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:31:02,021 - INFO - Flow count: 1244362
-2021-03-31 07:31:02,426 - INFO - vrouter agent memory usage: top - 13:01:02 up 1 day, 23:02,  2 users,  load average: 1.62, 1.10, 0.64
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.7 us,  0.5 sy,  0.0 ni, 98.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24615689+free, 17294816 used,   404088 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24573883+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  53.3  3.2   7:03.42 contrail-vroute
-8419208
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:31:02,427 - INFO - Wait 60s for flows to get cleared
-2021-03-31 07:32:02,427 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:32:03,966 - INFO - Flow count: 133048
-2021-03-31 07:32:04,330 - INFO - vrouter agent memory usage: top - 13:02:04 up 1 day, 23:03,  2 users,  load average: 2.00, 1.29, 0.73
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  7.9 us,  3.8 sy,  0.0 ni, 88.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616764+free, 17285736 used,   402416 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574646+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S 480.0  3.2   9:56.93 contrail-vroute
-8421120
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        393M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:32:05,907 - INFO - Flow count: 72717
-2021-03-31 07:32:06,246 - INFO - vrouter agent memory usage: top - 13:02:06 up 1 day, 23:03,  2 users,  load average: 2.00, 1.30, 0.74
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  7.0 us,  3.2 sy,  0.0 ni, 89.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616672+free, 17284504 used,   404568 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574788+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S 406.7  3.2  10:05.36 contrail-vroute
-8420944
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        393M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:32:07,867 - INFO - Flow count: 45280
-2021-03-31 07:32:08,244 - INFO - vrouter agent memory usage: top - 13:02:08 up 1 day, 23:03,  2 users,  load average: 2.00, 1.30, 0.74
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.0 id,  0.2 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616459+free, 17287688 used,   403516 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574654+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  20.0  3.2  10:06.23 contrail-vroute
-8421008
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:32:08,245 - INFO - Adding 100000 flows
-2021-03-31 07:32:08,246 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
-2021-03-31 07:32:08,342 - INFO - Running hping command for 5s
-2021-03-31 07:32:15,251 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:32:16,872 - INFO - Flow count: 83614
-2021-03-31 07:32:17,239 - INFO - vrouter agent memory usage: top - 13:02:17 up 1 day, 23:03,  2 users,  load average: 2.06, 1.34, 0.76
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.8 us,  0.2 sy,  0.0 ni, 99.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616201+free, 17290048 used,   403720 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574412+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2  10:17.74 contrail-vroute
-8423828
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:32:18,870 - INFO - Flow count: 83614
-2021-03-31 07:32:19,248 - INFO - vrouter agent memory usage: top - 13:02:19 up 1 day, 23:03,  2 users,  load average: 2.06, 1.34, 0.76
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616441+free, 17287640 used,   403744 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574657+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  20.0  3.2  10:18.36 contrail-vroute
-8423940
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:32:20,881 - INFO - Flow count: 83614
-2021-03-31 07:32:21,266 - INFO - vrouter agent memory usage: top - 13:02:21 up 1 day, 23:03,  2 users,  load average: 1.97, 1.33, 0.76
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616203+free, 17290008 used,   403756 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574419+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  20.0  3.2  10:18.99 contrail-vroute
-8424364
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:32:21,267 - INFO - Wait 60s for flows to get cleared
-2021-03-31 07:33:21,267 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:33:22,867 - INFO - Flow count: 83610
-2021-03-31 07:33:23,249 - INFO - vrouter agent memory usage: top - 13:03:23 up 1 day, 23:04,  2 users,  load average: 0.76, 1.10, 0.72
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.2 us,  0.3 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616883+free, 17283052 used,   403908 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575121+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2  10:36.25 contrail-vroute
-8427948
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:33:24,861 - INFO - Flow count: 83610
-2021-03-31 07:33:25,235 - INFO - vrouter agent memory usage: top - 13:03:25 up 1 day, 23:04,  2 users,  load average: 0.78, 1.10, 0.72
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616697+free, 17284892 used,   403924 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574939+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  13.3  3.2  10:36.80 contrail-vroute
-8428016
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:33:26,850 - INFO - Flow count: 83610
-2021-03-31 07:33:27,229 - INFO - vrouter agent memory usage: top - 13:03:27 up 1 day, 23:04,  2 users,  load average: 0.78, 1.10, 0.72
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616508+free, 17286748 used,   403948 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574752+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  20.0  3.2  10:37.34 contrail-vroute
-8428028
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:33:27,229 - INFO - Adding 100000 flows
-2021-03-31 07:33:27,229 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
-2021-03-31 07:33:27,323 - INFO - Running hping command for 5s
-2021-03-31 07:33:34,215 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:33:35,849 - INFO - Flow count: 109390
-2021-03-31 07:33:36,222 - INFO - vrouter agent memory usage: top - 13:03:36 up 1 day, 23:05,  2 users,  load average: 1.61, 1.26, 0.78
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.5 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616387+free, 17286356 used,   405556 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574790+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2  10:48.51 contrail-vroute
-8429644
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:33:37,866 - INFO - Flow count: 109390
-2021-03-31 07:33:38,248 - INFO - vrouter agent memory usage: top - 13:03:38 up 1 day, 23:05,  2 users,  load average: 1.61, 1.26, 0.78
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616308+free, 17287136 used,   405568 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574713+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  13.3  3.2  10:49.10 contrail-vroute
-8429756
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:33:39,848 - INFO - Flow count: 109390
-2021-03-31 07:33:40,227 - INFO - vrouter agent memory usage: top - 13:03:40 up 1 day, 23:05,  2 users,  load average: 1.48, 1.24, 0.77
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616350+free, 17286600 used,   405688 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574764+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2  10:49.62 contrail-vroute
-8429788
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:33:40,228 - INFO - Wait 60s for flows to get cleared
-2021-03-31 07:34:40,229 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:34:41,831 - INFO - Flow count: 109390
-2021-03-31 07:34:42,205 - INFO - vrouter agent memory usage: top - 13:04:42 up 1 day, 23:06,  2 users,  load average: 0.61, 1.03, 0.73
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616790+free, 17282060 used,   405828 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575219+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2  11:07.23 contrail-vroute
-8432932
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:34:43,832 - INFO - Flow count: 109390
-2021-03-31 07:34:44,208 - INFO - vrouter agent memory usage: top - 13:04:44 up 1 day, 23:06,  2 users,  load average: 0.61, 1.03, 0.73
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.7 us,  0.5 sy,  0.0 ni, 98.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616633+free, 17283592 used,   405856 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575065+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  46.7  3.2  11:07.82 contrail-vroute
-8433020
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:34:45,831 - INFO - Flow count: 109390
-2021-03-31 07:34:46,204 - INFO - vrouter agent memory usage: top - 13:04:46 up 1 day, 23:06,  2 users,  load average: 0.56, 1.02, 0.73
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.2 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616520+free, 17284712 used,   405880 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574953+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2  11:08.38 contrail-vroute
-8433096
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:34:46,205 - INFO - Adding 100000 flows
-2021-03-31 07:34:46,205 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
-2021-03-31 07:34:46,302 - INFO - Running hping command for 5s
-2021-03-31 07:34:53,209 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:34:54,821 - INFO - Flow count: 129034
-2021-03-31 07:34:55,208 - INFO - vrouter agent memory usage: top - 13:04:55 up 1 day, 23:06,  2 users,  load average: 0.71, 1.03, 0.74
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  2.5 us,  1.2 sy,  0.0 ni, 96.2 id,  0.0 wa,  0.0 hi,  0.2 si,  0.0 st
-KiB Mem : 26385579+total, 24616790+free, 17283560 used,   404332 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575070+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  31.2  3.2  11:19.38 contrail-vroute
-8433952
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:34:56,836 - INFO - Flow count: 129034
-2021-03-31 07:34:57,209 - INFO - vrouter agent memory usage: top - 13:04:57 up 1 day, 23:06,  2 users,  load average: 0.71, 1.03, 0.74
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.7 us,  0.3 sy,  0.0 ni, 99.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616764+free, 17283792 used,   404360 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575048+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2  11:19.96 contrail-vroute
-8434064
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:34:58,818 - INFO - Flow count: 129034
-2021-03-31 07:34:59,204 - INFO - vrouter agent memory usage: top - 13:04:59 up 1 day, 23:06,  2 users,  load average: 0.71, 1.03, 0.74
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.8 us,  0.3 sy,  0.0 ni, 98.8 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616745+free, 17283940 used,   404396 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575032+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  40.0  3.2  11:20.48 contrail-vroute
-8434296
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        394M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:34:59,205 - INFO - Wait 60s for flows to get cleared
-2021-03-31 07:35:59,205 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:36:00,800 - INFO - Flow count: 129034
-2021-03-31 07:36:01,172 - INFO - vrouter agent memory usage: top - 13:06:01 up 1 day, 23:07,  2 users,  load average: 0.37, 0.86, 0.70
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24617096+free, 17280300 used,   404536 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575396+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  20.0  3.2  11:37.93 contrail-vroute
-8437496
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        395M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:36:02,800 - INFO - Flow count: 129034
-2021-03-31 07:36:03,170 - INFO - vrouter agent memory usage: top - 13:06:03 up 1 day, 23:07,  2 users,  load average: 0.37, 0.86, 0.70
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.2 us,  0.2 sy,  0.0 ni, 99.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616937+free, 17281852 used,   404568 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575241+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  12.5  3.2  11:38.49 contrail-vroute
-8437524
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        395M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:36:04,809 - INFO - Flow count: 129034
-2021-03-31 07:36:05,184 - INFO - vrouter agent memory usage: top - 13:06:05 up 1 day, 23:07,  2 users,  load average: 0.34, 0.85, 0.69
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616960+free, 17281568 used,   404628 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575270+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2  11:39.09 contrail-vroute
-8437584
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        395M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:36:05,185 - INFO - Adding 100000 flows
-2021-03-31 07:36:05,185 - INFO - Starting hping3  on ctest-TestFlowScale-82193525-73961276, args:  --udp   --destport ++1000  --baseport 1000  --count 100000  --interval u1 
-2021-03-31 07:36:05,285 - INFO - Running hping command for 5s
-2021-03-31 07:36:12,192 - INFO - Checking flow_count and memory usage of vrouter: Taking 3 readings
-2021-03-31 07:36:13,798 - INFO - Flow count: 131074
-2021-03-31 07:36:14,180 - INFO - vrouter agent memory usage: top - 13:06:14 up 1 day, 23:07,  2 users,  load average: 0.31, 0.83, 0.69
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.3 us,  0.2 sy,  0.0 ni, 99.5 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616604+free, 17283832 used,   405912 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575036+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  26.7  3.2  11:49.27 contrail-vroute
-8438304
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:36:15,837 - INFO - Flow count: 131074
-2021-03-31 07:36:16,210 - INFO - vrouter agent memory usage: top - 13:06:16 up 1 day, 23:07,  2 users,  load average: 0.37, 0.84, 0.69
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  1.0 us,  0.3 sy,  0.0 ni, 98.7 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616700+free, 17282848 used,   405936 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24575134+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  33.3  3.2  11:49.85 contrail-vroute
-8438412
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:36:17,863 - INFO - Flow count: 131074
-2021-03-31 07:36:18,232 - INFO - vrouter agent memory usage: top - 13:06:18 up 1 day, 23:07,  2 users,  load average: 0.37, 0.84, 0.69
-Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  0.5 us,  0.3 sy,  0.0 ni, 99.2 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
-KiB Mem : 26385579+total, 24616516+free, 17284520 used,   406100 buff/cache
-KiB Swap:        0 total,        0 free,        0 used. 24574969+avail Mem 
-
-  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
-24319 root      20   0 8968372   8.0g   1.5g S  31.2  3.2  11:50.45 contrail-vroute
-8438428
-              total        used        free      shared  buff/cache   available
-Mem:           251G         16G        234G         10M        396M        234G
-Swap:            0B          0B          0B
-2021-03-31 07:36:27,127 - INFO - Flows greater than 1 Million
-2021-03-31 07:36:27,128 - INFO - Deleting VM ctest-TestFlowScale-82193525-73961276
-2021-03-31 07:36:29,169 - INFO - END TEST : test_flow_scale : PASSED[0:08:20]
-2021-03-31 07:36:29,169 - INFO - --------------------------------------------------------------------------------
-2021-03-31 07:36:29,399 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:31,489 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:33,577 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:35,667 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:37,751 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:39,849 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:41,929 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
-2021-03-31 07:36:44,015 - WARNING - Project ctest-TestFlowScale-82193525 still has VNs [{'to': ['default-domain', 'ctest-TestFlowScale-82193525', 'ctest-vn-18215418'], 'href': 'http://10.204.216.103:8082/virtual-network/9ba8e8f6-ec12-4b98-aa34-91781e14171c', 'uuid': '9ba8e8f6-ec12-4b98-aa34-91781e14171c'}] before deletion
+2021-03-31 08:04:42,195 - INFO - Starting hping3  on ctest-TestFlowScale-12476991-00517704, args:  --udp   --keep   --destport ++1000  --baseport 5002  --count 1048576  --interval u1 
+2021-03-31 08:04:42,299 - INFO - Running command for 5s
