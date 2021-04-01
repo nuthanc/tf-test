@@ -33,7 +33,8 @@ class TestFlowScale(GenericTestBase):
             self.vn1_vm1_fixture.vm_node_ip))
         self.compute_fixture = ComputeNodeFixture(
             self.connections, self.vn1_vm1_fixture.vm_node_ip)
-        self.count = 4
+        self.flow_mem_usage = {}
+        self.mem_usg = [] 
 
 
     @classmethod
@@ -85,19 +86,33 @@ class TestFlowScale(GenericTestBase):
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
+    def run_hping_udp(self, baseport):
+        count = 1024 * 1024
+        interval = 'u1'
+        destport = '++1000'
+        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+        hping_h = Hping3(self.vn1_vm1_fixture,
+                         gateway_ip,
+                         udp=True,
+                         keep=True,
+                         destport=destport,
+                         baseport=baseport,
+                         count=count,
+                         interval=interval)
+        hping_h.start(wait=False)
+        self.logger.info('Running hping command for 5s')
+        time.sleep(5)
+        (stats, hping_log) = hping_h.stop()
+
 
     def calc_vrouter_mem_usage(self):
-        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'; free -h"
-        out = self.compute_fixture.execute_cmd(cmd, container=None)
+        cmd = "cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'"
+        out = int(self.compute_fixture.execute_cmd(cmd, container=None))
         self.logger.info('vrouter agent memory usage: %s' % out)
+        return out
 
 
     def wait_and_add_flows(self, baseport):
-        self.logger.info('Generate gcore of agent process')
-        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent)' %self.count)
-        self.count += 1
-        self.logger.info('Output of gcore cmd: %s' %out)
-        
         self.logger.info('Wait 120s for flows to get cleared')
         time.sleep(120)
         self.logger.info(
@@ -106,29 +121,14 @@ class TestFlowScale(GenericTestBase):
             self.logger.info('Reading %s after waiting is done' %(i+1))
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
-            self.calc_vrouter_mem_usage()
+            mem = self.calc_vrouter_mem_usage()
+            self.flow_mem_usage[flow_count] = mem
+            self.mem_usg.append(mem)
             time.sleep(2)
-
-        self.logger.info('Generate gcore of agent process')
-        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent)' %self.count)
-        self.count += 1
-        self.logger.info('Output of gcore cmd: %s' %out)
         
         # Add 100000 flows
         self.logger.info('Adding 100000 flows')
-        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
-        hping_h = Hping3(self.vn1_vm1_fixture,
-                         gateway_ip,
-                         udp=True,
-                         keep=True,
-                         destport='++1000',
-                         baseport=baseport,
-                         count=1024*1024,
-                         interval='u1')
-        hping_h.start(wait=False)
-        self.logger.info('Running hping command for 5s')
-        time.sleep(5)
-        (stats, hping_log) = hping_h.stop()
+        self.run_hping_udp(baseport)
         flow_count = self.get_flow_count()
         self.logger.info(
             'Checking flow_count and memory usage of vrouter: Taking 3 readings')
@@ -136,7 +136,9 @@ class TestFlowScale(GenericTestBase):
             self.logger.info('Reading %s after add' %(i+1))
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
-            self.calc_vrouter_mem_usage()
+            mem = self.calc_vrouter_mem_usage()
+            self.flow_mem_usage[flow_count] = mem
+            self.mem_usg.append(mem)
             time.sleep(2)
 
 
@@ -146,9 +148,12 @@ class TestFlowScale(GenericTestBase):
         cmd = "docker exec -it %s timeout 1 flow -r|awk '{print $5}'" % tools_container
         flow_count = self.compute_fixture.execute_cmd(cmd, container=None)
         if flow_count:
-            return int(flow_count)
+            flow_count = int(flow_count)
         else:
-            return 0
+            flow_count = 0
+        self.logger.info('Flow count: %s' % flow_count)
+        return flow_count
+
 
     def memory_leak_checks(self):
         for i in range(3):
@@ -160,6 +165,7 @@ class TestFlowScale(GenericTestBase):
         #     self.logger.info('Sleep for 10 minutes')
         #     time.sleep(10 * 60)
         #     self.calc_vrouter_mem_usage()        
+
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
@@ -175,92 +181,55 @@ class TestFlowScale(GenericTestBase):
          Pass criteria: Flow count greater than 1 million
          Maintainer : nuthanc@juniper.net 
         '''
-        self.calc_vrouter_mem_usage()
-        self.logger.info('Before creation gcore')
-        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent); ls -lhrt core.%s*' %(self.count, self.count))
-        self.logger.info('Output of gcore cmd: %s' %out)
-
-        destport = '++1000'
-        count = 1024 * 1024
-        interval = 'u1'
-        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+        mem = self.calc_vrouter_mem_usage()
+        flow_count = self.get_flow_count()
+        self.flow_mem_usage[flow_count] = mem
 
         for baseport in range(5001, 7050):
-            hping_h = Hping3(self.vn1_vm1_fixture,
-                            #  self.vn1_vm2_fixture.vm_ip,
-                             gateway_ip,
-                             udp=True,
-                             keep=True,
-                             destport=destport,
-                             baseport=baseport,
-                             count=count,
-                             interval=interval)
-            hping_h.start(wait=False)
-            self.logger.info('Running command for 5s')
-            time.sleep(5)
-            (stats, hping_log) = hping_h.stop()
-            # flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
-            # flow_count = flow_table.flow_count
+            self.run_hping_udp(baseport)
             flow_count = self.get_flow_count()
-            self.logger.info('Flow count: %s' % flow_count)
-            self.calc_vrouter_mem_usage()
-            if flow_count >= 1024 * 1024 * 1:
+            mem = self.calc_vrouter_mem_usage()
+            self.flow_mem_usage[flow_count] = mem
+            self.mem_usg.append(mem)
+            if flow_count >= 1024 * 1024 * 2:
                 break
 
-        self.count += 1
-        self.logger.info('Gcore after 1 Million creation')
-        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent); ls -lhrt core.%s*' %(self.count, self.count))
-        self.logger.info('Output of gcore cmd: %s' %out)
-
-        flow_count = self.get_flow_count()
-        self.logger.info('Flow count: %s' % flow_count)
-        self.logger.info('Sleeping for 2m')
-        time.sleep(120)
-        while flow_count > 50:
-            time.sleep(5)
-            flow_count = self.get_flow_count()
-            self.logger.info('Flow count: %s' % flow_count)
-
-        self.count += 1
-        self.logger.info('Generate gcore of agent process')
-        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent); ls -lhrt core.%s*' %(self.count, self.count))
-        self.logger.info('Output of gcore cmd: %s' %out)
-        # self.memory_leak_checks()
-        import pdb;pdb.set_trace()
-        self.logger.info('Flows greater than 1 Million')
+        # Difference between mem usage for each read 
+        diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
+        avg = sum(diff) / len(diff)
+        self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
+        self.memory_leak_checks()
+        self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
 
 
-    @test.attr(type=['flow_scale'])
-    @preposttest_wrapper
-    def test_flow_scale_tcp(self):
-        destport = '++1000'
-        count = 1024 * 1024
-        interval = 'u1'
+    # @test.attr(type=['flow_scale'])
+    # @preposttest_wrapper
+    # def test_flow_scale_tcp(self):
+    #     destport = '++1000'
+    #     count = 1024 * 1024
+    #     interval = 'u1'
 
-        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+    #     gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
 
-        for baseport in range(1001, 7050):
-            hping_h = Hping3(self.vn1_vm1_fixture,
-                             gateway_ip,
-                             syn=True,
-                             keep=True,
-                             flood=True,
-                             destport=destport,
-                             baseport=baseport,
-                             count=count,
-                             interval=interval)
-            hping_h.start(wait=False)
-            self.logger.info('Running command for 5s')
-            time.sleep(5)
-            (stats, hping_log) = hping_h.stop()
-            # I think get_flow_table is taking lot of time
-            # flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
-            # flow_count = flow_table.flow_count
-            flow_count = self.get_flow_count()
-            self.logger.info('Flow count: %s' % flow_count)
-            self.calc_vrouter_mem_usage()
-            if flow_count >= 1024 * 1024 * 6:
-                break
+    #     for baseport in range(1001, 7050):
+    #         hping_h = Hping3(self.vn1_vm1_fixture,
+    #                          gateway_ip,
+    #                          syn=True,
+    #                          keep=True,
+    #                          flood=True,
+    #                          destport=destport,
+    #                          baseport=baseport,
+    #                          count=count,
+    #                          interval=interval)
+    #         hping_h.start(wait=False)
+    #         self.logger.info('Running command for 5s')
+    #         time.sleep(5)
+    #         (stats, hping_log) = hping_h.stop()
+    #         flow_count = self.get_flow_count()
+    #         [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
+    #         self.calc_vrouter_mem_usage()
+    #         if flow_count >= 1024 * 1024 * 2:
+    #             break
 
 
 if __name__ == '__main__':
