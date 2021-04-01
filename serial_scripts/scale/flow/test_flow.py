@@ -14,7 +14,7 @@ class TestFlowScale(GenericTestBase):
         cls.logger.setLevel(logging.INFO)
         cls.get_compute_fixtures()
         # cls.add_phy_intf_in_vrouter_env()
-        cls.preconfig()
+        # cls.preconfig()
 
 
     @classmethod
@@ -86,6 +86,7 @@ class TestFlowScale(GenericTestBase):
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
+
     def run_hping_udp(self, baseport):
         count = 1024 * 1024
         interval = 'u1'
@@ -104,6 +105,25 @@ class TestFlowScale(GenericTestBase):
         time.sleep(5)
         (stats, hping_log) = hping_h.stop()
 
+
+    def run_hping_tcp(self, baseport):
+        count = 1024 * 1024
+        interval = 'u1'
+        destport = '++1000'
+        gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
+        hping_h = Hping3(self.vn1_vm1_fixture,
+                             gateway_ip,
+                             syn=True,
+                             keep=True,
+                             flood=True,
+                             destport=destport,
+                             baseport=baseport,
+                             count=count,
+                             interval=interval)
+        hping_h.start(wait=False)
+        self.logger.info('Running command for 5s')
+        time.sleep(5)
+        (stats, hping_log) = hping_h.stop()
 
     def calc_vrouter_mem_usage(self):
         cmd = "cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'"
@@ -171,14 +191,14 @@ class TestFlowScale(GenericTestBase):
     @preposttest_wrapper
     def test_flow_scale(self):
         '''
-        Description: Test to scale 1 million flows
+        Description: Test to scale above 1 million flows and check for memory leaks for UDP traffic
          Test steps:
                 1. Add PHYSICAL_INTERFACE in vrouter env if absent
                 2. Set flow entries to 1 million in vrouter module
                 3. Increase flow timeout to high value like 9999
                 4. Send traffic through hping3 changing the source port with each iteration
                 5. Check for flow count in flow table
-         Pass criteria: Flow count greater than 1 million
+         Pass criteria: Flows scaled above 1 million and there is no memory leaks
          Maintainer : nuthanc@juniper.net 
         '''
         mem = self.calc_vrouter_mem_usage()
@@ -202,34 +222,35 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
 
 
-    # @test.attr(type=['flow_scale'])
-    # @preposttest_wrapper
-    # def test_flow_scale_tcp(self):
-    #     destport = '++1000'
-    #     count = 1024 * 1024
-    #     interval = 'u1'
+    @test.attr(type=['flow_scale'])
+    @preposttest_wrapper
+    def test_flow_scale_tcp(self):
+        '''
+        Description: Test to scale above 1 million flows and check for memory leaks for TCP traffic
+         Test steps:
+                1. Add PHYSICAL_INTERFACE in vrouter env if absent
+                2. Set flow entries to 1 million in vrouter module
+                3. Increase flow timeout to high value like 9999
+                4. Send traffic through hping3 changing the source port with each iteration
+                5. Check for flow count in flow table
+         Pass criteria: Flows scaled above 1 million and there is no memory leaks
+         Maintainer : nuthanc@juniper.net 
+        '''
+        for baseport in range(1001, 7050):
+            self.run_hping_tcp(baseport)
+            flow_count = self.get_flow_count()
+            mem = self.calc_vrouter_mem_usage()
+            self.flow_mem_usage[flow_count] = mem
+            self.mem_usg.append(mem)
+            if flow_count >= 1024 * 1024 * 2:
+                break
 
-    #     gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
-
-    #     for baseport in range(1001, 7050):
-    #         hping_h = Hping3(self.vn1_vm1_fixture,
-    #                          gateway_ip,
-    #                          syn=True,
-    #                          keep=True,
-    #                          flood=True,
-    #                          destport=destport,
-    #                          baseport=baseport,
-    #                          count=count,
-    #                          interval=interval)
-    #         hping_h.start(wait=False)
-    #         self.logger.info('Running command for 5s')
-    #         time.sleep(5)
-    #         (stats, hping_log) = hping_h.stop()
-    #         flow_count = self.get_flow_count()
-    #         [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
-    #         self.calc_vrouter_mem_usage()
-    #         if flow_count >= 1024 * 1024 * 2:
-    #             break
+        diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
+        avg = sum(diff) / len(diff)
+        self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
+        self.memory_leak_checks()
+        self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
+            
 
 
 if __name__ == '__main__':
