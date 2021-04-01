@@ -33,6 +33,7 @@ class TestFlowScale(GenericTestBase):
             self.vn1_vm1_fixture.vm_node_ip))
         self.compute_fixture = ComputeNodeFixture(
             self.connections, self.vn1_vm1_fixture.vm_node_ip)
+        self.count = 4
 
 
     @classmethod
@@ -93,7 +94,8 @@ class TestFlowScale(GenericTestBase):
 
     def wait_and_add_flows(self, baseport):
         self.logger.info('Generate gcore of agent process')
-        out = self.compute_fixture.execute_cmd('gcore $(pidof contrail-vrouter-agent)')
+        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent)' %self.count)
+        self.count += 1
         self.logger.info('Output of gcore cmd: %s' %out)
         
         self.logger.info('Wait 120s for flows to get cleared')
@@ -108,7 +110,8 @@ class TestFlowScale(GenericTestBase):
             time.sleep(2)
 
         self.logger.info('Generate gcore of agent process')
-        out = self.compute_fixture.execute_cmd('gcore $(pidof contrail-vrouter-agent)')
+        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent)' %self.count)
+        self.count += 1
         self.logger.info('Output of gcore cmd: %s' %out)
         
         # Add 100000 flows
@@ -173,6 +176,10 @@ class TestFlowScale(GenericTestBase):
          Maintainer : nuthanc@juniper.net 
         '''
         self.calc_vrouter_mem_usage()
+        self.logger.info('Before creation gcore')
+        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent); ls -lhrt core.%s*' %(self.count, self.count))
+        self.logger.info('Output of gcore cmd: %s' %out)
+
         destport = '++1000'
         count = 1024 * 1024
         interval = 'u1'
@@ -197,18 +204,29 @@ class TestFlowScale(GenericTestBase):
             flow_count = self.get_flow_count()
             self.logger.info('Flow count: %s' % flow_count)
             self.calc_vrouter_mem_usage()
-            if flow_count >= 1024 * 1024 * 2:
+            if flow_count >= 1024 * 1024 * 1:
                 break
 
-        # flow_table = self.vn1_vm1_vrouter_fixture.get_flow_table()
-        # flow_count = flow_table.flow_count
+        self.count += 1
+        self.logger.info('Gcore after 1 Million creation')
+        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent); ls -lhrt core.%s*' %(self.count, self.count))
+        self.logger.info('Output of gcore cmd: %s' %out)
+
         flow_count = self.get_flow_count()
         self.logger.info('Flow count: %s' % flow_count)
-        # assert flow_count > 1000 * 1000, 'Flows less than 1 Million'
-        self.memory_leak_checks()
-        import pdb
-        pdb.set_trace()
+        self.logger.info('Sleeping for 2m')
+        time.sleep(120)
+        while flow_count > 50:
+            time.sleep(5)
+            flow_count = self.get_flow_count()
+            self.logger.info('Flow count: %s' % flow_count)
 
+        self.count += 1
+        self.logger.info('Generate gcore of agent process')
+        out = self.compute_fixture.execute_cmd('gcore -o core.%s $(pidof contrail-vrouter-agent); ls -lhrt core.%s*' %(self.count, self.count))
+        self.logger.info('Output of gcore cmd: %s' %out)
+        # self.memory_leak_checks()
+        import pdb;pdb.set_trace()
         self.logger.info('Flows greater than 1 Million')
 
 
