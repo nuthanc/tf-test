@@ -14,7 +14,9 @@ class TestFlowScale(GenericTestBase):
         cls.logger.setLevel(logging.INFO)
         cls.get_compute_fixtures()
         # cls.add_phy_intf_in_vrouter_env()
-        # cls.preconfig()
+        flow_entries = 1024 * 1024 * 6
+        flow_timeout = 120
+        # cls.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
 
 
     @classmethod
@@ -35,6 +37,7 @@ class TestFlowScale(GenericTestBase):
             self.connections, self.vn1_vm1_fixture.vm_node_ip)
         self.flow_mem_usage = {}
         self.mem_usg = [] 
+        self.min_mem_usg = 0
 
 
     @classmethod
@@ -80,9 +83,7 @@ class TestFlowScale(GenericTestBase):
 
 
     @classmethod
-    def preconfig(cls):
-        flow_entries = 1024 * 1024 * 6
-        flow_timeout = 120
+    def set_flow_entries_and_age_timeout(cls, flow_entries, flow_timeout):
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
 
@@ -136,30 +137,29 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('Wait 120s for flows to get cleared')
         time.sleep(120)
         self.logger.info(
-            'Checking flow_count and memory usage of vrouter: Taking 3 readings')
-        for i in range(3):
-            self.logger.info('Reading %s after waiting is done' %(i+1))
-            flow_count = self.get_flow_count()
-            self.logger.info('Flow count: %s' % flow_count)
-            mem = self.calc_vrouter_mem_usage()
-            self.flow_mem_usage[flow_count] = mem
-            self.mem_usg.append(mem)
-            time.sleep(2)
+            'Checking flow_count and memory usage of vrouter')
+        flow_count = self.get_flow_count()
+        mem = self.calc_vrouter_mem_usage()
+        l = len(self.mem_usg)
+        diff = mem - self.mem_usg[l-1]
+        import pdb;pdb.set_trace()
+        assert diff < self.min_mem_usg, 'Memory not decreasing proportionately after flow deletion'
+        self.flow_mem_usage[flow_count] = mem
+        self.mem_usg.append(mem)
         
         # Add 100000 flows
         self.logger.info('Adding 100000 flows')
         self.run_hping_udp(baseport)
+        time.sleep(5)
         flow_count = self.get_flow_count()
         self.logger.info(
-            'Checking flow_count and memory usage of vrouter: Taking 3 readings')
-        for i in range(3):
-            self.logger.info('Reading %s after add' %(i+1))
-            flow_count = self.get_flow_count()
-            self.logger.info('Flow count: %s' % flow_count)
-            mem = self.calc_vrouter_mem_usage()
-            self.flow_mem_usage[flow_count] = mem
-            self.mem_usg.append(mem)
-            time.sleep(2)
+            'Checking flow_count and memory usage of vrouter')
+        flow_count = self.get_flow_count()
+        mem = self.calc_vrouter_mem_usage()
+        l = len(self.mem_usg)
+        assert mem > self.mem_usg[l-1], 'Memory not increasing after addition of flows'
+        self.flow_mem_usage[flow_count] = mem
+        self.mem_usg.append(mem)
 
 
     def get_flow_count(self):
@@ -179,12 +179,18 @@ class TestFlowScale(GenericTestBase):
         for i in range(3):
             baseport = 6000 + i
             self.wait_and_add_flows(baseport)
-        import pdb;pdb.set_trace()
-        # self.logger.info('Longevity test')
-        # for i in range(3):
-        #     self.logger.info('Sleep for 10 minutes')
-        #     time.sleep(10 * 60)
-        #     self.calc_vrouter_mem_usage()        
+
+
+    def watch_for_fluctuations(self):
+        flow_count = self.get_flow_count()
+        mem = self.calc_vrouter_mem_usage()
+        flow_len = len(flow_count_list)
+        assert flow_count <= flow_count_list[flow_len-1] + 50, 'Flow count fluctuating'
+        mem_len = len(self.mem_usg)
+        assert mem <= self.mem_usg[mem_len-1] + 1000, 'Memory usage of vrouter fluctuating'
+        self.flow_mem_usage[flow_count] = mem
+        self.mem_usg.append(mem)
+        flow_count_list.append(flow_count)
 
 
     @test.attr(type=['flow_scale'])
@@ -195,15 +201,16 @@ class TestFlowScale(GenericTestBase):
          Test steps:
                 1. Add PHYSICAL_INTERFACE in vrouter env if absent
                 2. Set flow entries to 1 million in vrouter module
-                3. Increase flow timeout to high value like 9999
-                4. Send traffic through hping3 changing the source port with each iteration
-                5. Check for flow count in flow table
+                3. Send traffic through hping3 changing the source port with each iteration
+                4. Check for flow count and memory usage
+                5. Check for memory leaks
          Pass criteria: Flows scaled above 1 million and there is no memory leaks
          Maintainer : nuthanc@juniper.net 
         '''
         mem = self.calc_vrouter_mem_usage()
         flow_count = self.get_flow_count()
         self.flow_mem_usage[flow_count] = mem
+        self.mem_usg.append(mem)
 
         for baseport in range(5001, 7050):
             self.run_hping_udp(baseport)
@@ -217,22 +224,24 @@ class TestFlowScale(GenericTestBase):
         # Difference between mem usage for each read 
         diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
+        self.min_mem_usg = min(diff)
         self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
-        self.memory_leak_checks()
+        self.logger.info('Min memory usage: %s' %self.min_mem_usg)
         self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
+        self.memory_leak_checks()
 
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
     def test_flow_scale_tcp(self):
         '''
-        Description: Test to scale above 1 million flows and check for memory leaks for TCP traffic
+        Description: Test to scale above 6 million flows and check for memory leaks for TCP traffic
          Test steps:
                 1. Add PHYSICAL_INTERFACE in vrouter env if absent
                 2. Set flow entries to 1 million in vrouter module
-                3. Increase flow timeout to high value like 9999
-                4. Send traffic through hping3 changing the source port with each iteration
-                5. Check for flow count in flow table
+                3. Send traffic through hping3 changing the source port with each iteration
+                4. Check for flow count and memory usage
+                5. Check for memory leaks
          Pass criteria: Flows scaled above 1 million and there is no memory leaks
          Maintainer : nuthanc@juniper.net 
         '''
@@ -247,10 +256,65 @@ class TestFlowScale(GenericTestBase):
 
         diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
+        self.min_mem_usg = min(diff)
         self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
-        self.memory_leak_checks()
+        self.logger.info('Min memory usage: %s' %self.min_mem_usg)
         self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
-            
+        self.memory_leak_checks()
+
+
+    @test.attr(type=['flow_scale'])
+    @preposttest_wrapper
+    def test_flow_longevity(self):
+        '''
+        Description: Test for flow longevity
+         Test steps:
+                1. Add PHYSICAL_INTERFACE in vrouter env if absent
+                2. Set flow entries to 6 million in vrouter module
+                3. Increase flow timeout to high value like 1 hr
+                4. Send traffic through hping3 changing the source port with each iteration
+                5. Check for flow count in flow table
+         Pass criteria: Flows remaining constant after long intervals of time and memory usage being the same
+         Maintainer : nuthanc@juniper.net 
+        '''
+        flow_entries = 1024 * 1024 * 6
+        flow_timeout = 60 * 60
+        flow_count_list = []
+        self.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
+        for baseport in range(5001, 7050):
+            self.run_hping_udp(baseport)
+            flow_count = self.get_flow_count()
+            mem = self.calc_vrouter_mem_usage()
+            self.flow_mem_usage[flow_count] = mem
+            self.mem_usg.append(mem)
+            flow_count_list.append(flow_count)
+            if flow_count >= 1024 * 1024 * 6:
+                break
+        
+        self.logger.info('Sleeping for 30s')
+        time.sleep(30)
+
+        mem = self.calc_vrouter_mem_usage()
+        self.flow_mem_usage[flow_count] = mem
+        self.mem_usg.append(mem)
+
+        for i in range(3):
+            self.watch_for_fluctuations()
+            self.logger.info('Sleep for 20s')
+            time.sleep(20)
+
+        for i in range(3):
+            self.watch_for_fluctuations()
+            self.logger.info('Sleep for 10m')
+            time.sleep(10 * 60)
+        
+        diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
+        avg = sum(diff) / len(diff)
+        self.min_mem_usg = min(diff)
+        self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
+        self.logger.info('Min memory usage: %s' %self.min_mem_usg)
+        self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
+
 
 
 if __name__ == '__main__':
