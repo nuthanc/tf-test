@@ -126,10 +126,14 @@ class TestFlowScale(GenericTestBase):
         time.sleep(5)
         (stats, hping_log) = hping_h.stop()
 
+
     def calc_vrouter_mem_usage(self):
+        cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);free -h"
+        out = self.compute_fixture.execute_cmd(cmd, container=None)
+        self.logger.info('Top cmd info of agent process: %s' % out)
         cmd = "cat /proc/$(pidof contrail-vrouter-agent)/status | grep VmRSS | awk '{print $2}'"
         out = int(self.compute_fixture.execute_cmd(cmd, container=None))
-        self.logger.info('vrouter agent memory usage: %s' % out)
+        self.logger.info('vrouter agent resident memory usage: %s' % out)
         return out
 
 
@@ -147,9 +151,17 @@ class TestFlowScale(GenericTestBase):
         self.flow_mem_usage[flow_count] = mem
         self.mem_usg.append(mem)
         
-        # Add 100000 flows
-        self.logger.info('Adding 100000 flows')
-        self.run_hping_udp(baseport)
+        # Add 1 Million flows
+        self.logger.info('Adding 1 Million flows')
+        for baseport in range(6001, 6050):
+            self.run_hping_udp(baseport)
+            flow_count = self.get_flow_count()
+            mem = self.calc_vrouter_mem_usage()
+            self.flow_mem_usage[flow_count] = mem
+            self.mem_usg.append(mem)
+            if flow_count >= 1024 * 1024:
+                break
+
         time.sleep(5)
         flow_count = self.get_flow_count()
         self.logger.info(
@@ -222,7 +234,7 @@ class TestFlowScale(GenericTestBase):
                 break
 
         # Difference between mem usage for each read 
-        diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
+        diff = [abs(j-i) for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
         self.min_mem_usg = min(diff)
         self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
@@ -254,7 +266,7 @@ class TestFlowScale(GenericTestBase):
             if flow_count >= 1024 * 1024 * 2:
                 break
 
-        diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
+        diff = [abs(j-i) for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
         self.min_mem_usg = min(diff)
         self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
