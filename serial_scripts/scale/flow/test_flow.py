@@ -16,7 +16,7 @@ class TestFlowScale(GenericTestBase):
         # cls.add_phy_intf_in_vrouter_env()
         flow_entries = 1024 * 1024 * 6
         flow_timeout = 120
-        # cls.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
+        cls.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
 
 
     @classmethod
@@ -65,14 +65,28 @@ class TestFlowScale(GenericTestBase):
                 compute_fixture.execute_cmd(cmd, container=None)
 
 
+    def is_dpdk_compute(compute_ip):
+        cmd = "docker ps -a | grep dpdk"
+        compute_fix = self.compute_fixtures_dict[compute_ip]
+        ret = compute_fix.execute_cmd(cmd, None)
+        if (ret != ""):
+            return True
+        else:
+            return False
+
     @classmethod
     def set_flow_entries(cls, flow_entries):
         for compute_fixture in cls.compute_fixtures:
-            compute_fixture.add_vrouter_module_params(
-                {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
-            info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
-            output = compute_fixture.execute_cmd(info_cmd, container=None)
-            cls.logger.info(output)
+            import pdb;pdb.set_trace()
+            if cls.inputs.host_data[host]['roles'].get('vrouter').get('AGENT_MODE') != 'dpdk':
+                compute_fixture.add_vrouter_module_params(
+                    {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
+                info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
+                output = compute_fixture.execute_cmd(info_cmd, container=None)
+                cls.logger.info(output)
+            elif cls.inputs.host_data[host]['roles'].get('vrouter').get('AGENT_MODE') == 'dpdk':
+                pass
+
 
 
     @classmethod
