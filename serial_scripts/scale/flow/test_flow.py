@@ -43,9 +43,13 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def get_compute_fixtures(cls):
         cls.compute_fixtures = []
+        hset = set()
         for name, ip in cls.connections.inputs.compute_info.items():
-            cls.compute_fixtures.append(
-                ComputeNodeFixture(cls.connections, ip))
+            if ip not in hset:
+                cls.compute_fixtures.append(
+                    ComputeNodeFixture(cls.connections, ip))
+            else:
+                hset.add(ip)
 
 
     @classmethod
