@@ -75,18 +75,18 @@ class TestFlowScale(GenericTestBase):
 
     @classmethod
     def set_flow_entries(cls, flow_entries):
-        for compute_fixture in cls.compute_fixtures[1]:
-            import pdb;pdb.set_trace()
-            if cls.is_dpdk_compute(compute_fixture.ip):
-                knob = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=4000000"'
-                cls.inputs.add_knob_to_container(compute_fixture.ip, 'contrail-vrouter-agent-dpdk', level='# base command', restart_container=True, knob=knob, file_name='entrypoint.sh')
-                pass
-            else:
-                compute_fixture.add_vrouter_module_params(
-                    {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
-                info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
-                output = compute_fixture.execute_cmd(info_cmd, container=None)
-                cls.logger.info(output)
+        compute_fixture = cls.compute_fixtures[1]:
+        import pdb;pdb.set_trace()
+        if cls.is_dpdk_compute(compute_fixture.ip):
+            knob = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=4000000"'
+            cls.inputs.add_knob_to_container(compute_fixture.ip, 'contrail-vrouter-agent-dpdk', level='# base command', restart_container=True, knob=knob, file_name='entrypoint.sh')
+            pass
+        else:
+            compute_fixture.add_vrouter_module_params(
+                {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
+            info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
+            output = compute_fixture.execute_cmd(info_cmd, container=None)
+            cls.logger.info(output)
 
 
 
