@@ -75,7 +75,7 @@ class TestFlowScale(GenericTestBase):
 
     @classmethod
     def set_flow_entries(cls, flow_entries):
-        compute_fixture = cls.compute_fixtures[1]:
+        compute_fixture = cls.compute_fixtures[1]
         import pdb;pdb.set_trace()
         if cls.is_dpdk_compute(compute_fixture.ip):
             knob = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=4000000"'
