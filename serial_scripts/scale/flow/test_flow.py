@@ -48,7 +48,6 @@ class TestFlowScale(GenericTestBase):
             if ip not in hset:
                 cls.compute_fixtures.append(
                     ComputeNodeFixture(cls.connections, ip))
-            else:
                 hset.add(ip)
 
 
