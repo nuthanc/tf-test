@@ -80,7 +80,7 @@ class TestFlowScale(GenericTestBase):
     def set_flow_entries(cls, flow_entries):
         compute_fixture = cls.compute_fixtures[1]
         import pdb;pdb.set_trace()
-        if cls.is_dpdk_compute(compute_fixture.ip):
+        if cls.is_dpdk_compute(compute_fixture):
             knob = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=4000000"'
             cls.inputs.add_knob_to_container(compute_fixture.ip, 'contrail-vrouter-agent-dpdk', level='# base command', restart_container=True, knob=knob, file_name='entrypoint.sh')
             pass
