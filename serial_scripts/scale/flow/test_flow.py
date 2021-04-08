@@ -77,13 +77,54 @@ class TestFlowScale(GenericTestBase):
             return False
 
     @classmethod
+    def add_dpdk_flow_args_to_entrypoint(cls, compute_fixture, flow_entries):
+        container_name = 'contrail-vrouter-agent-dpdk'
+        file_name = 'entrypoint.sh'
+        args = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=%s"' %flow_entries
+        level = '# base command'
+        just_args = args[:args.find('=')]
+        node_ip = compute_fixture.ip
+
+        issue_cmd = 'docker cp %s:/%s .' % (container_name, file_name)
+        cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
+        op = compute_fixture.execute_cmd(issue_cmd, container=None)
+        cls.logger.info(op)
+        
+        issue_cmd = "awk 'BEGIN { section=0; doprint=1 } /%s/ { section=1 } /%s/ { if (section) {doprint=0; section=0} } { if (doprint) {print} else {doprint=1} }'  %s > %s.modified" % (
+            level, just_args, file_name, file_name)
+        cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
+        op = compute_fixture.execute_cmd(issue_cmd, container=None)
+        cls.logger.info(op)
+
+        issue_cmd = "mv entrypoint.sh.modified entrypoint.sh; chmod +x entrypoint.sh"
+        cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
+        op = compute_fixture.execute_cmd(issue_cmd, container=None)
+        cls.logger.info(op)
+
+        issue_cmd = 'grep -q -F \''+args+'\' %s ||' % (file_name) + \
+                    'sed -i  \'/'+level+'/a '+args+'\' %s' % (file_name)
+        cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
+        op = compute_fixture.execute_cmd(issue_cmd, container=None)
+        cls.logger.info(op)
+
+        issue_cmd = 'docker cp %s %s:/%s' % (file_name, container_name,
+                                             file_name)
+        cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
+        op = compute_fixture.execute_cmd(issue_cmd, container=None)
+        cls.logger.info(op)
+
+        issue_cmd = 'docker restart %s -t 60' % (container_name)
+        cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
+        op = compute_fixture.execute_cmd(issue_cmd, container=None)
+        cls.logger.info(op)
+
+
+    @classmethod
     def set_flow_entries(cls, flow_entries):
         compute_fixture = cls.compute_fixtures[1]
         import pdb;pdb.set_trace()
         if cls.is_dpdk_compute(compute_fixture):
-            knob = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=4000000"'
-            cls.inputs.add_knob_to_container(compute_fixture.ip, 'contrail-vrouter-agent-dpdk', level='# base command', restart_container=True, knob=knob, file_name='entrypoint.sh')
-            pass
+            cls.add_dpdk_flow_args_to_entrypoint(compute_fixture, flow_entries)
         else:
             compute_fixture.add_vrouter_module_params(
                 {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
