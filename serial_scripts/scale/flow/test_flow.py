@@ -27,7 +27,7 @@ class TestFlowScale(GenericTestBase):
     def setUp(self):
         super(TestFlowScale, self).setUp()
         self.vn1_fixture = self.create_only_vn()
-        vm1_node_name = self.inputs.host_data[self.inputs.compute_ips[0]]['name']
+        vm1_node_name = self.inputs.host_data[self.inputs.compute_ips[1]]['name']
         self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture, node_name=vm1_node_name)
         self.vn1_vm1_fixture.wait_till_vm_is_up()
         self.vn1_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
@@ -64,11 +64,10 @@ class TestFlowScale(GenericTestBase):
                 cmd = '%s;%s;%s' % (echo_line, cd_vrouter, down_up)
                 compute_fixture.execute_cmd(cmd, container=None)
 
-
-    def is_dpdk_compute(compute_ip):
+    @classmethod
+    def is_dpdk_compute(cls, compute_fixture):
         cmd = "docker ps -a | grep dpdk"
-        compute_fix = self.compute_fixtures_dict[compute_ip]
-        ret = compute_fix.execute_cmd(cmd, None)
+        ret = compute_fixture.execute_cmd(cmd, None)
         if (ret != ""):
             return True
         else:
@@ -76,16 +75,18 @@ class TestFlowScale(GenericTestBase):
 
     @classmethod
     def set_flow_entries(cls, flow_entries):
-        for compute_fixture in cls.compute_fixtures:
+        for compute_fixture in cls.compute_fixtures[1]:
             import pdb;pdb.set_trace()
-            if cls.inputs.host_data[host]['roles'].get('vrouter').get('AGENT_MODE') != 'dpdk':
+            if cls.is_dpdk_compute(compute_fixture.ip):
+                knob = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=4000000"'
+                cls.inputs.add_knob_to_container(compute_fixture.ip, 'contrail-vrouter-agent-dpdk', level='# base command', restart_container=True, knob=knob, file_name='entrypoint.sh')
+                pass
+            else:
                 compute_fixture.add_vrouter_module_params(
                     {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
                 info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
                 output = compute_fixture.execute_cmd(info_cmd, container=None)
                 cls.logger.info(output)
-            elif cls.inputs.host_data[host]['roles'].get('vrouter').get('AGENT_MODE') == 'dpdk':
-                pass
 
 
 
