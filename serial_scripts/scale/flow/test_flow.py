@@ -87,25 +87,21 @@ class TestFlowScale(GenericTestBase):
 
         issue_cmd = 'docker cp %s:/%s .' % (container_name, file_name)
         cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
-        op = compute_fixture.execute_cmd(issue_cmd, container=None)
-        cls.logger.info(op)
+        compute_fixture.execute_cmd(issue_cmd, container=None)
         
         issue_cmd = "awk 'BEGIN { section=0; doprint=1 } /%s/ { section=1 } /%s/ { if (section) {doprint=0; section=0} } { if (doprint) {print} else {doprint=1} }'  %s > %s.modified" % (
             level, just_args, file_name, file_name)
         cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
-        op = compute_fixture.execute_cmd(issue_cmd, container=None)
-        cls.logger.info(op)
+        compute_fixture.execute_cmd(issue_cmd, container=None)
 
         issue_cmd = "mv entrypoint.sh.modified entrypoint.sh; chmod +x entrypoint.sh"
         cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
-        op = compute_fixture.execute_cmd(issue_cmd, container=None)
-        cls.logger.info(op)
+        compute_fixture.execute_cmd(issue_cmd, container=None)
 
         issue_cmd = 'grep -q -F \''+args+'\' %s ||' % (file_name) + \
                     'sed -i  \'/'+level+'/a '+args+'\' %s' % (file_name)
         cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
-        op = compute_fixture.execute_cmd(issue_cmd, container=None)
-        cls.logger.info(op)
+        compute_fixture.execute_cmd(issue_cmd, container=None)
 
         issue_cmd = 'docker cp %s %s:/%s' % (file_name, container_name,
                                              file_name)
@@ -122,7 +118,6 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def set_flow_entries(cls, flow_entries):
         compute_fixture = cls.compute_fixtures[1]
-        import pdb;pdb.set_trace()
         if cls.is_dpdk_compute(compute_fixture):
             cls.add_dpdk_flow_args_to_entrypoint(compute_fixture, flow_entries)
         else:
