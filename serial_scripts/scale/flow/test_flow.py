@@ -15,8 +15,8 @@ class TestFlowScale(GenericTestBase):
         cls.get_compute_fixtures()
         # cls.add_phy_intf_in_vrouter_env()
         flow_entries = 1024 * 1024 * 6
-        flow_timeout = 120
-        # cls.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
+        flow_timeout = 6000
+        cls.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
 
 
     @classmethod
