@@ -284,7 +284,7 @@ class TestFlowScale(GenericTestBase):
             mem = self.calc_vrouter_mem_usage()
             self.flow_mem_usage[flow_count] = mem
             self.mem_usg.append(mem)
-            if flow_count >= 1024 * 1024 * 2:
+            if flow_count >= 1024 * 1024 * 6:
                 break
 
         # Difference between mem usage for each read 
