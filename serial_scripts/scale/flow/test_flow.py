@@ -6,6 +6,7 @@ from tcutils.traffic_utils.hping_traffic import Hping3
 import time
 import logging
 
+
 class TestFlowScale(GenericTestBase):
 
     @classmethod
@@ -18,17 +19,16 @@ class TestFlowScale(GenericTestBase):
         flow_timeout = 6000
         cls.set_flow_entries_and_age_timeout(flow_entries, flow_timeout)
 
-
     @classmethod
     def tearDownClass(cls):
         super(TestFlowScale, cls).tearDownClass()
-
 
     def setUp(self):
         super(TestFlowScale, self).setUp()
         self.vn1_fixture = self.create_only_vn()
         vm1_node_name = self.inputs.host_data[self.inputs.compute_ips[1]]['name']
-        self.vn1_vm1_fixture = self.create_vm(self.vn1_fixture, node_name=vm1_node_name)
+        self.vn1_vm1_fixture = self.create_vm(
+            self.vn1_fixture, node_name=vm1_node_name)
         self.vn1_vm1_fixture.wait_till_vm_is_up()
         self.vn1_vm1_vrouter_fixture = self.useFixture(ComputeNodeFixture(
             self.connections,
@@ -36,9 +36,8 @@ class TestFlowScale(GenericTestBase):
         self.compute_fixture = ComputeNodeFixture(
             self.connections, self.vn1_vm1_fixture.vm_node_ip)
         self.flow_mem_usage = {}
-        self.mem_usg = [] 
+        self.mem_usg = []
         self.min_mem_usg = 0
-
 
     @classmethod
     def get_compute_fixtures(cls):
@@ -49,7 +48,6 @@ class TestFlowScale(GenericTestBase):
                 cls.compute_fixtures.append(
                     ComputeNodeFixture(cls.connections, ip))
                 hset.add(ip)
-
 
     @classmethod
     def add_phy_intf_in_vrouter_env(cls):
@@ -80,7 +78,7 @@ class TestFlowScale(GenericTestBase):
     def add_dpdk_flow_args_to_entrypoint(cls, compute_fixture, flow_entries):
         container_name = 'contrail-vrouter-agent-dpdk'
         file_name = 'entrypoint.sh'
-        args = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=%s"' %flow_entries
+        args = 'DPDK_COMMAND_ADDITIONAL_ARGS="--vr_flow_entries=%s"' % flow_entries
         level = '# base command'
         just_args = args[:args.find('=')]
         node_ip = compute_fixture.ip
@@ -88,7 +86,7 @@ class TestFlowScale(GenericTestBase):
         issue_cmd = 'docker cp %s:/%s .' % (container_name, file_name)
         cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
         compute_fixture.execute_cmd(issue_cmd, container=None)
-        
+
         issue_cmd = "awk 'BEGIN { section=0; doprint=1 } /%s/ { section=1 } /%s/ { if (section) {doprint=0; section=0} } { if (doprint) {print} else {doprint=1} }'  %s > %s.modified" % (
             level, just_args, file_name, file_name)
         cls.logger.info('Running %s on %s' % (issue_cmd, node_ip))
@@ -114,7 +112,6 @@ class TestFlowScale(GenericTestBase):
         op = compute_fixture.execute_cmd(issue_cmd, container=None)
         cls.logger.info(op)
 
-
     @classmethod
     def set_flow_entries(cls, flow_entries):
         compute_fixture = cls.compute_fixtures[1]
@@ -127,20 +124,15 @@ class TestFlowScale(GenericTestBase):
             output = compute_fixture.execute_cmd(info_cmd, container=None)
             cls.logger.info(output)
 
-
-
     @classmethod
     def add_flow_cache_timeout(cls, flow_timeout):
-        # Add flow_cache_timeout in all the computes
         for cmp_fix in cls.compute_fixtures:
             cmp_fix.set_flow_aging_time(flow_timeout)
-
 
     @classmethod
     def set_flow_entries_and_age_timeout(cls, flow_entries, flow_timeout):
         cls.set_flow_entries(flow_entries)
         cls.add_flow_cache_timeout(flow_timeout)
-
 
     def run_hping_udp(self, baseport):
         count = 1024 * 1024
@@ -160,26 +152,24 @@ class TestFlowScale(GenericTestBase):
         time.sleep(5)
         (stats, hping_log) = hping_h.stop()
 
-
     def run_hping_tcp(self, baseport):
         count = 1024 * 1024
         interval = 'u1'
         destport = '++1000'
         gateway_ip = self.vn1_fixture.vn_subnet_objs[0]['gateway_ip']
         hping_h = Hping3(self.vn1_vm1_fixture,
-                             gateway_ip,
-                             syn=True,
-                             keep=True,
-                             flood=True,
-                             destport=destport,
-                             baseport=baseport,
-                             count=count,
-                             interval=interval)
+                         gateway_ip,
+                         syn=True,
+                         keep=True,
+                         flood=True,
+                         destport=destport,
+                         baseport=baseport,
+                         count=count,
+                         interval=interval)
         hping_h.start(wait=False)
         self.logger.info('Running command for 5s')
         time.sleep(5)
         (stats, hping_log) = hping_h.stop()
-
 
     def calc_vrouter_mem_usage(self):
         cmd = "top -b -n 1 -p $(pidof contrail-vrouter-agent);free -h"
@@ -190,7 +180,6 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('vrouter agent resident memory usage: %s' % out)
         return out
 
-
     def wait_and_add_flows(self, baseport):
         self.logger.info('Wait 120s for flows to get cleared')
         time.sleep(120)
@@ -200,11 +189,10 @@ class TestFlowScale(GenericTestBase):
         mem = self.calc_vrouter_mem_usage()
         l = len(self.mem_usg)
         diff = mem - self.mem_usg[l-1]
-        import pdb;pdb.set_trace()
         assert diff < self.min_mem_usg, 'Memory not decreasing proportionately after flow deletion'
         self.flow_mem_usage[flow_count] = mem
         self.mem_usg.append(mem)
-        
+
         # Add 1 Million flows
         self.logger.info('Adding 1 Million flows')
         for baseport in range(6001, 6050):
@@ -223,10 +211,10 @@ class TestFlowScale(GenericTestBase):
         flow_count = self.get_flow_count()
         mem = self.calc_vrouter_mem_usage()
         l = len(self.mem_usg)
-        assert mem > self.mem_usg[l-1], 'Memory not increasing after addition of flows'
+        assert mem > self.mem_usg[l -
+                                  1], 'Memory not increasing after addition of flows'
         self.flow_mem_usage[flow_count] = mem
         self.mem_usg.append(mem)
-
 
     def get_flow_count(self):
         cmd = "docker ps|grep tools|awk '{print $NF}'|tail -1"
@@ -240,28 +228,27 @@ class TestFlowScale(GenericTestBase):
         self.logger.info('Flow count: %s' % flow_count)
         return flow_count
 
-
     def memory_leak_checks(self):
         for i in range(3):
             baseport = 6000 + i
             self.wait_and_add_flows(baseport)
 
-
-    def watch_for_fluctuations(self):
+    def watch_for_fluctuations(self, flow_count_list):
         flow_count = self.get_flow_count()
         mem = self.calc_vrouter_mem_usage()
         flow_len = len(flow_count_list)
-        assert flow_count <= flow_count_list[flow_len-1] + 50, 'Flow count fluctuating'
+        assert flow_count <= flow_count_list[flow_len -
+                                             1] + 50, 'Flow count fluctuating'
         mem_len = len(self.mem_usg)
-        assert mem <= self.mem_usg[mem_len-1] + 1000, 'Memory usage of vrouter fluctuating'
+        assert mem <= self.mem_usg[mem_len-1] + \
+            1000, 'Memory usage of vrouter fluctuating'
         self.flow_mem_usage[flow_count] = mem
         self.mem_usg.append(mem)
         flow_count_list.append(flow_count)
 
-
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
-    def test_flow_scale(self):
+    def test_flow_scale_udp(self):
         '''
         Description: Test to scale above 1 million flows and check for memory leaks for UDP traffic
          Test steps:
@@ -287,15 +274,14 @@ class TestFlowScale(GenericTestBase):
             if flow_count >= 1024 * 1024 * 6:
                 break
 
-        # Difference between mem usage for each read 
+        # Difference between mem usage for each read
         diff = [abs(j-i) for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
         self.min_mem_usg = min(diff)
-        self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
-        self.logger.info('Min memory usage: %s' %self.min_mem_usg)
-        self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
+        self.logger.info('DIFF: %s AND AVG: %s' % (diff, avg))
+        self.logger.info('Min memory usage: %s' % self.min_mem_usg)
+        self.logger.info('Flow to memory usage: %s' % self.flow_mem_usage)
         self.memory_leak_checks()
-
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
@@ -323,11 +309,10 @@ class TestFlowScale(GenericTestBase):
         diff = [abs(j-i) for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
         self.min_mem_usg = min(diff)
-        self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
-        self.logger.info('Min memory usage: %s' %self.min_mem_usg)
-        self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
+        self.logger.info('DIFF: %s AND AVG: %s' % (diff, avg))
+        self.logger.info('Min memory usage: %s' % self.min_mem_usg)
+        self.logger.info('Flow to memory usage: %s' % self.flow_mem_usage)
         self.memory_leak_checks()
-
 
     @test.attr(type=['flow_scale'])
     @preposttest_wrapper
@@ -356,7 +341,7 @@ class TestFlowScale(GenericTestBase):
             flow_count_list.append(flow_count)
             if flow_count >= 1024 * 1024 * 6:
                 break
-        
+
         self.logger.info('Sleeping for 30s')
         time.sleep(30)
 
@@ -365,22 +350,21 @@ class TestFlowScale(GenericTestBase):
         self.mem_usg.append(mem)
 
         for i in range(3):
-            self.watch_for_fluctuations()
+            self.watch_for_fluctuations(flow_count_list)
             self.logger.info('Sleep for 20s')
             time.sleep(20)
 
         for i in range(3):
-            self.watch_for_fluctuations()
+            self.watch_for_fluctuations(flow_count_list)
             self.logger.info('Sleep for 10m')
             time.sleep(10 * 60)
-        
+
         diff = [j-i for i, j in zip(self.mem_usg[:-1], self.mem_usg[1:])]
         avg = sum(diff) / len(diff)
         self.min_mem_usg = min(diff)
-        self.logger.info('DIFF: %s AND AVG: %s' %(diff, avg))
-        self.logger.info('Min memory usage: %s' %self.min_mem_usg)
-        self.logger.info('Flow to memory usage: %s' %self.flow_mem_usage)
-
+        self.logger.info('DIFF: %s AND AVG: %s' % (diff, avg))
+        self.logger.info('Min memory usage: %s' % self.min_mem_usg)
+        self.logger.info('Flow to memory usage: %s' % self.flow_mem_usage)
 
 
 if __name__ == '__main__':
