@@ -26,7 +26,7 @@ class TestFlowScale(GenericTestBase):
     def setUp(self):
         super(TestFlowScale, self).setUp()
         self.vn1_fixture = self.create_only_vn()
-        vm1_node_name = self.inputs.host_data[self.inputs.compute_ips[1]]['name']
+        vm1_node_name = self.inputs.host_data[self.inputs.compute_ips[0]]['name']
         self.vn1_vm1_fixture = self.create_vm(
             self.vn1_fixture, node_name=vm1_node_name)
         self.vn1_vm1_fixture.wait_till_vm_is_up()
@@ -114,15 +114,16 @@ class TestFlowScale(GenericTestBase):
 
     @classmethod
     def set_flow_entries(cls, flow_entries):
-        compute_fixture = cls.compute_fixtures[1]
-        if cls.is_dpdk_compute(compute_fixture):
-            cls.add_dpdk_flow_args_to_entrypoint(compute_fixture, flow_entries)
-        else:
-            compute_fixture.add_vrouter_module_params(
-                {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
-            info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
-            output = compute_fixture.execute_cmd(info_cmd, container=None)
-            cls.logger.info(output)
+        for compute_fixture in cls.compute_fixtures:
+            if cls.is_dpdk_compute(compute_fixture):
+                cls.add_dpdk_flow_args_to_entrypoint(
+                    compute_fixture, flow_entries)
+            else:
+                compute_fixture.add_vrouter_module_params(
+                    {'vr_flow_entries': str(flow_entries)}, reload_vrouter=True)
+                info_cmd = 'contrail-tools vrouter --info |grep "Flow Table limit"'
+                output = compute_fixture.execute_cmd(info_cmd, container=None)
+                cls.logger.info(output)
 
     @classmethod
     def add_flow_cache_timeout(cls, flow_timeout):
