@@ -115,6 +115,7 @@ class TestFlowScale(GenericTestBase):
     @classmethod
     def set_flow_entries(cls, flow_entries):
         for compute_fixture in cls.compute_fixtures:
+            import pdb;pdb.set_trace()
             if cls.is_dpdk_compute(compute_fixture):
                 cls.add_dpdk_flow_args_to_entrypoint(
                     compute_fixture, flow_entries)
