@@ -533,6 +533,7 @@ class TestInputs(with_metaclass(Singleton, object)):
         self.vcenter_username = self.vcenter_password = None
         self.vcenter_compute = None
         self.vro_based = False
+        self.test_docker_registry = None
         with open(self.input_file, 'r') as fd:
             self.config = yaml.load(fd, Loader=yaml.FullLoader)
         deployment_configs = self.config.get('deployment', {})
@@ -554,6 +555,7 @@ class TestInputs(with_metaclass(Singleton, object)):
             kube_config_file = K8S_CONFIG_FILE
         self.kube_config_file = test_configs.get('kube_config_file') or kube_config_file
         self.juju_server = test_configs.get('juju_server')
+        self.test_docker_registry = test_configs.get('test_docker_registry')
 
         self.parse_topo()
         if self.deployer != 'contrail_command':
@@ -697,6 +699,12 @@ class TestInputs(with_metaclass(Singleton, object)):
             self.dm_mx = test_configs['device_manager']
         if 'ns_agilio_vrouter' in test_configs or 'vrouter_mode_dpdk' in test_configs:
             self.pcap_on_vm = True
+
+        if 'scale_config' in test_configs:
+            scale_conf = test_configs['scale_config']
+            self.control_node_vrf_scale = scale_conf.get('control_node_vrf_scale')
+            self.compute_node_vrf_scale = scale_conf.get('compute_node_vrf_scale')
+            self.vm_scale = scale_conf.get('vm_scale')
 
         self._parse_fabric(test_configs.get('fabric'))
         # If no explicit amqp servers are configured, it will be cfgm ips
