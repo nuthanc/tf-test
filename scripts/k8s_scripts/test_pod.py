@@ -27,7 +27,7 @@ class TestPod(BaseK8sTest):
         assert pod.verify_on_setup()
     # end test_add_delete_pod
 
-    @test.attr(type=['openshift_1', 'ci_contrail_go_k8s_sanity'])
+    @test.attr(type=['openshift_1', 'ci_contrail_go_k8s_sanity', 'k8s_upgrade'])
     @preposttest_wrapper
     def test_ping_between_two_pods(self):
         '''
@@ -37,7 +37,10 @@ class TestPod(BaseK8sTest):
         assert pod1.verify_on_setup()
         pod2 = self.setup_busybox_pod()
         assert pod2.verify_on_setup()
-        assert pod1.ping_with_certainty(pod2.pod_ip)
+        def validate():
+            assert pod1.ping_with_certainty(pod2.pod_ip)
+        validate()
+        self.validate_post_upgrade = validate
     # end test_ping_between_two_pods
 
     @test.attr(type=['openshift_1'])
