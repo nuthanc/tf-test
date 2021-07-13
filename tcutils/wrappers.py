@@ -84,6 +84,7 @@ def preposttest_wrapper(function):
                 log.info('UPGRADE: %s[%s]: Stopping self',
                          function.__name__, pid)
                 log.info('-' * 80)
+                import pdb;pdb.set_trace()
                 os.kill(pid, signal.SIGSTOP)
                 log.info('UPGRADE: %s[%s]: Resuming validation post upgrade',
                          function.__name__, pid)
