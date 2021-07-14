@@ -137,7 +137,7 @@ while [ $# -gt 0 ]; do
     -f|--force) force=1;;
     -u|--update) update=1;;
     --upgrade) upgrade=1; debug=1; tags="upgrade";;
-    --k8s_upgrade) upgrade=1; debug=1; tags="k8s_upgrade";;
+    --k8s-upgrade) upgrade=1; debug=1; tags="k8s_upgrade";;
     -U|--upload) upload=1;;
     -d|--debug) debug=1;;
     -C|--config) config_file=$2; shift;;
