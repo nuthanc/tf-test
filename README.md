@@ -8,7 +8,7 @@ docker exec $TEST_DOCKER bash -c "kill -10 $RUN_TEST_PID"
 ```
 
 ```sh
-bash -x run_tests.sh -m -U --k8s_upgrade
+bash -x run_tests.sh -m -U --k8s-upgrade
 2021-07-14 06:33:04,114 - INFO - UPGRADE: test_ping_between_two_pods[1541]: Stopping self
 
 docker exec nuthan_test bash -c "ps -aux"
